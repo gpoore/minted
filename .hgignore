@@ -1,0 +1,18 @@
+syntax: glob
+
+# Temporary files
+.*.swp
+*.out
+*.aux
+*.lol
+*.toc
+*.glo
+*.gls
+*.log
+*.ilg
+*.fdb_latexmk
+
+# Generated files
+*.zip
+*.sty
+*.pdf
