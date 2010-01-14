@@ -7,7 +7,7 @@ PACKAGE = minted.dtx \
 		  README \
 		  Makefile
 
-.PHONY: all doc dist clean
+.PHONY: all doc dist clean cleanall
 
 all: minted.sty minted.pdf
 
