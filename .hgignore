@@ -14,5 +14,4 @@ syntax: glob
 
 # Generated files
 *.zip
-*.sty
 *.pdf
