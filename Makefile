@@ -16,7 +16,7 @@ doc: minted.pdf
 minted.sty: minted.ins minted.dtx
 	echo y | tex minted.ins
 
-minted.pdf: minted.gls minted.dtx
+minted.pdf: minted.sty minted.gls minted.dtx
 	pdflatex -shell-escape minted.dtx
 
 minted.gls: minted.glo
