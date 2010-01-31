@@ -17,12 +17,12 @@ minted.sty: minted.ins minted.dtx
 	echo y | tex minted.ins
 
 minted.pdf: minted.sty minted.gls minted.dtx
-	pdflatex -shell-escape minted.dtx
+	$(LATEXMK) $(TEXFLAGS) minted.dtx
 
 minted.gls: minted.glo
 	makeindex -s gglo.ist -o minted.gls minted.glo
 
-minted.glo: minted.dtx
+minted.glo: minted.dtx minted.sty
 	$(LATEXMK) $(TEXFLAGS) minted.dtx
 
 dist: $(PACKAGE)

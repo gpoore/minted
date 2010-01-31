@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2010/01/13 v0.1.5 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/01/27 v1.6 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -40,6 +40,7 @@
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
+\RequirePackage{ifplatform}
 %</package>
 %<*driver>
 \documentclass[a4paper]{ltxdoc}
@@ -52,6 +53,7 @@
 \usepackage{courier} ^^A Useful monospace font (= has \bfseries).
 \usepackage{textcomp}
 \usepackage{hyperref}
+\usepackage{microtype}
 
 \hypersetup{
   pdftitle=The minted package: Highlighted source code in LaTeX,
@@ -68,19 +70,23 @@
    \setlength{\parindent}{0pt}
    \fbox{\begin{minipage}{0.5\linewidth}
      \small\inputminted[resetmargins]{latex}{example.out}
-   \end{minipage}\qquad
+   \end{minipage}
+   \hspace{0.05\linewidth}
    \begin{minipage}{0.4\linewidth}
      \small\input{example.out}
-   \end{minipage}}
-   \vspace{1ex}}
+   \end{minipage}
+   \vspace{1ex}}}
 
 \newenvironment{optionlist}
-  {\begin{list}{}{\renewcommand\makelabel[1]{\textsf{##1}}}
+  {\begin{list}{}{\renewcommand\makelabel[1]{\textsf{##1}:\quad}}
    \DeleteShortVerb{\|}\MakeShortVerb{\+}}
   {\end{list}\DeleteShortVerb{\+}\MakeShortVerb{\|}}
 
 \newcommand\thestyle{trac}
 \usemintedstyle{\thestyle}
+
+\setlength{\parindent}{0pt}
+\addtolength{\parskip}{0.5\baselineskip}
 
 \begin{document}
 \DocInput{minted.dtx}
@@ -89,6 +95,7 @@
 % \fi
 %
 % \changes{0.0.4}{2010/01/08}{Initial version}
+% \changes{1.6}{2010/01/22}{Simpler versioning scheme}
 %
 % \GetFileInfo{minted.sty}
 %
@@ -103,12 +110,13 @@
 % \maketitle
 %
 % \begin{abstract}
-%   \pkg{minted} is a package that facilitates expressive syntax highlighting
+%   \noindent\pkg{minted} is a package that facilitates expressive syntax highlighting
 %   using the powerful \app{Pygments} library. The package also provides options to
 %   customize the highlighted source code output.
 % \end{abstract}
 %
 % \begin{multicols}{2}
+%   \setlength{\parskip}{0pt}
 %   \tableofcontents
 % \end{multicols}
 %
@@ -117,6 +125,7 @@
 %   numbersep=5pt
 % }
 % \setlength{\fboxsep}{1ex}
+%
 %
 % \section{Introduction}
 %
@@ -129,7 +138,7 @@
 % \end{VerbatimOut}
 % \inputminted[gobble=2]{latex}{minted.doc.out}
 %
-% \noindent will highlight a piece of code in a chosen language.
+% will highlight a piece of code in a chosen language.
 % The display can be customized by a number of arguments and colour schemes.
 %
 % Unlike some other packages, most notably \pkg{listings}, \pkg{minted} requires
@@ -160,6 +169,7 @@
 %
 % Additionally, installing \app{Pygments} is actually incredibly easy (see the next section).
 %
+%
 % \section{Installation}
 %
 % \app{Pygments} is written in Python so make sure that at least Python 2.6 is installed on you system:
@@ -172,6 +182,8 @@
 % If that's not the case, you can download it from \href{http://www.python.org/download/}{the website} or
 % use your operating system's package manager.
 %
+% Next, install \href{http://pypi.python.org/pypi/setuptools}{\app{setuptools}} which facilitates the distribution of Python applications.
+%
 % You can then install \app{Pygments} using the following simple command:
 %
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
@@ -181,7 +193,35 @@
 % (If you've already got \app{Pygments} installed, be advised that \pkg{minted} requires at least version
 % 1.2.)
 %
+%
+% \subsection{Windows}
+%
+% Windows support is sketchy at the moment.
+% There are two complications: installation and usage.
+%
+% \begin{description}
+%   \item[Installation]
+%     The above setting assumes that |easy_install| is in a path that Windows automatically find.
+%     to do this, you must usually set your |PATH| environment variable accordingly (e.g. to
+%     |C:\Python26\Scripts|).
+%   \item[Usage]
+%     \app{Pygments} currently does not ship with a Windows compatible application.
+%     In order to still run it, you need to create a small command script and put it someplace where
+%     Windows will find it (e.g. the aforementioned |Scripts| directory, which you will have registered
+%     in the |PATH| variable anyway).
+%     The script needs to be called |pygmentize.cmd| and it needs to contain the following content:
+%
+%     \def\mintedbs#1{\char`\\}
+%     \def\mintedpcc#1{\char37\relax}
+%     \begin{Verbatim}[gobble=7,commandchars=\\\{\}]
+%       @echo off
+%       set PYTHONPATH=C:\mintedbs{}Python26
+%       \mintedpcc{}PYTHONPATH\mintedpcc{}\mintedbs{}python.exe \mintedpcc{}PYTHONPATH\mintedpcc\mintedbs{}Scripts\mintedbs{}pygmentize \mintedpcc{}*
+%     \end{Verbatim}
+% \end{description}
+%
 % \section{Basic usage}
+%
 %
 % \subsection{Preliminary}
 %
@@ -199,6 +239,7 @@
 % \end{Verbatim}
 %
 % The same holds for other processors, such as |pdflatex| or |xelatex|.
+%
 %
 % \subsection{Formatting source code}
 %
@@ -223,13 +264,14 @@
 %   \mint{python}|import this|
 % \end{example}
 %
-% The complete syntax is \texttt{\char`\\mint\oarg{options}\marg{language}/code/}
+% The complete syntax is \cmd\mint\oarg{options}\marg{language}/\meta{code}/
 % Where the code delimither |/|, like with |\verb|, can be almost any punctuation character. ^^A|
 % Again, this command supports a number of options described below.
 %
 % \DescribeMacro{\inputminted}
 % Finally, there's the comment |\inputminted| command to read and format whole files.
-% Its syntax is \texttt{\char`\\inputminted\oarg{options}\marg{language}\marg{filename}}.
+% Its syntax is \cmd\inputminted\oarg{options}\marg{language}\marg{filename}.
+%
 %
 % \subsection{Using different styles}
 %
@@ -252,6 +294,7 @@
 % Creating own styles is also very easy. Just follow the instructions provided on the
 % \href{http://pygments.org/docs/styles/#creating-own-styles}{website}.
 %
+%
 % \subsection{Supported languages}
 %
 % \app{Pygments} at the moment supports over 150 different programming languages, template languages
@@ -262,6 +305,7 @@
 %   \$ pygmentize -L lexers
 % \end{Verbatim}
 %
+%
 % \section{Floated listings}
 %
 % \DescribeEnv{listing}
@@ -269,9 +313,8 @@
 % That way, the source code will be put into a floating box.
 % You can also provide a |\caption| and a |\label| for such a listing in the usual way (that is,
 % as for the |table| and |figure| environments):
-%
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \begin{listing}
+%   \begin{listing}[H]
 %     \mint{cl}/(car (cons 1 2))/
 %     \caption{Example of a listing.}
 %     \label{lst:example}
@@ -283,11 +326,11 @@
 %
 % will yield:
 %
-% \noindent
-% \rule{\textwidth}{0.4pt}
-% \input{minted.doc.out}
-% \par\noindent
+% \begin{samepage}
 % \rule{\textwidth}{0.4pt}\\
+% \input{minted.doc.out}
+% \ \\\rule{\textwidth}{0.4pt}\\
+% \end{samepage}
 %
 % \DescribeMacro{\listoflistings}
 % The |\listoflistings| macro will insert a list of all (floated) listings into the document:
@@ -308,7 +351,9 @@
 %
 % \mint{latex}/\renewcommand\listoflistingscaption{List of program codes}/
 %
+%
 % \section{Options}
+%
 %
 % \subsection{Usage}
 %
@@ -367,21 +412,22 @@
 %   \end{minted}
 % \end{example}
 %
+%
 % \subsection{Available options}
 %
 % Following is a full list of available options.
 % For more detailed option descriptions please refer to the \pkg{fancyvrb} documentation,
 % except where noted otherwise.
 % \begin{optionlist}
-%   \item[baselinestretch (+auto+\textbar dimension)]:
+%   \item[baselinestretch (+auto+\textbar dimension)]
 %     Value to use as for baselinestretch inside the listing (default: +auto+).
-%   \item[bgcolor (string)]:
+%   \item[bgcolor (string)]
 %     Background color of the listing (default: \emph{none}).
 %     Notice that the value of this option must \emph{not} be a color command. Instead, it must be a color
 %     \emph{name}, given as a string, of a previously-defined color:
 %
 % \begin{example}
-%   \definecolor{bg}{rgb}{0.9,0.9,0.9}
+%   \definecolor{bg}{rgb}{0.95,0.95,0.95}
 %   \begin{minted}[bgcolor=bg]{php}
 %   <?php
 %     echo "Hello, $x";
@@ -389,63 +435,240 @@
 %   \end{minted}
 % \end{example}
 %
-%   \item[firstline (integer)]:
+%   \item[firstline (integer)]
 %     First line to be shown (default: +1+).
 %     All lines before that line are ignored and do not appear in the output.
-%   \item[firstnumber (+auto+\textbar integer)]:
+%   \item[firstnumber (+auto+\textbar integer)]
 %     Line number of the first line (default: +auto+ = 1).
+%   \item[fontfamily (family name)]
+%     The font family to use (default: +tt+).
+%     +tt+, +courier+ and +helvetica+ are pre-defined.
+%   \item[fontseries (series name)]
+%     The font series to use (default: +auto+ -- the same as the current font).
+%   \item[fontsize (font size)]
+%     The size of the font to use (default: +auto+ -- the same as the current font).
+%   \item[fontshape (font shape)]
+%     The font shape to use (default: +auto+ -- the same as the current font).
+%   \item[formatcom (command)]
+%     A format to execute before printing verbatim text (default: \emph{none}).
 %   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+)]:
 %     The type of frame to put around the source code listing (default: +none+).
-%   \item[framerule (dimension)]:
+%   \item[framerule (dimension)]
 %     Width of the frame (default: +0.4pt+).
-%   \item[framesep (dimension)]:
+%   \item[framesep (dimension)]
 %     Distance between frame and content (default: +\fboxsep+).
-%   \item[gobble (integer)]:
+%   \item[gobble (integer)]
 %     Remove the first $n$ characters from each input line (default: +0+).
-%   \item[lastline (integer)]:
+%   \item[lastline (integer)]
 %     Last line to be shown (default: \emph{last line of input}).
-%   \item[linenos (boolean)]:
+%   \item[linenos (boolean)]
 %     Enables line numbers (default +false+).
-%   \item[mathescape (boolean)]:
+%     In order to customize the display style of line numbers, you need to redefine the +\theFancyVerbLine+
+%     macro:
+%
+% \begin{example}
+%   \renewcommand{\theFancyVerbLine}{\sffamily
+%     \textcolor[rgb]{0.5,0.5,1.0}{\scriptsize
+%     \oldstylenums{\arabic{FancyVerbLine}}}}
+%
+%   \begin{minted}[linenos,
+%     firstnumber=11]{python}
+%   def all(iterable):
+%       for i in iterable:
+%           if not i: 
+%               return False
+%       return True
+%   \end{minted}
+% \end{example}
+%
+%   \item[mathescape (boolean)]
 %     Enable \LaTeX{} math mode inside comments (default: +false+).
 %     Do \emph{not} use spaces inside math mode -- they will be rendered like other full-width verbatim spaces.
 %     Usage as in package \pkg{listings}.
-%   \item[numberblanklines (boolean)]:
+%   \item[numberblanklines (boolean)]
 %     Enables or disables numbering of blank lines (default: +true+).
-%   \item[numbersep (dimension)]:
+%   \item[numbersep (dimension)]
 %     Gap between numbers and start of line (default: +12pt+).
-%   \item[resetmargins (boolean)]:
+%   \item[obeytabs (boolean)]
+%     Treat tabs as tabs instead of converting them to spaces (default: +false+).
+%   \item[resetmargins (boolean)]
 %     Resets the left margin inside other environments (default: +false+).
-%   \item[rulecolor (color command)]:
+%   \item[rulecolor (color command)]
 %     The color of the frame (default: \emph{black})
-%   \item[samepage (boolean)]:
+%   \item[samepage (boolean)]
 %     Forces the whole listing to appear on the same page, even if it doesn't fit (default: +false+).
-%   \item[showspaces (boolean)]:
+%   \item[showspaces (boolean)]
 %     Enables visible spaces: \verb*/visible spaces/ (default: +false+).
-%   \item[stepnumber (integer)]:
+%   \item[showtabs (boolean)]
+%     Enables visible tabs -- only works in combination with +obeytabs+ (default: +false+).
+%   \item[stepnumber (integer)]
 %     Interval at which line numbers appear (default: +1+).
-%   \item[texcl (boolean)]:
+%   \item[tabsize (integer)]
+%     The number of spaces a tab is equivalent to if +obeytabs+ is not active (default: +8+).
+%   \item[texcl (boolean)]
 %     Enables \LaTeX{} code inside comments (default: +false+).
 %     Usage as in package \pkg{listings}.
-%   \item[xleftmargin (dimension)]:
+%   \item[xleftmargin (dimension)]
 %     Indentation to add before the listing (default: +0+).
-%   \item[xrightmargin (dimension)]:
+%   \item[xrightmargin (dimension)]
 %     Indentation to add after the listing (default: +0+).
 % \end{optionlist}
+%
+%
+% \section{Defining shortcuts}
+%
+% Large documents with a lot of listings will nonetheless use the same source language and the
+% same set of options for most listings.
+% Always specifying all options is redundant, a lot to type and makes performing changes hard.
+%
+% \pkg{minted} therefore defines a set of commands that lets you define shortcuts for the highlighting
+% commands.
+% Each shortcut is specific for one programming language.
+% \DescribeMacro{\newminted}
+% |\newminted| defines a new alias for the |minted| environment:
+%
+% \begin{example}
+%   \newminted{cpp}{gobble=2,linenos}
+%
+%   \begin{cppcode}
+%     template <typename T>
+%     T id(T value) {
+%         return value;
+%     }
+%   \end{cppcode}
+% \end{example}
+%
+% If you want to provide extra options on the fly, or override existing default options, you can do that, too:
+%
+% \begin{example}
+%   \newminted{cpp}{gobble=2,linenos}
+%
+%   \begin{cppcode*}{linenos=false,
+%                    frame=single}
+%     int const answer = 42;
+%   \end{cppcode*}
+% \end{example}
+%
+% Notice the star ``|*|'' behind the environment name -- due to restrictions in \pkg{fancyvrb}'s handling
+% of options, it is necessary to provide a \emph{separate} environment that accepts options, and the options
+% are \emph{not} optional on the starred version of the environment.
+%
+% The default name of the environment is \meta{language}|code|.
+% If this name clashes with another environment or if you want to choose an own name for another reason, you may
+% do so by specifying it as the first argument: \cmd\newminted\oarg{environment name}\marg{language}\marg{options}.
+%
+% \DescribeMacro{\newmint}
+% The above macro only defines shortcuts for the |minted| environment.
+% The main reason is that the short command form |\mint| often needs different options -- at the very least, it
+% will generally not use the |gobble| option.
+% A shortcut for |\mint| is defined using \cmd\newmint\oarg{macro name}\marg{language}\marg{options}.
+% The arguments and usage are identical to |\newminted|.
+% If no \meta{macro name} is specified, \meta{language} is used.
+%
+% \begin{example}
+%   \newmint{perl}{showspaces}
+%
+%   \perl/my $foo = $bar;/
+% \end{example}
+%
 %
 % \section{To do list}
 %
 %\begin{itemize}
-%  \item Add check for \app{pygmentize} installation and version.
 %  \item Allow multiple stylesheets in one file.
 %  \item Allow quotes in \pkg{fancyvrb} arguments.
 %\end{itemize}
+%
+%
+% \section{Known issues}
+%
+% \begin{itemize}
+%   \item Extended characters do not work inside the |minted| environment, even in conjunction with
+%     package \pkg{inputenc}.
+%     \textbf{Solution}: Use |xelatex| instead of plain \LaTeX.
+% \end{itemize}
 %
 % \StopEventually{
 %   \addcontentsline{toc}{section}{Change History}
 %   \PrintChanges}
 %
+%
 % \section{Implementation}
+%
+%
+% \subsection{System-specific settings}
+%
+% \changes{1.6}{2010/01/27}{Windows support added}
+%
+% Since we communicate with the ``outside world'', some operations must be defined system-dependently.
+%
+% \begin{macro}{\DeleteFile}
+%
+% Delete a file; we're careful in case someone has already defined this macro elsewhere.
+%
+%    \begin{macrocode}
+\ifwindows
+  \providecommand\DeleteFile[1]{\immediate\write18{del #1}}
+\else
+  \providecommand\DeleteFile[1]{\immediate\write18{rm #1}}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\TestAppExists}
+%
+% Check whether a given application exists on the system.
+% Usage is a bit roundabout (should be fixed?) -- to test whether an application exists, use the
+% following code:
+%
+% \begin{Verbatim}[gobble=2]
+%   \TestAppExists{appname}
+%   \ifthenelse{\boolean{AppExists}}
+%     {app exists}{app doesn't exist}
+% \end{Verbatim}
+%
+%    \begin{macrocode}
+\newboolean{AppExists}
+\providecommand\TestAppExists[1]{
+  \ifwindows
+%    \end{macrocode}
+%
+% On Windows, we need to use path expansion and write the result to a file.
+% If the application doesn't exist, the file will be empty (except for a newline);
+% otherwise, it will contain the full path of the application.
+%
+%    \begin{macrocode}
+    \DeleteFile{\jobname.aex}
+    \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
+      do set >\jobname.aex <nul: /p x=\string^\@percentchar \string~$PATH:i>>\jobname.aex} %$
+    \newread\@appexistsfile
+    \immediate\openin\@appexistsfile\jobname.aex
+    \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
+    \endlinechar=-1\relax
+    \readline\@appexistsfile to \@apppathifexists
+    \endlinechar=\@tmp@cr
+    \ifthenelse{\equal{\@apppathifexists}{}}
+     {\AppExistsfalse}
+     {\AppExiststrue}
+    \immediate\closein\@appexistsfile
+    \DeleteFile{\jobname.aex}
+\immediate\typeout{file deleted}
+  \else
+%    \end{macrocode}
+%
+% On Unix-like systems, we do a straightforward |which| test and create a file upon success,
+% whose existence we can then check.
+%
+%    \begin{macrocode}
+    \immediate\write18{which -s #1 && touch \jobname.aex}
+    \IfFileExists{\jobname.aex}
+     {\AppExiststrue
+      \DeleteFile{\jobname.aex}}
+     {\AppExistsfalse}
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
 %
 % \subsection{Option processing}
 %
@@ -530,19 +753,20 @@
 %
 %    \begin{macrocode}
 \newcommand\minted@define@extra@switch[1]{
-  \define@booleankey{minted@opt}{#1}{
-    \expandafter\def\expandafter\minted@opt@extra\expandafter{%
+  \define@booleankey{minted@opt}{#1}
+   {\expandafter\def\expandafter\minted@opt@extra\expandafter{%
       \minted@opt@extra,#1}}
-     {\expandafter\def\expandafter\minted@opt@extra\expandafter{%
+   {\expandafter\def\expandafter\minted@opt@extra\expandafter{%
       \minted@opt@extra,#1=false}}}
 %    \end{macrocode}
 % \end{macro}
 %
 % \noindent Actual option definitions.
 %
-% \changes{0.1.5}{2010/01/10}{Fix \texttt{firstnumber} option}
-% \changes{0.1.5}{2010/01/10}{\texttt{fillcolor} option added}
+% \changes{0.1.5}{2010/01/10}{Fixed \texttt{firstnumber} option}
+% \changes{0.1.5}{2010/01/10}{Added \texttt{fillcolor} option}
 % \changes{0.1.5}{2010/01/10}{Removed \texttt{caption} option}
+% \changes{1.6}{2010/01/27}{Added font-related options}
 %
 %    \begin{macrocode}
 \minted@define@switch{texcl}{-P texcomments}
@@ -563,11 +787,20 @@
 \minted@define@extra{xleftmargin}
 \minted@define@extra{xrightmargin}
 \minted@define@extra{fillcolor}
+\minted@define@extra{tabsize}
+\minted@define@extra{fontfamily}
+\minted@define@extra{fontsize}
+\minted@define@extra{fontshape}
+\minted@define@extra{fontseries}
+\minted@define@extra{formatcom}
 \minted@define@extra@switch{numberblanklines}
 \minted@define@extra@switch{showspaces}
 \minted@define@extra@switch{resetmargins}
 \minted@define@extra@switch{samepage}
+\minted@define@extra@switch{showtabs}
+\minted@define@extra@switch{obeytabs}
 %    \end{macrocode}
+%
 %
 % \subsection{Internal helpers}
 %
@@ -622,12 +855,14 @@
     \minted@opt{linenos} -P "verboptions=\minted@opt{extra}"
     -o \jobname.out.pyg #1}
   \immediate\write18{\minted@cmd}
-  \ifthenelse{\equal{\minted@opt@bgcolor}{}}{}
+  \ifthenelse{\equal{\minted@opt@bgcolor}{}}
+   {}
    {\begin{minted@colorbg}{\minted@opt@bgcolor}}
   \input{\jobname.out.pyg}
-  \ifthenelse{\equal{\minted@opt@bgcolor}{}}{}
+  \ifthenelse{\equal{\minted@opt@bgcolor}{}}
+   {}
    {\end{minted@colorbg}}
-  \immediate\write18{rm \jobname.out.pyg}}
+  \DeleteFile{\jobname.out.pyg}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -639,6 +874,7 @@
 \newcommand\minted@usedefaultstyle{\usemintedstyle{default}}
 %    \end{macrocode}
 % \end{macro}
+%
 %
 % \subsection{Public API}
 %
@@ -657,12 +893,6 @@
 % \begin{macro}{\mint}
 %
 % Highlight a small piece of verbatim code.
-% Usage:
-% \begin{Verbatim}
-%   \mint[options]{language}/code/
-% \end{Verbatim}
-% where |/| is an arbitrary delimiter, much like for |\verb| and
-% fancyvrb's |\Verb|.
 %
 %    \begin{macrocode}
 \newcommand\mint[3][]{
@@ -673,41 +903,31 @@
     \UndefineShortVerb{#3}
     \minted@savecode{\FV@SV@minted@verb}
     \minted@pygmentize{#2}
-    \immediate\write18{rm \jobname.pyg}}]{minted@verb}#3}
+    \DeleteFile{\jobname.pyg}}]{minted@verb}#3}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{environment}{\minted}
+% \begin{environment}{minted}
 %
 % Highlight a longer piece of code inside a verbatim environment.
-% Usage:
-% \begin{Verbatim}
-%   \begin{minted}[options]{language}
-%     code
-%   \end{minted}
-% \end{Verbatim}
 %
 %    \begin{macrocode}
 \newcommand\minted@proglang[1]{}
 \newenvironment{minted}[2][]
-  {\VerbatimEnvironment
-   \renewcommand{\minted@proglang}[1]{#2}
-   \minted@resetoptions
-   \setkeys{minted@opt}{#1}
-   \begin{VerbatimOut}{\jobname.pyg}}%
-  {\end{VerbatimOut}
-   \minted@pygmentize{\minted@proglang{}}
-   \immediate\write18{rm \jobname.pyg}}
+ {\VerbatimEnvironment
+  \renewcommand{\minted@proglang}[1]{#2}
+  \minted@resetoptions
+  \setkeys{minted@opt}{#1}
+  \begin{VerbatimOut}{\jobname.pyg}}%
+ {\end{VerbatimOut}
+  \minted@pygmentize{\minted@proglang{}}
+  \DeleteFile{\jobname.pyg}}
 %    \end{macrocode}
 % \end{environment}
 %
 % \begin{macro}{\inputminted}
 %
 % Highlight an external source file.
-% Usage:
-% \begin{Verbatim}
-%   \inputminted[options]{language}{path}
-% \end{Verbatim}
 %
 %    \begin{macrocode}
 \newcommand\inputminted[3][]{
@@ -716,6 +936,97 @@
   \minted@pygmentize[#3]{#2}}
 %    \end{macrocode}
 % \end{macro}
+%
+%
+% \subsection{Command shortcuts}
+%
+% \changes{1.6}{2010/01/22}{Added command shortcuts}
+%
+% We allow the user to define shortcuts for the highlighting commands.
+%
+% \begin{macro}{\newminted}
+%
+% Define a new language-specific alias for the |minted| environment.
+%
+%    \begin{macrocode}
+\newcommand\newminted[3][]{
+%    \end{macrocode}
+%
+% First, we look whether a custom environment name was given as the first
+% optional argument.
+% If that's not the case, construct it from the language name (append ``|code|'').
+%
+%    \begin{macrocode}
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@envname{#2code}}
+   {\def\minted@envname{#1}}
+%    \end{macrocode}
+%
+% Now, we define two environments.
+% The first takes no further arguments.
+% The second, starred version, takes an extra argument that specifies option
+% overrides.
+%
+%    \begin{macrocode}
+  \newenvironment{\minted@envname}
+   {\VerbatimEnvironment\begin{minted}[#3]{#2}}
+   {\end{minted}}
+  \newenvironment{\minted@envname *}[1]
+   {\VerbatimEnvironment\begin{minted}[#3,##1]{#2}}
+   {\end{minted}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\newmint}
+%
+% Define a new language-specific alias for the |\mint| short form.
+%
+%    \begin{macrocode}
+\newcommand\newmint[3][]{
+%    \end{macrocode}
+%
+% Same as with |\newminted|, look whether an explicit name is provided.
+% If not, take the language name as command name.
+%
+%    \begin{macrocode}
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@shortname{#2}}
+   {\def\minted@shortname{#1}}
+%    \end{macrocode}
+%
+% And define the macro.
+%
+%    \begin{macrocode}
+  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
+    \mint[#3,##1]{#2}##2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\newmintedfile}
+%
+% Finally, define a new language-specific alias for |\inputminted|.
+%
+%    \begin{macrocode}
+\newcommand\newmintedfile[3][]{
+%    \end{macrocode}
+%
+% Here, the default macro name (if none is provided) appends ``|file|'' to the language name.
+%
+%    \begin{macrocode}
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@shortname{#2file}}
+   {\def\minted@shortname{#1}}
+%    \end{macrocode}
+%
+% \dots and define the macro.
+%
+%    \begin{macrocode}
+  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
+    \inputminted[#3,##1]{#2}{##2}}}
+%    \end{macrocode}
+%
+% \end{macro}
+%
 %
 % \subsection{Float support}
 %
@@ -766,6 +1077,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
+%
 % \subsection{Epilogue}
 %
 % Load default stylesheet -- but only if user has not yet loaded a custom
@@ -776,14 +1088,29 @@
   \minted@usedefaultstyle}
 %    \end{macrocode}
 %
-% \noindent Check whether LaTeX was invoked with |-shell-escape| option.
+% Check whether LaTeX was invoked with |-shell-escape| option.
 %
 %    \begin{macrocode}
 \AtEndOfPackage{
-  \ifeof18\PackageError{minted}{You must invoke LaTeX with the
-    -shell-escape flag}
-  {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-  documentation for more information.}\fi}
+  \ifeof18
+    \PackageError{minted}
+     {You must invoke LaTeX with the
+      -shell-escape flag}
+     {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
+      documentation for more information.}\fi}
+%    \end{macrocode}
+%
+% Check whether \app{pygmentize} is installed.
+%
+%    \begin{macrocode}
+  \TestAppExists{pygmentize}
+  \ifAppExists\else
+    \PackageError{minted}
+     {You must have `pygmentize' installed
+      to use this package}
+     {Refer to the installation instructions in the minted
+      documentation for more information.}
+  \fi
 %    \end{macrocode}
 %
 % \Finale
