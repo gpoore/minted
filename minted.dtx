@@ -660,7 +660,7 @@
 % whose existence we can then check.
 %
 %    \begin{macrocode}
-    \immediate\write18{which -s #1 && touch \jobname.aex}
+    \immediate\write18{which #1 && touch \jobname.aex}
     \IfFileExists{\jobname.aex}
      {\AppExiststrue
       \DeleteFile{\jobname.aex}}
