@@ -76,11 +76,11 @@
   \ifthenelse{\equal{#1}{}}{
     \define@key{minted@opt}{#2}{\@namedef{minted@opt@#2}{#3}}}
    {\define@key{minted@opt}{#2}[#1]{\@namedef{minted@opt@#2}{#3}}}}
-\newcommand\minted@define@switch[2]{
-  \minted@defopt{#1}
-  \define@booleankey{minted@opt}{#1}{
-    \@namedef{minted@opt@#1}{#2}}
-   {\@namedef{minted@opt@#1}{}}}
+\newcommand\minted@define@switch[3][]{
+  \minted@defopt{#2}
+  \define@booleankey{minted@opt}{#2}
+   {\@namedef{minted@opt@#2}{#3}}
+   {\@namedef{minted@opt@#2}{#1}}}
 \minted@defopt{extra}
 \newcommand\minted@define@extra[1]{
   \define@key{minted@opt}{#1}{
@@ -96,7 +96,7 @@
 \minted@define@switch{mathescape}{-P mathescape}
 \minted@define@switch{linenos}{-P linenos}
 \minted@define@switch{startinline}{-P startinline}
-\minted@define@switch{funcnamehighlighting}{-P funcnamehighlighting}
+\minted@define@switch[-P funcnamehighlighting=False]{funcnamehighlighting}{-P funcnamehighlighting}
 \minted@define@opt{gobble}{-F gobble:n=#1}
 \minted@define@opt{bgcolor}{#1}
 \minted@define@extra{frame}
@@ -145,6 +145,8 @@
     \minted@opt{linenos} -P "verboptions=\minted@opt{extra}"
     -o \jobname.out.pyg #1}
   \immediate\write18{\minted@cmd}
+  % For debugging, uncomment:
+  %\immediate\typeout{\minted@cmd}
   \ifthenelse{\equal{\minted@opt@bgcolor}{}}
    {}
    {\begin{minted@colorbg}{\minted@opt@bgcolor}}
