@@ -25,7 +25,7 @@
 %% This work consists of the files mints.dtx and mints.ins
 %% and the derived file mints.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2010/01/27 v1.6 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/02/16 v1.7 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
@@ -57,7 +57,7 @@
     \DeleteFile{\jobname.aex}
 \immediate\typeout{file deleted}
   \else
-    \immediate\write18{which -s #1 && touch \jobname.aex}
+    \immediate\write18{which #1 && touch \jobname.aex}
     \IfFileExists{\jobname.aex}
      {\AppExiststrue
       \DeleteFile{\jobname.aex}}

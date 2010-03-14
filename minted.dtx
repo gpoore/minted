@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2010/01/27 v1.6 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/02/16 v1.7 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -658,6 +658,8 @@
 %
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success,
 % whose existence we can then check.
+%
+% \changes{1.7}{2010/02/16}{Removed unportable flag from Unix shell command}
 %
 %    \begin{macrocode}
     \immediate\write18{which #1 && touch \jobname.aex}

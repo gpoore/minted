@@ -7,14 +7,16 @@ PACKAGE = minted.dtx \
 		  README \
 		  Makefile
 
-.PHONY: all doc dist clean cleanall
+.PHONY: minted all doc dist clean cleanall
 
-all: minted.sty minted.pdf
+minted: minted.sty
 
 doc: minted.pdf
 
+all: minted doc
+
 minted.sty: minted.ins minted.dtx
-	echo y | tex minted.ins
+	tex minted.ins
 
 minted.pdf: minted.sty minted.gls minted.dtx
 	$(LATEXMK) $(TEXFLAGS) minted.dtx
