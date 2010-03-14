@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2010/02/16 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/03/14 v1.7 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -415,6 +415,8 @@
 %
 % \subsection{Available options}
 %
+% \newcommand\appliesto[1]{\textsf{[For #1 only]}}
+%
 % Following is a full list of available options.
 % For more detailed option descriptions please refer to the \pkg{fancyvrb} documentation,
 % except where noted otherwise.
@@ -457,6 +459,8 @@
 %     Width of the frame (default: +0.4pt+).
 %   \item[framesep (dimension)]
 %     Distance between frame and content (default: +\fboxsep+).
+%   \item[funcnamehighlighting (boolean)] \appliesto{PHP}
+%     If +true+, highlights built-in function names (default: +true+).
 %   \item[gobble (integer)]
 %     Remove the first $n$ characters from each input line (default: +0+).
 %   \item[lastline (integer)]
@@ -501,6 +505,8 @@
 %     Enables visible spaces: \verb*/visible spaces/ (default: +false+).
 %   \item[showtabs (boolean)]
 %     Enables visible tabs -- only works in combination with +obeytabs+ (default: +false+).
+%   \item[startinline (boolean)] \appliesto{PHP}
+%     Specifies that the code starts in PHP mode, i.e. leading +<?php+ is omitted (default: +false+).
 %   \item[stepnumber (integer)]
 %     Interval at which line numbers appear (default: +1+).
 %   \item[tabsize (integer)]
@@ -629,7 +635,7 @@
 %
 %    \begin{macrocode}
 \newboolean{AppExists}
-\providecommand\TestAppExists[1]{
+\newcommand\TestAppExists[1]{
   \ifwindows
 %    \end{macrocode}
 %
@@ -769,11 +775,14 @@
 % \changes{0.1.5}{2010/01/10}{Added \texttt{fillcolor} option}
 % \changes{0.1.5}{2010/01/10}{Removed \texttt{caption} option}
 % \changes{1.6}{2010/01/27}{Added font-related options}
+% \changes{1.7}{2010/03/14}{Added PHP-specific options}
 %
 %    \begin{macrocode}
 \minted@define@switch{texcl}{-P texcomments}
 \minted@define@switch{mathescape}{-P mathescape}
 \minted@define@switch{linenos}{-P linenos}
+\minted@define@switch{startinline}{-P startinline}
+\minted@define@switch{funcnamehighlighting}{-P funcnamehighlighting}
 \minted@define@opt{gobble}{-F gobble:n=#1}
 \minted@define@opt{bgcolor}{#1}
 \minted@define@extra{frame}
@@ -854,6 +863,7 @@
 \newcommand\minted@pygmentize[2][\jobname.pyg]{
   \def\minted@cmd{pygmentize -l #2 -f latex -F tokenmerge
     \minted@opt{gobble} \minted@opt{texcl} \minted@opt{mathescape}
+    \minted@opt{startinline} \minted@opt{funcnamehighlighting}
     \minted@opt{linenos} -P "verboptions=\minted@opt{extra}"
     -o \jobname.out.pyg #1}
   \immediate\write18{\minted@cmd}
@@ -1099,7 +1109,7 @@
      {You must invoke LaTeX with the
       -shell-escape flag}
      {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-      documentation for more information.}\fi}
+      documentation for more information.}\fi
 %    \end{macrocode}
 %
 % Check whether \app{pygmentize} is installed.
@@ -1112,7 +1122,7 @@
       to use this package}
      {Refer to the installation instructions in the minted
       documentation for more information.}
-  \fi
+  \fi}
 %    \end{macrocode}
 %
 % \Finale

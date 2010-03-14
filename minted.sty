@@ -25,7 +25,7 @@
 %% This work consists of the files mints.dtx and mints.ins
 %% and the derived file mints.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2010/02/16 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/03/14 v1.7 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
@@ -39,7 +39,7 @@
   \providecommand\DeleteFile[1]{\immediate\write18{rm #1}}
 \fi
 \newboolean{AppExists}
-\providecommand\TestAppExists[1]{
+\newcommand\TestAppExists[1]{
   \ifwindows
     \DeleteFile{\jobname.aex}
     \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
@@ -95,6 +95,8 @@
 \minted@define@switch{texcl}{-P texcomments}
 \minted@define@switch{mathescape}{-P mathescape}
 \minted@define@switch{linenos}{-P linenos}
+\minted@define@switch{startinline}{-P startinline}
+\minted@define@switch{funcnamehighlighting}{-P funcnamehighlighting}
 \minted@define@opt{gobble}{-F gobble:n=#1}
 \minted@define@opt{bgcolor}{#1}
 \minted@define@extra{frame}
@@ -139,6 +141,7 @@
 \newcommand\minted@pygmentize[2][\jobname.pyg]{
   \def\minted@cmd{pygmentize -l #2 -f latex -F tokenmerge
     \minted@opt{gobble} \minted@opt{texcl} \minted@opt{mathescape}
+    \minted@opt{startinline} \minted@opt{funcnamehighlighting}
     \minted@opt{linenos} -P "verboptions=\minted@opt{extra}"
     -o \jobname.out.pyg #1}
   \immediate\write18{\minted@cmd}
@@ -213,7 +216,7 @@
      {You must invoke LaTeX with the
       -shell-escape flag}
      {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-      documentation for more information.}\fi}
+      documentation for more information.}\fi
   \TestAppExists{pygmentize}
   \ifAppExists\else
     \PackageError{minted}
@@ -221,7 +224,7 @@
       to use this package}
      {Refer to the installation instructions in the minted
       documentation for more information.}
-  \fi
+  \fi}
 \endinput
 %%
 %% End of file `minted.sty'.
