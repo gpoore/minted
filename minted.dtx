@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2010/03/14 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2010/03/16 v1.7 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -136,7 +136,7 @@
 %     code
 %   \end{minted}
 % \end{VerbatimOut}
-% \inputminted[gobble=2]{latex}{minted.doc.out}
+% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
 %
 % will highlight a piece of code in a chosen language.
 % The display can be customized by a number of arguments and colour schemes.
@@ -172,6 +172,8 @@
 %
 % \section{Installation}
 %
+% \subsection{Prerequisites}
+%
 % \app{Pygments} is written in Python so make sure that at least Python 2.6 is installed on you system:
 %
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
@@ -192,6 +194,32 @@
 %
 % (If you've already got \app{Pygments} installed, be advised that \pkg{minted} requires at least version
 % 1.2.)
+%
+%
+% \subsection{Installing \pkg{minted}}
+% \changes{1.7}{2010/03/16}{Installation instructions added}
+%
+% If the file |minted.sty| doesn't exist yet, we first have to create this.
+% If you're using a system that supports the \app{make} command, then you can simply type the following
+% command in the folder where you've extracted the \pkg{minted} package code:
+%
+% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
+%   \$ make
+% \end{Verbatim}
+%
+% Alternatively, you may download this file separately from the
+% \href{http://code.google.com/p/minted/downloads/list}{project's homepage}, or create it manually by
+% executing the command
+%
+% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
+%   \$ tex minted.ins
+% \end{Verbatim}
+%
+% on the command line.
+%
+% We now have to install the file so that \TeX{} is able to find them.
+% In order to do that, please refer to the
+% \href{http://www.tex.ac.uk/cgi-bin/texfaq2html?label=inst-wlcf}{\TeX{} FAQ} on that subject.
 %
 %
 % \subsection{Windows}
@@ -220,8 +248,8 @@
 %     \end{Verbatim}
 % \end{description}
 %
-% \section{Basic usage}
 %
+% \section{Basic usage}
 %
 % \subsection{Preliminary}
 %
@@ -241,10 +269,46 @@
 % The same holds for other processors, such as |pdflatex| or |xelatex|.
 %
 %
+% \subsection{A minimal complete example}
+% \changes{1.7}{2010/03/16}{Minimal working example added}
+%
+% The following file |minimal.tex| shows the basic usage of \pkg{minted}.
+%
+% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
+%   \documentclass{article}
+%
+%   \usepackage{minted}
+%
+%   \begin{document}
+%   \begin{minted}{c}
+%   int main()
+%   {
+%           printf("hello, world");
+%           return 0;
+%   }
+%   \end{minted}
+%   \end{document}
+% \end{VerbatimOut}
+% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
+%
+% By compiling the source file like this:
+%
+% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
+%   \$ pdflatex -shell-escape minimal
+% \end{Verbatim}
+%
+% we end up with the following output in |minimal.pdf|:
+%
+% \hfill
+% \fbox{\begin{minipage}{0.6\textwidth}
+%   \inputminted[firstline=7,lastline=11]{c}{minted.doc.out}
+% \end{minipage}}
+% \hfill\hfill
+%
 % \subsection{Formatting source code}
 %
 % \DescribeEnv{minted}
-% Using \pkg{minted} is straightforward. For example, to highlight a Python source code, we might use
+% Using \pkg{minted} is straightforward. For example, to highlight a Python source code we might use
 % the following code snippet (result on the right):
 %
 % \begin{example}
