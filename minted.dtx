@@ -656,6 +656,11 @@
 %   \item Extended characters do not work inside the |minted| environment, even in conjunction with
 %     package \pkg{inputenc}.
 %     \textbf{Solution}: Use |xelatex| instead of plain \LaTeX.
+%   \item The |tabsize| and |obeytabs| options aren't working.
+%     \textbf{Solution}: None. This is an issue in the \pkg{fancyvrb} package.
+%   \item The command |\captionof| and other commands from the \pkg{caption} package produce an
+%     error when used in combination with \pkg{minted}.
+%     \textbf{Solution}: Load the \pkg{caption} package with the option |compatibility=false|.
 % \end{itemize}
 %
 % \StopEventually{
