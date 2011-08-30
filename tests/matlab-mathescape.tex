@@ -1,0 +1,25 @@
+% Test case for http://code.google.com/p/minted/issues/detail?id=36
+\documentclass{article}
+
+\usepackage{minted}
+
+\begin{document}
+% Fails with ``TeX capacity exceeded''
+%\begin{minted}[mathescape]{matlab}
+%$v'$
+%\end{minted}
+
+% Fails with ``Extra }, or forgotten $.''
+%\begin{minted}[mathescape]{python}
+%$v'$
+%\end{minted}
+
+\begin{minted}[mathescape]{matlab}
+$v$
+\end{minted}
+
+% Fails with ``Extra }, or forgotten $.''
+%\begin{minted}[mathescape]{python}
+%$v$
+%\end{minted}
+\end{document}
