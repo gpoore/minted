@@ -1,0 +1,15 @@
+% Test case for http://code.google.com/p/minted/issues/detail?id=31
+\documentclass{article}
+
+\usepackage{minted}
+
+\begin{document}
+\begin{minted}[fontsize=\footnotesize]{python}
+class Foo
+  def init
+    pi = Math::PI
+    @var = "Pi is approx. #{pi}"
+  end
+end
+\end{minted}
+\end{document}

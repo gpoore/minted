@@ -1,21 +1,12 @@
 % Test case for http://code.google.com/p/minted/issues/detail?id=9
-\documentclass[11pt]{article}
+\documentclass{article}
 
 \usepackage{minted}
-\usemintedstyle{trac}
-
-\title{Brief Article}
-\author{The Author}
 
 \begin{document}
-\maketitle
-
-\section{First section}
-
 \begin{minted}[tabsize=4]{matlab}
 for i = 1:10
 	x(i) = a(i);
 end
 \end{minted}
-
 \end{document}
