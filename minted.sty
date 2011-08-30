@@ -25,7 +25,7 @@
 %% This work consists of the files mints.dtx and mints.ins
 %% and the derived file mints.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2010/03/16 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2011/08/30 v1.7 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
 \RequirePackage{color}
@@ -118,6 +118,7 @@
 \minted@define@extra{fontshape}
 \minted@define@extra{fontseries}
 \minted@define@extra{formatcom}
+\minted@define@extra{label}
 \minted@define@extra@switch{numberblanklines}
 \minted@define@extra@switch{showspaces}
 \minted@define@extra@switch{resetmargins}
@@ -175,7 +176,7 @@
   \renewcommand{\minted@proglang}[1]{#2}
   \minted@resetoptions
   \setkeys{minted@opt}{#1}
-  \begin{VerbatimOut}{\jobname.pyg}}%
+  \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
  {\end{VerbatimOut}
   \minted@pygmentize{\minted@proglang{}}
   \DeleteFile{\jobname.pyg}}
@@ -213,7 +214,7 @@
 \AtBeginDocument{
   \minted@usedefaultstyle}
 \AtEndOfPackage{
-  \ifeof18
+  \ifnum\pdf@shellescape=1\relax\else
     \PackageError{minted}
      {You must invoke LaTeX with the
       -shell-escape flag}

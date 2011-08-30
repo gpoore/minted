@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 % minted.dtx
-% Copyright 2010 Konrad Rudolph
+% Copyright 2010-2011 Konrad Rudolph
 %
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2010/03/16 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2011/08/30 v1.7 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -370,7 +370,7 @@
 % \end{Verbatim}
 %
 %
-% \section{Floated listings}
+% \section{Floated listings}\label{sec:float}
 %
 % \DescribeEnv{listing}
 % \pkg{minted} provides the |listing| environment to wrap around a source code block.
@@ -517,7 +517,7 @@
 %     The font shape to use (default: +auto+ -- the same as the current font).
 %   \item[formatcom (command)]
 %     A format to execute before printing verbatim text (default: \emph{none}).
-%   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+)]:
+%   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+)]
 %     The type of frame to put around the source code listing (default: +none+).
 %   \item[framerule (dimension)]
 %     Width of the frame (default: +0.4pt+).
@@ -527,6 +527,14 @@
 %     If +true+, highlights built-in function names (default: +true+).
 %   \item[gobble (integer)]
 %     Remove the first $n$ characters from each input line (default: +0+).
+%   \item[label (\char`\[string\char`\]string)]
+%     Add a label to the top, the bottom or both of the frames around the code (default: \emph{empty}).
+%     See the \pkg{fancyvrb} documentation for more information and examples.
+%     \emph{Note:} This does \emph{not} add a +\label+ to the current listing.
+%     To achieve that, use a floating environment (section \ref{sec:float}) instead.
+%   \item[labelposition (+none+\textbar +topline+\textbar +bottomline+\textbar +all+)]
+%     Position where to print the label (see above; default: +topline+ if one label is defined, +all+ if two are defined, \emph{none} else).
+%     See the \pkg{fancyvrb} documentation for more information.
 %   \item[lastline (integer)]
 %     Last line to be shown (default: \emph{last line of input}).
 %   \item[linenos (boolean)]
@@ -845,6 +853,7 @@
 % \changes{0.1.5}{2010/01/10}{Removed \texttt{caption} option}
 % \changes{1.6}{2010/01/27}{Added font-related options}
 % \changes{1.7}{2010/03/14}{Added PHP-specific options}
+% \changes{1.7}{2011/01/04}{Added the \texttt{label} option}
 %
 %    \begin{macrocode}
 \minted@define@switch{texcl}{-P texcomments}
@@ -873,6 +882,7 @@
 \minted@define@extra{fontshape}
 \minted@define@extra{fontseries}
 \minted@define@extra{formatcom}
+\minted@define@extra{label}
 \minted@define@extra@switch{numberblanklines}
 \minted@define@extra@switch{showspaces}
 \minted@define@extra@switch{resetmargins}
@@ -994,6 +1004,8 @@
 %
 % Highlight a longer piece of code inside a verbatim environment.
 %
+% \changes{1.7}{2011/08/30}{Fixed \texttt{tabsize} option}
+%
 %    \begin{macrocode}
 \newcommand\minted@proglang[1]{}
 \newenvironment{minted}[2][]
@@ -1001,7 +1013,7 @@
   \renewcommand{\minted@proglang}[1]{#2}
   \minted@resetoptions
   \setkeys{minted@opt}{#1}
-  \begin{VerbatimOut}{\jobname.pyg}}%
+  \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
  {\end{VerbatimOut}
   \minted@pygmentize{\minted@proglang{}}
   \DeleteFile{\jobname.pyg}}
@@ -1173,9 +1185,10 @@
 %
 % Check whether LaTeX was invoked with |-shell-escape| option.
 %
+% \changes{1.7}{2011/01/21}{More robust detection of the |-shell-escape| option}
 %    \begin{macrocode}
 \AtEndOfPackage{
-  \ifeof18
+  \ifnum\pdf@shellescape=1\relax\else
     \PackageError{minted}
      {You must invoke LaTeX with the
       -shell-escape flag}
