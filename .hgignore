@@ -11,7 +11,9 @@ syntax: glob
 *.log
 *.ilg
 *.fdb_latexmk
+*.pyg
 
 # Generated files
 *.zip
 *.pdf
+minted.sty
