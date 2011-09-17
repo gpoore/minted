@@ -36,7 +36,7 @@
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
-\RequirePackage{color}
+\RequirePackage{xcolor}
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
@@ -62,12 +62,14 @@
   \fontshape\updefault%
   \small}
 
-^^A This is incredibly hacky and overrides size commands around tt-text. But I
-^^A don't get the font inside the main body to change otherwise. :-(
+^^A FIXME This is incredibly hacky and overrides size commands around tt-text.
+^^A But I don't get the font inside the main body to change otherwise. :-(
 \let\mintedttold\ttfamily
 \def\ttfamily{\mintedttold\fontsize{9}{9}\selectfont}
 
-\definecolor{minted@linkcolor}{rgb}{0.5,0,0}
+\definecolor{minted@mint}{HTML}{4B6121}
+\definecolor{minted@samplebg}{HTML}{F0F0E0}
+\colorlet{minted@linkcolor}{minted@mint}
 
 \def\PrintDescribeMacro#1{\strut \MacroFont\textcolor{minted@linkcolor}{\string #1\ }}
 \let\PrintDescribeEnv\PrintDescribeMacro
@@ -82,7 +84,7 @@
   allcolors=minted@linkcolor,
 }
 
-% Shamelessly stolen from http://blog.karssen.org/2009/11/15/a-latex-example-environment/
+^^A Shamelessly stolen from http://blog.karssen.org/2009/11/15/a-latex-example-environment/
 \newenvironment{example}
   {\VerbatimEnvironment
    \begin{VerbatimOut}[gobble=3]{example.out}}
@@ -98,10 +100,25 @@
    \end{minipage}
    \vspace{1ex}}}
 
-\newenvironment{optionlist}
-  {\begin{list}{}{\renewcommand\makelabel[1]{\textsf{##1}:\quad}}
-   \DeleteShortVerb{\|}\MakeShortVerb{\+}}
-  {\end{list}\DeleteShortVerb{\+}\MakeShortVerb{\|}}
+\makeatletter ^^A ?!? Needed, no idea why.
+\def\minted@printopt#1(#2) (#3){%
+  \leavevmode%
+  \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{#1}}\ }%
+  \textsf{(#2)}\hfill(default: #3)\\}
+
+\newenvironment{optionlist}{%
+  \par%
+  \newcommand*\mintednext{}%
+  \renewcommand*\item[1][]{%
+    \mintednext%
+    \renewcommand*\mintednext{\par}%
+    \minted@printopt##1%
+    \ignorespaces}
+  \DeleteShortVerb{\|}%
+  \MakeShortVerb{\+}}{%
+  \DeleteShortVerb{\+}%
+  \MakeShortVerb{\|}%
+  \par}
 
 \newcommand\thestyle{trac}
 \usemintedstyle{\thestyle}
@@ -123,7 +140,7 @@
 % \newcommand\pkg[1]{\textsf{#1}}
 % \newcommand\app[1]{\textsf{#1}}
 %
-% \title{The \pkg{minted} package:\\Highlighted source code in \LaTeX
+% \title{The \textcolor{minted@mint}{\pkg{minted}} package:\\Highlighted soFamous Tumorsurce code in \LaTeX
 %   \thanks{This document corresponds to \pkg{minted}~\fileversion, last changed~\filedate.}}
 % \author{Konrad Rudolph\\\texttt{konrad\char`\_rudolph@madrat.net}}
 % \date{\filedate}
@@ -321,7 +338,7 @@
 % we end up with the following output in |minimal.pdf|:
 %
 % \hfill
-% \fbox{\begin{minipage}{0.6\textwidth}
+% \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
 %   \inputminted[firstline=7,lastline=10]{c}{minted.doc.out}
 % \end{minipage}}
 % \hfill\hfill
@@ -366,10 +383,7 @@
 % \DescribeMacro{\usemintedstyle}
 % To do this, put the following into the prelude of your document:
 %
-% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \usemintedstyle{name}
-% \end{VerbatimOut}
-% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
+% \mint[frame=lines]{latex}/\usemintedstyle{name}/
 %
 % To get a list of all available stylesheets, execute the following command on the command line:
 %
@@ -412,11 +426,11 @@
 %
 % will yield:
 %
-% \begin{samepage}
-% \rule{\textwidth}{0.4pt}\\
-% \input{minted.doc.out}
-% \ \\\rule{\textwidth}{0.4pt}\\
-% \end{samepage}
+% \hfill
+% \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
+%   \input{minted.doc.out}
+% \end{minipage}}
+% \hfill\hfill
 %
 % \DescribeMacro{\listoflistings}
 % The |\listoflistings| macro will insert a list of all (floated) listings into the document:
@@ -429,19 +443,30 @@
 % The string ``Listing'' in a listing's caption can be changed.
 % To do this, simply redefine the macro |\listingscaption|, e.g.:
 %
-% \mint{latex}/\renewcommand\listingscaption{Program code}/
+% \mint[frame=lines]{latex}/\renewcommand\listingscaption{Program code}/
 %
 % \DescribeMacro{\listoflistingscaption}
 % Likewise, the caption of the listings list, ``List of listings'' can be changed by redefining
 % |\listoflistingscaption| like so:
 %
-% \mint{latex}/\renewcommand\listoflistingscaption{List of program codes}/
+% \mint[frame=lines]{latex}/\renewcommand\listoflistingscaption{List of program codes}/
 %
 %
 % \section{Options}
 %
 %
-% \subsection{Usage}
+% \subsection{Package options}
+%
+% \DescribeMacro{section}
+% \DescribeMacro{chapter}
+% To control how \LaTeX{} counts the |listing| floats, you can pass either the
+% |section| or |chapter| option when loading the \pkg{minted} package.
+% For example, the following will cause listings to be counted per-section:
+%
+% \mint[frame=lines]{latex}/\usepackage[section]{minted}/
+%
+%
+% \subsection{Macro option usage}
 %
 % All \pkg{minted} highlight commands accept the same set of options.
 % Options are specified as a comma-separated list of |key=value| pairs.
@@ -507,10 +532,10 @@
 % For more detailed option descriptions please refer to the \pkg{fancyvrb} documentation,
 % except where noted otherwise.
 % \begin{optionlist}
-%   \item[baselinestretch (+auto+\textbar dimension)]
-%     Value to use as for baselinestretch inside the listing (default: +auto+).
-%   \item[bgcolor (string)]
-%     Background color of the listing (default: \emph{none}).
+%   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
+%     Value to use as for baselinestretch inside the listing.
+%   \item[bgcolor (string) (\emph{none})]
+%     Background color of the listing.
 %     Notice that the value of this option must \emph{not} be a color command. Instead, it must be a color
 %     \emph{name}, given as a string, of a previously-defined color:
 %
@@ -523,44 +548,44 @@
 %   \end{minted}
 % \end{example}
 %
-%   \item[firstline (integer)]
-%     First line to be shown (default: +1+).
+%   \item[firstline (integer) (+1+)]
+%     The first line to be shown.
 %     All lines before that line are ignored and do not appear in the output.
-%   \item[firstnumber (+auto+\textbar integer)]
-%     Line number of the first line (default: +auto+ = 1).
-%   \item[fontfamily (family name)]
-%     The font family to use (default: +tt+).
+%   \item[firstnumber (+auto+\textbar integer) (+auto+ = 1)]
+%     Line number of the first line.
+%   \item[fontfamily (family name) (+tt+)]
+%     The font family to use.
 %     +tt+, +courier+ and +helvetica+ are pre-defined.
-%   \item[fontseries (series name)]
-%     The font series to use (default: +auto+ -- the same as the current font).
-%   \item[fontsize (font size)]
-%     The size of the font to use, as a size command, e.g. +\footnotesize+ (default: +auto+ -- the same as the current font).
-%   \item[fontshape (font shape)]
-%     The font shape to use (default: +auto+ -- the same as the current font).
-%   \item[formatcom (command)]
-%     A format to execute before printing verbatim text (default: \emph{none}).
-%   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+)]
-%     The type of frame to put around the source code listing (default: +none+).
-%   \item[framerule (dimension)]
-%     Width of the frame (default: +0.4pt+).
-%   \item[framesep (dimension)]
-%     Distance between frame and content (default: +\fboxsep+).
-%   \item[funcnamehighlighting (boolean)] \appliesto{PHP}
-%     If +true+, highlights built-in function names (default: +true+).
-%   \item[gobble (integer)]
-%     Remove the first $n$ characters from each input line (default: +0+).
-%   \item[label (\char`\[string\char`\]string)]
-%     Add a label to the top, the bottom or both of the frames around the code (default: \emph{empty}).
+%   \item[fontseries (series name) (+auto+ -- the same as the current font)]
+%     The font series to use.
+%   \item[fontsize (font size) (+auto+ -- the same as the current font)]
+%     The size of the font to use, as a size command, e.g. +\footnotesize+.
+%   \item[fontshape (font shape) (+auto+ -- the same as the current font)]
+%     The font shape to use.
+%   \item[formatcom (command) (\emph{none})]
+%     A format to execute before printing verbatim text.
+%   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+) (+none+)]
+%     The type of frame to put around the source code listing.
+%   \item[framerule (dimension) (+0.4pt+)]
+%     Width of the frame.
+%   \item[framesep (dimension) (\cmd\fboxsep)]
+%     Distance between frame and content.
+%   \item[funcnamehighlighting (boolean) (+true+)] \appliesto{PHP}
+%     If +true+, highlights built-in function names.
+%   \item[gobble (integer) (+0+)]
+%     Remove the first $n$ characters from each input line.
+%   \item[label (\char`\[string\char`\]string) (\emph{empty})]
+%     Add a label to the top, the bottom or both of the frames around the code.
 %     See the \pkg{fancyvrb} documentation for more information and examples.
 %     \emph{Note:} This does \emph{not} add a +\label+ to the current listing.
 %     To achieve that, use a floating environment (section \ref{sec:float}) instead.
-%   \item[labelposition (+none+\textbar +topline+\textbar +bottomline+\textbar +all+)]
-%     Position where to print the label (see above; default: +topline+ if one label is defined, +all+ if two are defined, \emph{none} else).
+%   \item[labelposition (+none+\textbar +topline+\textbar +bottomline+\textbar +all+) (+topline+, +all+ or \emph{none})]
+%     Position where to print the label (see above;  default: +topline+ if one label is defined, +all+ if two are defined, \emph{none} else).
 %     See the \pkg{fancyvrb} documentation for more information.
-%   \item[lastline (integer)]
-%     Last line to be shown (default: \emph{last line of input}).
-%   \item[linenos (boolean)]
-%     Enables line numbers (default +false+).
+%   \item[lastline (integer) (\emph{last line of input})]
+%     The last line to be shown.
+%   \item[linenos (boolean) (+false+)]
+%     Enables line numbers.
 %     In order to customize the display style of line numbers, you need to redefine the +\theFancyVerbLine+
 %     macro:
 %
@@ -579,39 +604,39 @@
 %   \end{minted}
 % \end{example}
 %
-%   \item[mathescape (boolean)]
-%     Enable \LaTeX{} math mode inside comments (default: +false+).
+%   \item[mathescape (boolean) (+false+)]
+%     Enable \LaTeX{} math mode inside comments.
 %     Do \emph{not} use spaces inside math mode -- they will be rendered like other full-width verbatim spaces.
 %     Usage as in package \pkg{listings}.
-%   \item[numberblanklines (boolean)]
-%     Enables or disables numbering of blank lines (default: +true+).
-%   \item[numbersep (dimension)]
-%     Gap between numbers and start of line (default: +12pt+).
-%   \item[obeytabs (boolean)]
-%     Treat tabs as tabs instead of converting them to spaces (default: +false+).
-%   \item[resetmargins (boolean)]
-%     Resets the left margin inside other environments (default: +false+).
-%   \item[rulecolor (color command)]
-%     The color of the frame (default: \emph{black})
-%   \item[samepage (boolean)]
-%     Forces the whole listing to appear on the same page, even if it doesn't fit (default: +false+).
-%   \item[showspaces (boolean)]
-%     Enables visible spaces: \verb*/visible spaces/ (default: +false+).
-%   \item[showtabs (boolean)]
-%     Enables visible tabs -- only works in combination with +obeytabs+ (default: +false+).
-%   \item[startinline (boolean)] \appliesto{PHP}
-%     Specifies that the code starts in PHP mode, i.e. leading +<?php+ is omitted (default: +false+).
-%   \item[stepnumber (integer)]
-%     Interval at which line numbers appear (default: +1+).
-%   \item[tabsize (integer)]
-%     The number of spaces a tab is equivalent to if +obeytabs+ is not active (default: +8+).
-%   \item[texcl (boolean)]
-%     Enables \LaTeX{} code inside comments (default: +false+).
+%   \item[numberblanklines (boolean) (+true+)]
+%     Enables or disables numbering of blank lines.
+%   \item[numbersep (dimension) (+12pt+)]
+%     Gap between numbers and start of line.
+%   \item[obeytabs (boolean) (+false+)]
+%     Treat tabs as tabs instead of converting them to spaces.
+%   \item[resetmargins (boolean) (+false+)]
+%     Resets the left margin inside other environments.
+%   \item[rulecolor (color command) (\emph{black})]
+%     The color of the frame.
+%   \item[samepage (boolean) (+false+)]
+%     Forces the whole listing to appear on the same page, even if it doesn't fit.
+%   \item[showspaces (boolean) (+false+)]
+%     Enables visible spaces: \verb*/visible spaces/.
+%   \item[showtabs (boolean) (+false+)]
+%     Enables visible tabs -- only works in combination with +obeytabs+.
+%   \item[startinline (boolean) (+false+)] \appliesto{PHP}
+%     Specifies that the code starts in PHP mode, i.e. leading +<?php+ is omitted.
+%   \item[stepnumber (integer) (+1+)]
+%     Interval at which line numbers appear.
+%   \item[tabsize (integer) (+8+)]
+%     The number of spaces a tab is equivalent to if +obeytabs+ is not active.
+%   \item[texcl (boolean) (+false+)]
+%     Enables \LaTeX{} code inside comments.
 %     Usage as in package \pkg{listings}.
-%   \item[xleftmargin (dimension)]
-%     Indentation to add before the listing (default: +0+).
-%   \item[xrightmargin (dimension)]
-%     Indentation to add after the listing (default: +0+).
+%   \item[xleftmargin (dimension) (+0+)]
+%     Indentation to add before the listing.
+%   \item[xrightmargin (dimension) (+0+)]
+%     Indentation to add after the listing.
 % \end{optionlist}
 %
 %
@@ -686,11 +711,11 @@
 %   \item Extended characters do not work inside the |minted| environment, even in conjunction with
 %     package \pkg{inputenc}.
 %     \textbf{Solution}: Use |xelatex| instead of plain \LaTeX.
-%   \item The |tabsize| and |obeytabs| options aren't working.
-%     \textbf{Solution}: None. This is an issue in the \pkg{fancyvrb} package.
 %   \item The command |\captionof| and other commands from the \pkg{caption} package produce an
 %     error when used in combination with \pkg{minted}.
 %     \textbf{Solution}: Load the \pkg{caption} package with the option |compatibility=false|.
+%   \item \pkg{minted} doesn't work on Windows 7.
+%     \textbf{Solution}: As a workaround, try the accepted answer at \href{http://tex.stackexchange.com/q/23458/42}{tex.stackexchange.com/q/23458}.
 % \end{itemize}
 %
 % \StopEventually{
@@ -904,7 +929,8 @@
 \minted@define@switch{mathescape}{-P mathescape}
 \minted@define@switch{linenos}{-P linenos}
 \minted@define@switch{startinline}{-P startinline}
-\minted@define@switch[-P funcnamehighlighting=False]{funcnamehighlighting}{-P funcnamehighlighting}
+\minted@define@switch[-P funcnamehighlighting=False]%
+  {funcnamehighlighting}{-P funcnamehighlighting}
 \minted@define@opt{gobble}{-F gobble:n=#1}
 \minted@define@opt{bgcolor}{#1}
 \minted@define@extra{frame}
