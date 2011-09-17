@@ -235,6 +235,25 @@
 % 1.2.)
 %
 %
+% \subsection{Required packages}
+%
+% \pkg{minted} requires the following packages to be available and reasonably up to date on your system, all of which ship with recent \TeX{} distributions:
+%
+% \begingroup
+% \setlength\parskip{0pt}
+% \setlength\topsep{0pt}
+% \begin{list}{\textrm{\labelitemi}}{\ttfamily}
+%   \item keyval
+%   \item fancyvrb
+%   \item xcolor
+%   \item float
+%   \item ifthen
+%   \item calc
+%   \item ifplatform
+% \end{list}
+% \endgroup
+%
+%
 % \subsection{Installing \pkg{minted}}
 % \changes{1.7}{2010/03/16}{Installation instructions added}
 %
@@ -697,14 +716,6 @@
 % \end{example}
 %
 %
-% \section{To do list}
-%
-%\begin{itemize}
-%  \item Allow multiple stylesheets in one file.
-%  \item Allow quotes in \pkg{fancyvrb} arguments.
-%\end{itemize}
-%
-%
 % \section{Known issues}
 %
 % \begin{itemize}
@@ -716,6 +727,7 @@
 %     \textbf{Solution}: Load the \pkg{caption} package with the option |compatibility=false|.
 %   \item \pkg{minted} doesn't work on Windows 7.
 %     \textbf{Solution}: As a workaround, try the accepted answer at \href{http://tex.stackexchange.com/q/23458/42}{tex.stackexchange.com/q/23458}.
+%   \item \ldots  See list at \href{http://code.google.com/p/minted/issues/list}{code.google.com/p/minted/issues}.
 % \end{itemize}
 %
 % \StopEventually{
