@@ -23,7 +23,7 @@
 % Nanos gigantum humeris insidentes.
 %
 % Special thanks to Philipp Stephani and the rest of the guys from
-% comp.text.tex.
+% comp.text.tex and tex.stackexchange.com
 % \fi
 % \iffalse
 %<*driver>
@@ -32,7 +32,7 @@
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
 %
-\ProvidesPackage{minted}[2011/08/30 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted}[2011/09/12 v1.7 Yet another Pygments shim for LaTeX]
 %
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -55,10 +55,31 @@
 \usepackage{hyperref}
 \usepackage{microtype}
 
+\def\MacroFont{%
+  \fontencoding\encodingdefault%
+  \fontfamily\ttdefault%
+  \fontseries\mddefault%
+  \fontshape\updefault%
+  \small}
+
+^^A This is incredibly hacky and overrides size commands around tt-text. But I
+^^A don't get the font inside the main body to change otherwise. :-(
+\let\mintedttold\ttfamily
+\def\ttfamily{\mintedttold\fontsize{9}{9}\selectfont}
+
+\definecolor{minted@linkcolor}{rgb}{0.5,0,0}
+
+\def\PrintDescribeMacro#1{\strut \MacroFont\textcolor{minted@linkcolor}{\string #1\ }}
+\let\PrintDescribeEnv\PrintDescribeMacro
+\let\PrintMacroName\PrintDescribeMacro
+\let\PrintEnvName\PrintDescribeEnv
+\def\theCodelineNo{\textcolor{minted@linkcolor}{\sffamily\footnotesize\oldstylenums{\arabic{CodelineNo}}}}
+
 \hypersetup{
   pdftitle=The minted package: Highlighted source code in LaTeX,
   pdfauthor=Konrad Rudolph,
   pdfsubject={Minted LaTeX package manual},
+  allcolors=minted@linkcolor,
 }
 
 % Shamelessly stolen from http://blog.karssen.org/2009/11/15/a-latex-example-environment/
@@ -69,11 +90,11 @@
    \vspace{1ex}
    \setlength{\parindent}{0pt}
    \fbox{\begin{minipage}{0.5\linewidth}
-     \small\inputminted[resetmargins]{latex}{example.out}
+     \inputminted[resetmargins]{latex}{example.out}
    \end{minipage}
    \hspace{0.05\linewidth}
    \begin{minipage}{0.4\linewidth}
-     \small\input{example.out}
+     \input{example.out}
    \end{minipage}
    \vspace{1ex}}}
 
@@ -122,11 +143,12 @@
 %
 % \fvset{
 %   codes={\catcode`\%=9}, ^^A Ignore initial |%|
-%   numbersep=5pt
+%   numbersep=5pt,
+%   fontsize=\small
 % }
 % \setlength{\fboxsep}{1ex}
 %
-%
+% \mbox{}\newpage
 % \section{Introduction}
 %
 % \pkg{minted} is a package that allows formatting source code in \LaTeX.
@@ -157,10 +179,10 @@
 %
 % \begin{minted}[gobble=3]{ruby}
 %   class Foo
-%       def init
-%           pi = Math::PI
-%           @var = "Pi is approx. #{pi}"
-%       end
+%     def init
+%       pi = Math::PI
+%       @var = "Pi is approx. #{pi}"
+%     end
 %   end
 % \end{minted}
 %
@@ -224,7 +246,7 @@
 %
 % \subsection{Windows}
 %
-% Windows support is sketchy at the moment.
+% Windows support is sketchy  / untested at the moment.
 % There are two complications: installation and usage.
 %
 % \begin{description}
@@ -244,7 +266,7 @@
 %     \begin{Verbatim}[gobble=7,commandchars=\\\{\}]
 %       @echo off
 %       set PYTHONPATH=C:\mintedbs{}Python26
-%       \mintedpcc{}PYTHONPATH\mintedpcc{}\mintedbs{}python.exe \mintedpcc{}PYTHONPATH\mintedpcc\mintedbs{}Scripts\mintedbs{}pygmentize \mintedpcc{}*
+%       \mintedpcc{}PYTHONPATH\mintedpcc{}\mintedbs{}python.exe \mintedpcc{}PYTHONPATH\mintedpcc{}\mintedbs{}Scripts\mintedbs{}pygmentize \mintedpcc{}*
 %     \end{Verbatim}
 % \end{description}
 %
@@ -281,10 +303,9 @@
 %
 %   \begin{document}
 %   \begin{minted}{c}
-%   int main()
-%   {
-%           printf("hello, world");
-%           return 0;
+%   int main() {
+%       printf("hello, world");
+%       return 0;
 %   }
 %   \end{minted}
 %   \end{document}
@@ -301,7 +322,7 @@
 %
 % \hfill
 % \fbox{\begin{minipage}{0.6\textwidth}
-%   \inputminted[firstline=7,lastline=11]{c}{minted.doc.out}
+%   \inputminted[firstline=7,lastline=10]{c}{minted.doc.out}
 % \end{minipage}}
 % \hfill\hfill
 %
@@ -322,14 +343,14 @@
 % in more detail below.
 %
 % \DescribeMacro{\mint}
-% For one-line source codes, you can alternatively use a shorthand notation similar to |\verb|:
+% For one-line source codes, you can alternatively use a shorthand notation similar to |\verb|:^^A|
 %
 % \begin{example}
 %   \mint{python}|import this|
 % \end{example}
 %
-% The complete syntax is \cmd\mint\oarg{options}\marg{language}/\meta{code}/
-% Where the code delimither |/|, like with |\verb|, can be almost any punctuation character. ^^A|
+% The complete syntax is \cmd\mint\oarg{options}\marg{language}|/|\meta{code}|/|,
+% where the code delimither |/|, like with |\verb|, can be almost any punctuation character. ^^A|
 % Again, this command supports a number of options described below.
 %
 % \DescribeMacro{\inputminted}
@@ -345,9 +366,10 @@
 % \DescribeMacro{\usemintedstyle}
 % To do this, put the following into the prelude of your document:
 %
-% \begin{minted}[gobble=3]{latex}
+% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
 %   \usemintedstyle{name}
-% \end{minted}
+% \end{VerbatimOut}
+% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
 %
 % To get a list of all available stylesheets, execute the following command on the command line:
 %
@@ -379,7 +401,7 @@
 % as for the |table| and |figure| environments):
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
 %   \begin{listing}[H]
-%     \mint{cl}/(car (cons 1 2))/
+%     \mint{cl}/(car (cons 1 '(2)))/
 %     \caption{Example of a listing.}
 %     \label{lst:example}
 %   \end{listing}
@@ -679,11 +701,33 @@
 % \section{Implementation}
 %
 %
+% \subsection{Package options}
+%
+% \changes{1.7}{2011/09/12}{Options for float placement added}
+%
+% \begin{macro}{\minted@float@within}
+%
+% Define an option that controls the section numbering of the |listing| float.
+%
+%    \begin{macrocode}
+\DeclareOption{chapter}{\def\minted@float@within{chapter}}
+\DeclareOption{section}{\def\minted@float@within{section}}
+%    \end{macrocode}
+% \end{macro}
+%
+% Process package options.
+%
+%    \begin{macrocode}
+\ProcessOptions\relax
+%    \end{macrocode}
+%
+%
 % \subsection{System-specific settings}
 %
 % \changes{1.6}{2010/01/27}{Windows support added}
 %
 % Since we communicate with the ``outside world'', some operations must be defined system-dependently.
+% ^^A TODO Fails on Windows 7, needs fixing; cf. http://code.google.com/p/minted/issues/detail?id=47
 %
 % \begin{macro}{\DeleteFile}
 %
@@ -1132,7 +1176,9 @@
 % Defines a new floating environment to use for floated listings.
 %
 %    \begin{macrocode}
-\newfloat{listing}{h}{lol}
+\@ifundefined{minted@float@within}
+ {\newfloat{listing}{h}{lol}}
+ {\newfloat{listing}{h}{lol}[\minted@float@within]}
 %    \end{macrocode}
 % \end{environment}
 %
