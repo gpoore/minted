@@ -29,7 +29,7 @@ minted.glo: minted.dtx minted.sty
 
 dist: $(PACKAGE)
 	@$(RM) minted.zip
-	@zip minted.zip $(PACKAGE)
+	@zip minted-$(shell grep '^\\ProvidesPackage' < minted.sty | grep -o '\<v[[:digit:]]*\.[[:digit:]]*\>').zip $(PACKAGE)
 
 clean:
 	@$(RM) *.aux *.log *.out *.toc *.fdb_latexmk *.ilg *.glo *.gls *.lol

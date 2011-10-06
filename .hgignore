@@ -12,6 +12,7 @@ syntax: glob
 *.ilg
 *.fdb_latexmk
 *.pyg
+.DS_Store
 
 # Generated files
 *.zip
