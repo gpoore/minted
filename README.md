@@ -6,6 +6,7 @@ customize the highlighted source code output using fancyvrb.
 
 For instance, this code:
 
+    :::latex
     \begin{minted}[mathescape,
                    linenos,
                    numbersep=5pt,
