@@ -1,7 +1,8 @@
 % \iffalse meta-comment
-% minted.dtx
-% Copyright 2010-2011 Konrad Rudolph
 %
+% Copyright (C) 2013 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
+% ---------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
 % of this license or (at your option) any later version.
@@ -10,30 +11,27 @@
 % and version 1.3 or later is part of all distributions of LaTeX
 % version 2005/12/01 or later.
 %
-% Additionally, the project may be distributed under the terms of the new BSD
-% license.
+% Additionally, the project may be distributed under the terms of the 3-Clause
+% ("New") BSD license:  http://opensource.org/licenses/BSD-3-Clause.
 %
 % This work has the LPPL maintenance status `maintained'.
-% 
-% The Current Maintainer of this work is Konrad Rudolph.
 %
-% This work consists of the files mints.dtx and mints.ins
-% and the derived file mints.sty.
+% The Current Maintainer of this work is Geoffrey M. Poore.
 %
-% Nanos gigantum humeris insidentes.
+% This work consists of the files minted.dtx and minted.ins
+% and the derived file minted.sty.
 %
-% Special thanks to Philipp Stephani and the rest of the guys from
-% comp.text.tex and tex.stackexchange.com
+%
 % \fi
+%
 % \iffalse
 %<*driver>
 \ProvidesFile{minted.dtx}
 %</driver>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-%
-\ProvidesPackage{minted}[2011/09/17 v1.7 Yet another Pygments shim for LaTeX]
-%
+\ProvidesPackage{minted}[2013/07/07 v2.0~(rolling~development) ]
+
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
 \RequirePackage{xcolor}
@@ -41,17 +39,17 @@
 \RequirePackage{ifthen}
 \RequirePackage{calc}
 \RequirePackage{ifplatform}
-\RequirePackage{pdftexcmds} ^^A Necessary on TeX Live 2009
+\RequirePackage{pdftexcmds} % Necessary on TeX Live 2009
 %</package>
 %<*driver>
-\documentclass[a4paper]{ltxdoc}
+\documentclass{ltxdoc}
 \DisableCrossrefs
 \RecordChanges
 %\OnlyDescription
 
 \usepackage{lstdoc}
 \usepackage{minted}
-\usepackage{courier} ^^A Useful monospace font (= has \bfseries).
+\usepackage{courier} % Useful monospace font (= has \bfseries).
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{microtype}
@@ -63,29 +61,29 @@
   \fontshape\updefault%
   \small}
 
-^^A FIXME This is incredibly hacky and overrides size commands around tt-text.
-^^A But I don't get the font inside the main body to change otherwise. :-(
+% FIXME This is incredibly hacky and overrides size commands around tt-text.
+% But I don't get the font inside the main body to change otherwise. :-(
 \let\mintedttold\ttfamily
 \def\ttfamily{\mintedttold\fontsize{9}{9}\selectfont}
-
+%
 \definecolor{minted@mint}{HTML}{4B6121}
 \definecolor{minted@samplebg}{HTML}{F0F0E0}
 \colorlet{minted@linkcolor}{minted@mint}
-
+%
 \def\PrintDescribeMacro#1{\strut \MacroFont\textcolor{minted@linkcolor}{\string #1\ }}
 \let\PrintDescribeEnv\PrintDescribeMacro
 \let\PrintMacroName\PrintDescribeMacro
 \let\PrintEnvName\PrintDescribeEnv
 \def\theCodelineNo{\textcolor{minted@linkcolor}{\sffamily\footnotesize\oldstylenums{\arabic{CodelineNo}}}}
-
+%
 \hypersetup{
   pdftitle=The minted package: Highlighted source code in LaTeX,
-  pdfauthor=Konrad Rudolph,
+  pdfauthor=Geoffrey M. Poore,
   pdfsubject={Minted LaTeX package manual},
   allcolors=minted@linkcolor,
 }
-
-^^A Shamelessly stolen from http://blog.karssen.org/2009/11/15/a-latex-example-environment/
+%
+% Shamelessly stolen from http://blog.karssen.org/2009/11/15/a-latex-example-environment/
 \newenvironment{example}
   {\VerbatimEnvironment
    \begin{VerbatimOut}[gobble=3]{example.out}}
@@ -101,7 +99,7 @@
    \end{minipage}
    \vspace{1ex}}}
 
-\makeatletter ^^A ?!? Needed, no idea why.
+\makeatletter
 \def\minted@printopt#1(#2) (#3){%
   \leavevmode%
   \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{#1}}\ }%
@@ -123,6 +121,7 @@
 
 \newcommand\thestyle{trac}
 \usemintedstyle{\thestyle}
+\makeatother
 
 \setlength{\parindent}{0pt}
 \addtolength{\parskip}{0.5\baselineskip}
@@ -133,6 +132,25 @@
 %</driver>
 % \fi
 %
+% \CheckSum{356}
+%
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+%
 % \changes{0.0.4}{2010/01/08}{Initial version}
 % \changes{1.6}{2010/01/22}{Simpler versioning scheme}
 %
@@ -141,10 +159,9 @@
 % \newcommand\pkg[1]{\textsf{#1}}
 % \newcommand\app[1]{\textsf{#1}}
 %
-% \title{The \textcolor{minted@mint}{\pkg{minted}} package:\\Highlighted source code in \LaTeX
-%   \thanks{This document corresponds to \pkg{minted}~\fileversion, last changed~\filedate.}}
-% \author{Konrad Rudolph\\\texttt{konrad\char`\_rudolph@madrat.net}}
-% \date{\filedate}
+% \title{The \textcolor{minted@mint}{\pkg{minted}} package:\\Highlighted source code in \LaTeX}
+% \author{Geoffrey M.\ Poore \\ \url{gpoore@gmail.com} \\ \href{https://github.com/gpoore/minted}{\texttt{github.com/gpoore/minted}} \\ ~\\ Originally created and maintained (2009-2013) by \\ Konrad Rudolph}
+% \date{\fileversion~from \filedate}
 %
 % \maketitle
 %
@@ -154,10 +171,16 @@
 %   customize the highlighted source code output.
 % \end{abstract}
 %
-% \begin{multicols}{2}
-%   \setlength{\parskip}{0pt}
+%
+% \section*{Current status}
+%
+% \pkg{minted} was created in \href{http://stackoverflow.com/questions/1966425/source-code-highlighting-in-latex/1985330#1985330}{2009} by Konrad Rudolph.  Geoffrey Poore agreed to take over \pkg{minted} maintenance in March of 2013, since his \href{https://github.com/gpoore/pythontex}{PythonTeX} package also provides an interface to Pygments.
+%
+% \pkg{minted} is currently in a rolling \textbf{development release} in preparation for v2.0.  The goal is to transfer several features from PythonTeX (inline code snippets, Unicode support, etc.) and close all current issues, including those on the old \href{https://code.google.com/p/minted/}{Google Code site}. During this time of transition, users who need maximum stability are encouraged to use \pkg{minted} 1.7 or PythonTeX.  The release on CTAN will only be updated once v2.0 stabilizes.
+%
+% \pagebreak
+%
 %   \tableofcontents
-% \end{multicols}
 %
 % \fvset{
 %   codes={\catcode`\%=9}, ^^A Ignore initial |%|
@@ -731,6 +754,11 @@
 %   \item \ldots  See list at \href{http://code.google.com/p/minted/issues/list}{code.google.com/p/minted/issues}.
 % \end{itemize}
 %
+% \section*{Acknowledgements}
+%
+% Konrad Rudolph:  Special thanks to Philipp Stephani and the rest of the guys from \url{comp.text.tex} and \url{tex.stackexchange.com}.
+%
+%
 % \StopEventually{
 %   \addcontentsline{toc}{section}{Change History}
 %   \PrintChanges}
@@ -738,6 +766,9 @@
 %
 % \section{Implementation}
 %
+% \iffalse
+%<*package>
+% \fi
 %
 % \subsection{Package options}
 %
@@ -1294,4 +1325,9 @@
   \fi}
 %    \end{macrocode}
 %
-% \Finale
+% \iffalse
+%</package>
+% \fi
+%% \Finale
+\endinput
+
