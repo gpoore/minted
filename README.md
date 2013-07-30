@@ -8,13 +8,42 @@ by Konrad Rudolph.  Geoffrey Poore agreed to take over `minted` maintenance
 in March of 2013, since his [PythonTeX](https://github.com/gpoore/pythontex)
 package also provides an interface to Pygments.
 
-`minted` is currently in a rolling **development release** in preparation 
-for v2.0.  The goal is to transfer several features from PythonTeX (inline 
-code snippets, Unicode support, etc.) and close all current issues, 
-including those on the old [Google Code site](https://code.google.com/p/minted/).
-During this time of transition, users who need maximum stability are 
-encouraged to use `minted` 1.7 or PythonTeX.  The release on CTAN will only
-be updated once v2.0 stabilizes.
+`minted` is currently in development for v2.0.  The majority of planned 
+features are already present in the current alpha release.  During this time 
+of transition, users who need maximum stability are encouraged to use 
+`minted` 1.7 or PythonTeX.  The release on CTAN will only be updated once 
+v2.0 stabilizes.
+
+New features in v2.0alpha (2013/07/30):
+
+*   Added the package option `cache`. This significantly increases
+    compilation speed by caching old output. For example, compiling the
+    documentation is around 5x faster.
+
+*   New inline command `\mintinline`. Custom versions can be created via 
+    `\newmintinline`. The command works inside other commands (for example, 
+    footnotes) in most situations, so long as the percent and hash 
+    characters are avoided.
+
+*   The new `\setminted` command allows options to be specified at the 
+    document and language levels.
+
+*   All extended characters (Unicode, etc.) supported by `inputenc` now
+    work under the pdfTeX engine. This involved using `\detokenize` on 
+    everything prior to saving.
+    
+*   New package option `langlinenos` allows line numbering to pick up
+    where it left off for a given language when `firstnumber=last`.
+
+*   New options, including `style`, `encoding`, `outencoding`,
+    `codetagify`, `keywordcase`, `texcomments` (same as `texcl`),
+    `python3` (for the `PythonConsoleLexer`), and `numbers`.
+
+*   `\usemintedstyle` now takes an optional argument to specify the style for a
+    particular language, and works anywhere in the document.
+
+*   `xcolor` is only loaded if `color` isn’t, preventing potential
+    package clashes.
 
 
 ## Overview
