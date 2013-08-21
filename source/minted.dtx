@@ -1082,7 +1082,7 @@ f.close()
     \ifthenelse{\equal{#1}{}}{\immediate\write18{del "#2"}}%
       {\immediate\write18{del "#1\@backslashchar #2"}}}
 \else
-  \providecommand{\DeleteFile}[2]{%
+  \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}{\immediate\write18{rm "#2"}}%
       {\immediate\write18{rm "#1/#2"}}}
 \fi
