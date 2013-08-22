@@ -25,7 +25,7 @@
 %% This work consists of the files minted.dtx and minted.ins
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2013/07/30 v2.0alpha ]
+\ProvidesPackage{minted}[2013/08/21 v2.0-alpha2 ]
 
 \RequirePackage{keyval}
 \RequirePackage{fancyvrb}
@@ -105,12 +105,14 @@ f.close()
   {}%
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
-    \ifthenelse{\equal{#1}{}}{\immediate\write18{del "#2"}}%
-      {\immediate\write18{del "#1\@backslashchar #2"}}}
+    \ifthenelse{\equal{#1}{}}%
+      {\IfFileExists{#2}{\immediate\write18{del "#2"}}{}}%
+      {\IfFileExists{#1/#2}{\immediate\write18{del "#1\@backslashchar #2"}}{}}}
 \else
-  \providecommand{\DeleteFile}[2]{%
-    \ifthenelse{\equal{#1}{}}{\immediate\write18{rm "#2"}}%
-      {\immediate\write18{rm "#1/#2"}}}
+  \providecommand{\DeleteFile}[2][]{%
+    \ifthenelse{\equal{#1}{}}%
+      {\IfFileExists{#2}{\immediate\write18{rm "#2"}}{}}%
+      {\IfFileExists{#1/#2}{\immediate\write18{rm "#1/#2"}}{}}}
 \fi
 \ifwindows
   \newcommand{\ProvideDirectory}[1]{%
@@ -153,10 +155,10 @@ f.close()
 \newcommand{\minted@optcmd}{}
 \newcommand{\minted@checklang}{%
   \ifcsname minted@optlang\minted@lang\endcsname\else
-    \expandafter\gdef\csname minted@optlang\minted@lang\endcsname{}%
+    \expandafter\def\csname minted@optlang\minted@lang\endcsname{}%
   \fi
   \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-    \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+    \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
   \fi
 }
 \newcommand{\minted@resetoptcmd}{\@namedef{minted@optcmd@extra}{}}
@@ -171,35 +173,31 @@ f.close()
   \expandafter\expandafter\expandafter{\csname minted@optcmd@#1\endcsname}}
 \newcommand{\minted@regoptg}[1]{%
   \ifcsname minted@optg@#1@reg\endcsname\else
-    \expandafter\global\expandafter%
-      \let\csname minted@optg@#1@reg\endcsname\@empty
-    \expandafter\gdef\expandafter\minted@optg\expandafter{%
+    \expandafter\let\csname minted@optg@#1@reg\endcsname\@empty
+    \expandafter\def\expandafter\minted@optg\expandafter{%
       \minted@optg\space\minted@getoptg{#1}}%
   \fi
 }
 \newcommand{\minted@regoptlang}[1]{%
   \ifcsname minted@optlang\minted@lang @#1@reg\endcsname\else
     \ifcsname minted@optlang\minted@lang\endcsname\else
-      \expandafter\gdef\csname minted@optlang\minted@lang\endcsname{}%
+      \expandafter\def\csname minted@optlang\minted@lang\endcsname{}%
     \fi
-    \expandafter\global\expandafter\let%
-      \csname minted@optlang\minted@lang @#1@reg\endcsname\@empty
+    \expandafter\let\csname minted@optlang\minted@lang @#1@reg\endcsname\@empty
     \expandafter\let\expandafter\minted@optlang%
       \csname minted@optlang\minted@lang\endcsname
     \expandafter\def\expandafter\minted@optlang\expandafter{%
       \minted@optlang\space\minted@getoptlang{#1}}%
-    \expandafter\global\expandafter\let%
-      \csname minted@optlang\minted@lang\endcsname\minted@optlang
+    \expandafter\let\csname minted@optlang\minted@lang\endcsname\minted@optlang
     \let\minted@optlang\@empty
   \fi
 }
 \newcommand{\minted@regoptcmd}[1]{%
   \ifcsname minted@optcmd@#1@reg\endcsname\else
-    \expandafter\global\expandafter%
-      \let\csname minted@optcmd@#1@reg\endcsname\@empty
-    \expandafter\gdef\expandafter\minted@optcmd\expandafter{%
+    \expandafter\let\csname minted@optcmd@#1@reg\endcsname\@empty
+    \expandafter\def\expandafter\minted@optcmd\expandafter{%
       \minted@optcmd\space\minted@getoptcmd{#1}}%
-    \expandafter\gdef\expandafter\minted@resetoptcmd\expandafter{%
+    \expandafter\def\expandafter\minted@resetoptcmd\expandafter{%
         \minted@resetoptcmd
         \@namedef{minted@optcmd@#1}{}}
   \fi
@@ -235,29 +233,32 @@ f.close()
 }
 \newcommand{\minted@regstyle}[1]{%
   \ifcsname minted@stylereg@#1\endcsname\else
-    \expandafter\let\csname minted@stylereg@#1\endcsname\@empty
+    \expandafter\global\expandafter%
+      \let\csname minted@stylereg@#1\endcsname\@empty
     \ifthenelse{\boolean{minted@cache}}%
       {\IfFileExists{\minted@cachedir/#1.pygstyle}{}{%
         \ifwindows
-          \immediate\write18{pygmentize -S #1 -f latex
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
             -P commandprefix=PYG#1
             > \minted@cachedir\@backslashchar#1.pygstyle}%
         \else
-          \immediate\write18{pygmentize -S #1 -f latex
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
             -P commandprefix=PYG#1
             > \minted@cachedir/#1.pygstyle}%
         \fi
         }%
-        \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
+        \begingroup
+        \let\def\gdef
         \endlinechar=-1\relax
         \input{\minted@cachedir/#1.pygstyle}%
-        \endlinechar=\@tmp@cr}%
-      {\immediate\write18{pygmentize -S #1 -f latex
+        \endgroup}%
+      {\immediate\write18{\MintedPygmentize\space -S #1 -f latex
         -P commandprefix=PYG#1 > \jobname.pyg}%
-        \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
+        \begingroup
+        \let\def\gdef
         \endlinechar=-1\relax
         \input{\jobname.pyg}%
-        \endlinechar=\@tmp@cr}%
+        \endgroup}%
   \fi
 }
 \newcommand{\minted@define@switch}[3][]{
@@ -278,7 +279,7 @@ f.close()
   \@namedef{minted@optg@extra}{}
   \define@key{minted@optlang}{#1}{%
     \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-      \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+      \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
     \fi
     \expandafter\let\expandafter\minted@optlang@extra%
       \csname minted@optlang\minted@lang @extra \endcsname
@@ -302,7 +303,7 @@ f.close()
   \define@booleankey{minted@optlang}{#1}
     {%
       \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-        \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+        \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
       \fi
       \expandafter\let\expandafter\minted@optlang@extra%
         \csname minted@optlang\minted@lang @extra\endcsname
@@ -313,7 +314,7 @@ f.close()
       \let\minted@optlang@extra\@empty}
     {%
       \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-        \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+        \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
       \fi
       \expandafter\let\expandafter\minted@optlang@extra%
         \csname minted@optlang\minted@lang @extra\endcsname
@@ -330,6 +331,7 @@ f.close()
 }
 \minted@define@opt{encoding}{-P encoding=#1}
 \minted@define@opt{outencoding}{-P outencoding=#1}
+\minted@define@opt{stripnl}{-P stripnl=#1}
 \minted@define@switch{python3}{-P python3=True}
 \minted@define@switch[-P funcnamehighlighting=False]%
   {funcnamehighlighting}{-P funcnamehighlighting}
@@ -400,9 +402,10 @@ f.close()
     \let\FV@FontScanPrep\relax
     \let\@noligs\relax
     \FV@Scan}
+\newcommand{\MintedPygmentize}{pygmentize}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
   \minted@checklang
-  \def\minted@cmd{pygmentize -l #2 -f latex -F tokenmerge
+  \def\minted@cmd{\MintedPygmentize\space -l #2 -f latex -F tokenmerge
     \minted@optg \space \csname minted@optlang\minted@lang\endcsname
     \space \minted@optcmd \space -P "verboptions=\minted@getoptg{extra}%
       \minted@getoptlang{extra}\minted@getoptcmd{extra}"
@@ -590,6 +593,7 @@ f.close()
     \DeleteFile{\jobname.mintedmd5}
   \fi
   \DeleteFile{\jobname.pyg}%
+  \DeleteFile{\jobname.out.pyg}%
 }
 %% \Finale
 \endinput

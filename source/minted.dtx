@@ -30,7 +30,7 @@
 %</driver>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2013/07/30 v2.0alpha ]
+\ProvidesPackage{minted}[2013/08/21 v2.0-alpha2 ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -143,7 +143,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1084}
+% \CheckSum{1087}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -163,7 +163,17 @@
 %
 %
 %
-% \begin{changelog}{2.0alpha}{2013/07/30}
+% \begin{changelog}{v2.0-alpha2}{2013/08/21}
+% \item \texttt{\string\DeleteFile} now only deletes files if they do indeed exist.  This eliminates warning messages due to missing files.
+% \item Fixed a bug in the definition of \texttt{\string\DeleteFile} for non-Windows systems.
+% \item Added support for Pygments option \texttt{stripnl}.
+% \item Settings macros that were previously defined globally are now defined locally, so that \texttt{\string\setminted} may be confined by \texttt{\string\begingroup...\string\endgroup} as expected.
+% \item Macro definitions for a given style are now loaded only once per document, rather than once per command/environment.  This works even without caching.
+% \item A custom script/executable may now be substituted for \texttt{pygmentize} by redefining \texttt{\string\MintedPygmentize}.
+% \end{changelog}
+%
+%
+% \begin{changelog}{v2.0alpha}{2013/07/30}
 % \item Added the package option \texttt{cache}.  This significantly increases compilation speed by caching old output.  For example, compiling the documentation is around 5x faster.
 % \item New inline command \texttt{\string\mintinline}.  Custom versions can be created via \texttt{\string\newmintinline}.  The command works inside other commands (for example, footnotes) in most situations, so long as the percent and hash characters are avoided.
 % \item The new \texttt{\string\setminted} command allows options to be specified at the document and language levels.
@@ -294,7 +304,7 @@
 % \end{Verbatim}
 % Under Windows, you will not need the |sudo|, but may need to run the command prompt as administrator.
 %
-% If you already have \app{Pygments} installed, be aware that \pkg{minted} requires at least version 1.2.  Since support for new languages and new features are added with each release, it would probably be good to use version 1.5 or later.
+% If you already have \app{Pygments} installed, be aware that a current version is recommended (at least 1.4 or later).  \pkg{minted} may work with versions as early as 1.2, but there are no guarantees.
 %
 %
 % \subsection{Required packages}
@@ -758,6 +768,8 @@
 %     Sets the stylesheet used by \app{Pygments}.
 %   \item[stepnumber (integer) (+1+)]
 %     Interval at which line numbers appear.
+%   \item[stripnl (boolean) (+true+)]
+%     Strip all leading and trailing whitespace from the input.
 %   \item[tabsize (integer) (+8+)]
 %     The number of spaces a tab is equivalent to if +obeytabs+ is not active.
 %   \item[texcl (boolean) (+false+)]
@@ -849,7 +861,7 @@
 %
 %
 %
-% \section{Troubleshooting}
+% \section{FAQ and Troubleshooting}
 %
 % In some cases, \pkg{minted} may not give the desired result due to other document settings that it cannot control.  Common issues are described below, with workarounds or solutions.  You may also wish to search \href{http://tex.stackexchange.com/}{tex.stackexchange.com} or ask a question there, if you are working with \pkg{minted} in a non-typical context.
 %
@@ -862,6 +874,15 @@
 %
 % \item \textbf{The \pkg{caption} package produces an error when \texttt{\string\captionof} and other commands are used in combination with \pkg{minted}.}
 % Load the \pkg{caption} package with the option |compatibility=false|.
+%
+% \item \textbf{Tabs are eaten by Beamer.}  This is due to how Beamer works with verbatim content.  You are probably using the frame option |fragile|.  Try |fragile=singleslide| if you don't need overlays.  Otherwise, consider using \cmd\inputminted\ or converting the tabs into spaces.
+%
+% \item \textbf{I need a listing environment that supports page breaks.}  See \url{http://tex.stackexchange.com/a/53540/10742}.
+%
+% \item \textbf{I want to use a custom script/executable to access Pygments, rather than |pygmentize|.}  Redefine |\MintedPygmentize|:
+%\begin{verbatim}
+%\renewcommand{\MintedPygmentize}{...}
+%\end{verbatim}
 % \end{itemize}
 %
 %
@@ -1079,12 +1100,14 @@ f.close()
 %    \begin{macrocode}
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
-    \ifthenelse{\equal{#1}{}}{\immediate\write18{del "#2"}}%
-      {\immediate\write18{del "#1\@backslashchar #2"}}}
+    \ifthenelse{\equal{#1}{}}%
+      {\IfFileExists{#2}{\immediate\write18{del "#2"}}{}}%
+      {\IfFileExists{#1/#2}{\immediate\write18{del "#1\@backslashchar #2"}}{}}}
 \else
-  \providecommand{\DeleteFile}[2]{%
-    \ifthenelse{\equal{#1}{}}{\immediate\write18{rm "#2"}}%
-      {\immediate\write18{rm "#1/#2"}}}
+  \providecommand{\DeleteFile}[2][]{%
+    \ifthenelse{\equal{#1}{}}%
+      {\IfFileExists{#2}{\immediate\write18{rm "#2"}}{}}%
+      {\IfFileExists{#1/#2}{\immediate\write18{rm "#1/#2"}}{}}}
 \fi
 %    \end{macrocode}
 % \end{macro}
@@ -1199,10 +1222,10 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@checklang}{%
   \ifcsname minted@optlang\minted@lang\endcsname\else
-    \expandafter\gdef\csname minted@optlang\minted@lang\endcsname{}%
+    \expandafter\def\csname minted@optlang\minted@lang\endcsname{}%
   \fi
   \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-    \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+    \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
   \fi
 }
 %    \end{macrocode}
@@ -1251,9 +1274,8 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@regoptg}[1]{%
   \ifcsname minted@optg@#1@reg\endcsname\else
-    \expandafter\global\expandafter%
-      \let\csname minted@optg@#1@reg\endcsname\@empty
-    \expandafter\gdef\expandafter\minted@optg\expandafter{%
+    \expandafter\let\csname minted@optg@#1@reg\endcsname\@empty
+    \expandafter\def\expandafter\minted@optg\expandafter{%
       \minted@optg\space\minted@getoptg{#1}}%
   \fi
 }
@@ -1265,16 +1287,14 @@ f.close()
 \newcommand{\minted@regoptlang}[1]{%
   \ifcsname minted@optlang\minted@lang @#1@reg\endcsname\else
     \ifcsname minted@optlang\minted@lang\endcsname\else
-      \expandafter\gdef\csname minted@optlang\minted@lang\endcsname{}%
+      \expandafter\def\csname minted@optlang\minted@lang\endcsname{}%
     \fi
-    \expandafter\global\expandafter\let%
-      \csname minted@optlang\minted@lang @#1@reg\endcsname\@empty
+    \expandafter\let\csname minted@optlang\minted@lang @#1@reg\endcsname\@empty
     \expandafter\let\expandafter\minted@optlang%
       \csname minted@optlang\minted@lang\endcsname
     \expandafter\def\expandafter\minted@optlang\expandafter{%
       \minted@optlang\space\minted@getoptlang{#1}}%
-    \expandafter\global\expandafter\let%
-      \csname minted@optlang\minted@lang\endcsname\minted@optlang
+    \expandafter\let\csname minted@optlang\minted@lang\endcsname\minted@optlang
     \let\minted@optlang\@empty
   \fi
 }
@@ -1285,11 +1305,10 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@regoptcmd}[1]{%
   \ifcsname minted@optcmd@#1@reg\endcsname\else
-    \expandafter\global\expandafter%
-      \let\csname minted@optcmd@#1@reg\endcsname\@empty
-    \expandafter\gdef\expandafter\minted@optcmd\expandafter{%
+    \expandafter\let\csname minted@optcmd@#1@reg\endcsname\@empty
+    \expandafter\def\expandafter\minted@optcmd\expandafter{%
       \minted@optcmd\space\minted@getoptcmd{#1}}%
-    \expandafter\gdef\expandafter\minted@resetoptcmd\expandafter{%
+    \expandafter\def\expandafter\minted@resetoptcmd\expandafter{%
         \minted@resetoptcmd
         \@namedef{minted@optcmd@#1}{}}
   \fi
@@ -1354,29 +1373,32 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@regstyle}[1]{%
   \ifcsname minted@stylereg@#1\endcsname\else
-    \expandafter\let\csname minted@stylereg@#1\endcsname\@empty
+    \expandafter\global\expandafter%
+      \let\csname minted@stylereg@#1\endcsname\@empty
     \ifthenelse{\boolean{minted@cache}}%
       {\IfFileExists{\minted@cachedir/#1.pygstyle}{}{%
         \ifwindows
-          \immediate\write18{pygmentize -S #1 -f latex 
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
             -P commandprefix=PYG#1
             > \minted@cachedir\@backslashchar#1.pygstyle}%
         \else
-          \immediate\write18{pygmentize -S #1 -f latex 
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
             -P commandprefix=PYG#1
             > \minted@cachedir/#1.pygstyle}%
         \fi
         }%
-        \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
+        \begingroup
+        \let\def\gdef
         \endlinechar=-1\relax
         \input{\minted@cachedir/#1.pygstyle}%
-        \endlinechar=\@tmp@cr}%
-      {\immediate\write18{pygmentize -S #1 -f latex
+        \endgroup}%
+      {\immediate\write18{\MintedPygmentize\space -S #1 -f latex
         -P commandprefix=PYG#1 > \jobname.pyg}%
-        \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
+        \begingroup
+        \let\def\gdef
         \endlinechar=-1\relax
         \input{\jobname.pyg}%
-        \endlinechar=\@tmp@cr}%
+        \endgroup}%
   \fi
 }
 %    \end{macrocode}
@@ -1413,7 +1435,7 @@ f.close()
   \@namedef{minted@optg@extra}{}
   \define@key{minted@optlang}{#1}{%
     \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-      \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+      \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
     \fi
     \expandafter\let\expandafter\minted@optlang@extra%
       \csname minted@optlang\minted@lang @extra \endcsname
@@ -1445,7 +1467,7 @@ f.close()
   \define@booleankey{minted@optlang}{#1}
     {%
       \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-        \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+        \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
       \fi
       \expandafter\let\expandafter\minted@optlang@extra%
         \csname minted@optlang\minted@lang @extra\endcsname
@@ -1456,7 +1478,7 @@ f.close()
       \let\minted@optlang@extra\@empty}
     {%
       \ifcsname minted@optlang\minted@lang @extra\endcsname\else
-        \expandafter\gdef\csname minted@optlang\minted@lang @extra\endcsname{}%
+        \expandafter\def\csname minted@optlang\minted@lang @extra\endcsname{}%
       \fi
       \expandafter\let\expandafter\minted@optlang@extra%
         \csname minted@optlang\minted@lang @extra\endcsname
@@ -1491,6 +1513,7 @@ f.close()
 %\minted@define@opt{tabsize}{-P tabsize=#1}
 \minted@define@opt{encoding}{-P encoding=#1}
 \minted@define@opt{outencoding}{-P outencoding=#1}
+\minted@define@opt{stripnl}{-P stripnl=#1}
 % Python console
 \minted@define@switch{python3}{-P python3=True}
 % PHP
@@ -1625,6 +1648,14 @@ f.close()
 % \end{macro}
 %
 %
+% \begin{macro}{\MintedPygmentize}
+% We need a way to customize the executable/script that is called to perform highlighting.  Typically, we will want |pygmentize|.  But advanced users might wish to use a custom Python script instead.
+%    \begin{macrocode}
+\newcommand{\MintedPygmentize}{pygmentize}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@pygmentize}
 %
 % Pygmentize a file (default: |\jobname.pyg|) using the options provided.
@@ -1640,7 +1671,7 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
   \minted@checklang
-  \def\minted@cmd{pygmentize -l #2 -f latex -F tokenmerge
+  \def\minted@cmd{\MintedPygmentize\space -l #2 -f latex -F tokenmerge
     \minted@optg \space \csname minted@optlang\minted@lang\endcsname
     \space \minted@optcmd \space -P "verboptions=\minted@getoptg{extra}%
       \minted@getoptlang{extra}\minted@getoptcmd{extra}"
@@ -2031,6 +2062,7 @@ f.close()
     \DeleteFile{\jobname.mintedmd5}
   \fi
   \DeleteFile{\jobname.pyg}%
+  \DeleteFile{\jobname.out.pyg}%
 }
 %    \end{macrocode}
 %
