@@ -4,9 +4,10 @@
 ## Current status
 
 `minted` was created in [2009](http://stackoverflow.com/questions/1966425/source-code-highlighting-in-latex/1985330#1985330)
-by Konrad Rudolph.  Geoffrey Poore agreed to take over `minted` maintenance
-in March of 2013, since his [PythonTeX](https://github.com/gpoore/pythontex)
-package also provides an interface to Pygments.
+by Konrad Rudolph.  [Geoffrey Poore](https://github.com/gpoore) agreed to 
+take over `minted` maintenance in March of 2013, since his
+[PythonTeX](https://github.com/gpoore/pythontex) package also provides an 
+interface to Pygments.
 
 `minted` is currently in final development for v2.0.  If no bugs are found in
 the current alpha release, it will become v2.0 with only very minor changes.
