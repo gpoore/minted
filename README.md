@@ -45,7 +45,7 @@ will produce the following rendering:
 
 ![screenshot](http://i.stack.imgur.com/OLUjl.png)
 
-See the [documentation](https://github.com/gpoore/minted/source/minted.pdf)
+See the [documentation](https://github.com/gpoore/minted/blob/master/source/minted.pdf)
 for examples and installation instructions.
 
 
