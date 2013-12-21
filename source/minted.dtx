@@ -30,7 +30,7 @@
 %</driver>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{minted}[2013/08/21 v2.0-alpha2 ]
+\ProvidesPackage{minted}[2013/12/21 v2.0-alpha3 ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -46,9 +46,12 @@
 \usepackage[cache, langlinenos]{minted}
 \usepackage{courier} % Useful monospace font (= has \bfseries).
 \usepackage{textcomp}
-\usepackage{hyperref}
-\usepackage{environ}
 \usepackage{microtype}
+\usepackage{environ}
+\usepackage{hyperref}
+
+
+
 
 \makeatletter
 
@@ -143,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1087}
+% \CheckSum{1370}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -162,6 +165,14 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+%
+% \begin{changelog}{v2.0-alpha3}{2013/12/21}
+% \item Added \texttt{autogobble} option.  This sends code through Python's \texttt{textwrap.dedent()} to remove common leading whitespace.
+% \item Added package option \texttt{cachedir}.  This allows the directory in which cached content is saved to be specified.
+% \item Added package option \texttt{outputdir}.  This allows an output directory for temporary files to be specified, so that the package can work with LaTeX's \texttt{-output-directory} command-line option.
+% \item The \texttt{kvoptions} package is now required.  It is needed to process key-value package options, such as the new \texttt{cachedir} option.
+% \item Many small improvements, including better handling of paths under Windows and improved key system.
+% \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha2}{2013/08/21}
 % \item \texttt{\string\DeleteFile} now only deletes files if they do indeed exist.  This eliminates warning messages due to missing files.
@@ -316,6 +327,7 @@
 % \setlength\topsep{0pt}
 % \begin{list}{\textrm{\labelitemi}}{\ttfamily}
 %   \item keyval
+%   \item kvoptions
 %   \item fancyvrb
 %   \item float
 %   \item ifthen
@@ -478,7 +490,7 @@
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
 %   \$ pygmentize -L styles
 % \end{Verbatim}
-
+%
 %
 % Creating your own styles is also easy. Just follow the instructions provided on the
 % \href{http://pygments.org/docs/styles/#creating-own-styles}{website}.
@@ -553,9 +565,21 @@
 % \DescribeMacro{cache}
 % \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are many chunks of code to highlight.  To avoid this, the package provides a |cache| option.
 %
-% The |cache| option creates a directory |.minted-|\meta{jobname} in the document's root directory.  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
+% By default, the |cache| option creates a directory |.minted-|\meta{jobname} in the document's root directory.  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
 %
 % Cached files that are no longer in use are automatically deleted.\footnote{This depends on the main auxiliary file not being deleted or becoming corrupted.  If that happens, you could simply delete the cache directory and start over.}
+%
+% \DescribeMacro{outputdir=\meta{directory}}
+%
+% The |-output-directory| command-line option for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
+%
+% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
+%
+% \DescribeMacro{cachedir=\meta{directory}}
+%
+% This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
+%
+% Note that this directory is relative to the |outputdir|, if an |outputdir| is specified.
 %
 % \DescribeMacro{langlinenos}
 % \pkg{minted} uses the \pkg{fancyvrb} package behind the scenes for the code typesetting.  \pkg{fancyvrb} provides an option |firstnumber| that allows the starting line number of an environment to be specified.  For convenience, there is an option |firstnumber=last| that allows line numbering to pick up where it left off.  The |langlinenos| option makes |firstnumber| work for each language individually with all |minted| and |\mint| usages.  For example, consider the code and output below.
@@ -657,6 +681,17 @@
 % Following is a full list of available options.
 % For more detailed option descriptions please refer to the \pkg{fancyvrb} and \app{Pygments} documentation.
 % \begin{optionlist}
+%   \item[autogobble (boolean) (+false+)]
+%     Remove (gobble) all common leading whitespace from code.  Essentially a version of +gobble+ that automatically determines what should be removed.  Good for code that originally is not indented, but is manually indented after being pasted into a \LaTeX\ document.
+%
+% \begin{example}
+%   ...text.
+%   \begin{minted}[autogobble]{python}
+%       def f(x):
+%           return x**2
+%   \end{minted}
+% \end{example}
+%
 %   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
 %     Value to use as for baselinestretch inside the listing.
 %   \item[bgcolor (string) (\emph{none})]
@@ -708,7 +743,7 @@
 %     Remove the first $n$ characters from each input line.
 %   \item[keywordcase] (string) (+'lower'+)
 %     Changes capitalization of keywords.  Takes +'lower'+, +'upper'+, or +'capitalize'+.
-%   \item[label (\char`\[string\char`\]string) (\emph{empty})]
+%   \item[label (string) (\emph{empty})]
 %     Add a label to the top, the bottom or both of the frames around the code.
 %     See the \pkg{fancyvrb} documentation for more information and examples.
 %     \emph{Note:} This does \emph{not} add a +\label+ to the current listing.
@@ -872,6 +907,16 @@
 % \item \textbf{Extended characters do not work inside \pkg{minted} commands and environments, even when the \pkg{inputenc} package is used.}
 % Version 2.0 adds support for extended characters under the pdfTeX engine.  But if you need characters that are not supported by \pkg{inputenc}, you should use the XeTeX or LuaTeX engines instead.
 %
+% \item \textbf{The \pkg{polyglossia} package is doing undesirable things to code. (For example, adding extra space around colons in French.)}  You may need to put your code within |\begin{english}...\end{english}|.  This may done for all |minted| environments using \pkg{etoolbox} in the preamble:
+% \begin{verbatim}
+%\usepackage{etoolbox}
+%\BeforeBeginEnvironment{minted}{\begin{english}}
+%\AfterEndEnvironment{minted}{\end{english}}
+% \end{verbatim}
+%
+% \item \begin{sloppypar} \textbf{Tabs are being turned into the character sequence \texttt{\string^\string^I}}.
+% This happens when you use XeLaTeX.  You need to use the |-8bit| command-line option so that tabs may be written correctly to temporary files.  See \url{http://tex.stackexchange.com/questions/58732/how-to-output-a-tabulation-into-a-file} for more on XeLaTeX's handling of tab characters. \end{sloppypar}
+%
 % \item \textbf{The \pkg{caption} package produces an error when \texttt{\string\captionof} and other commands are used in combination with \pkg{minted}.}
 % Load the \pkg{caption} package with the option |compatibility=false|.
 %
@@ -883,8 +928,56 @@
 %\begin{verbatim}
 %\renewcommand{\MintedPygmentize}{...}
 %\end{verbatim}
-% \end{itemize}
 %
+% \item \textbf{I want to use the command-line option \texttt{-output-directory}, or MiKTeX's \texttt{-aux-directory}, but am getting errors.}  Use the package option |outputdir| to specify the location of the output directory.  Unfortunately, there is no way for \pkg{minted} to detect the output directory automatically.
+%
+% \item \textbf{I want extended characters in labels, but am getting errors.}  This can happen with Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with Python 3, but you will need to use \pkg{minted} 2.0+ and may have to set the encoding (for example, |\begin{minted}[encoding=utf8,label=...]|).  As a workaround under Python 2.7, you can save the label text in a macro (for example, |\newcommand{\mylabel}{<label>}|), and then pass the macro to \pkg{minted} (|\begin{minted}[label=\mylabel,...]|).  You will still need \pkg{minted} 2.0+ and may need to specify the encoding.
+%
+% \item \textbf{I want automatic line breaks for long lines.}  This may not be advisable for several reasons.  First, automatic line breaks will usually be far inferior to manual line breaks, unless the line-breaking algorithm knows something about the language and its (or your) indentation conventions.  Second, even if the line breaking is acceptable, it will typically have to occur at the space nearest the margin.  So long lines of code with no spaces may not be broken, and things like quoted strings may be split in the middle.  Third, code that uses automatic line breaks must have a symbol near the left-hand side of the page that indicates which lines are continued (for example, $\Rightarrow$), because the line breaks may be in places that would make the code invalid.  The continuation symbol will make it harder for readers to copy-and-paste code from a PDF.  It will also leave less room for the inclusion of line numbers or frames.
+%
+% If you nevertheless insist on automatic line breaks, you may wish to consult \url{http://tex.stackexchange.com/questions/112559/box-around-minted-environment/112573#112573}.  Note that this solution fails when code is indented (\url{http://tex.stackexchange.com/questions/129383/break-lines-in-minted-code}).
+%
+% You may also wish to experiment with the following snippets, which were inspired by the links above.  Due to the many difficulties associated with automatic line breaking, this code is not included in the \pkg{minted} package.  While the code may be suitable for some purposes, it will likely require tweaking in many situations.  Margins especially may require adjustment.
+%
+% The following code causes long lines to wrap around onto the next line, \textbf{without} any indentation or continuation symbol.
+% \begin{verbatim}
+%\newsavebox\FancyVerbLineBox
+%\renewcommand{\FancyVerbFormatLine}[1]{%
+%  \begingroup
+%  \parindent0pt
+%  \setbox\FancyVerbLineBox=\vbox\bgroup
+%    \strut #1\strut
+%  \egroup
+%  \usebox{\FancyVerbLineBox}%
+%  \endgroup
+%}
+% \end{verbatim}
+%
+% The next example is more advanced, inserting a continuation symbol and adding additional indentation to all code to prevent it from overlapping line numbers.  It requires the \pkg{lineno} package.
+% \begin{verbatim}
+%\newsavebox\FancyVerbLineBox
+%\renewcommand{\FancyVerbFormatLine}[1]{%
+%  \begingroup
+%  \hsize=\linewidth
+%  \parindent0pt
+%  \setcounter{linenumber}{1}%
+%  \renewcommand{\thelinenumber}{%
+%    \ifnum\value{linenumber}=1\relax\else
+%      \strut$\Rightarrow$\strut
+%    \fi}%
+%  \advance\hsize by -2em
+%  \setbox\FancyVerbLineBox=\vbox\bgroup
+%    \begin{internallinenumbers}%
+%    \strut #1\strut
+%    \end{internallinenumbers}%
+%  \egroup
+%  \hspace{2em}\usebox{\FancyVerbLineBox}%
+%  \endgroup
+%}
+% \end{verbatim}
+%
+% 
+% \end{itemize}
 %
 %
 %
@@ -911,6 +1004,7 @@
 % Load required packages.  For compatibility reasons, most old functionality should be supported with the original set of packages.  More recently added packages, such as |etoolbox| and |xstring|, should only be used for new features when possible.
 %    \begin{macrocode}
 \RequirePackage{keyval}
+\RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
 \RequirePackage{float}
 \RequirePackage{ifthen}
@@ -930,6 +1024,7 @@
 %
 % \subsection{Package options}
 %
+%
 % \changes{1.7}{2011/09/12}{Options for float placement added}
 %
 % \begin{macro}{\minted@float@within}
@@ -937,8 +1032,8 @@
 % Define an option that controls the section numbering of the |listing| float.
 %
 %    \begin{macrocode}
-\DeclareOption{chapter}{\def\minted@float@within{chapter}}
-\DeclareOption{section}{\def\minted@float@within{section}}
+\DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
+\DeclareVoidOption{section}{\def\minted@float@within{section}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -947,19 +1042,46 @@
 % Define an option that determines whether highlighted content is cached.  We use a boolean to keep track of its state.
 %    \begin{macrocode}
 \newboolean{minted@cache}
-\DeclareOption{cache}{%
+\DeclareVoidOption{cache}{%
   \minted@cachetrue
-  \AtEndOfPackage{\ProvideDirectory{\minted@cachedir}}%
+  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}%
 }
 %    \end{macrocode}
 % \end{macro}
 %
 %
+% \begin{macro}{\minted@cachedir}
+% Set the directory in which cached content is saved.  The default uses a |.minted-| prefix followed by a sanitized |\jobname| (spaces and asterisks replaced).
+%    \begin{macrocode}
+\StrSubstitute{\jobname}{ }{_}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{*}{-}[\minted@jobname]
+\newcommand{\minted@cachedir}{.minted-\minted@jobname}
+\let\minted@cachedir@windows\minted@cachedir
+\define@key{minted}{cachedir}{%
+  \@namedef{minted@cachedir}{#1}%
+  \StrSubstitute{\minted@cachedir}{/}{\@backslashchar}[\minted@cachedir@windows]}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@outputdir}
+% The |-output-directory| command-line option for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in the output directory, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option.  But it is possible to allow the output directory to be specified manually as a package option.
+%    \begin{macrocode}
+\let\minted@outputdir\@empty
+\let\minted@outputdir@windows\@empty
+\define@key{minted}{outputdir}{%
+  \@namedef{minted@outputdir}{#1/}%
+  \StrSubstitute{\minted@outputdir}{/}%
+    {\@backslashchar}[\minted@outputdir@windows]}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{langlinenos}
 % Define an option that makes all |minted| environments and |\mint| commands for a given language share cumulative line numbering (if |firstnumber=last|).
 %    \begin{macrocode}
 \newboolean{minted@langlinenos}
-\DeclareOption{langlinenos}{\minted@langlinenostrue}
+\DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -967,7 +1089,7 @@
 % Process package options.
 %
 %    \begin{macrocode}
-\ProcessOptions\relax
+\ProcessKeyvalOptions*
 %    \end{macrocode}
 %
 %
@@ -978,43 +1100,6 @@
 % Define a default name for files of highlighted content that are brought it.  Caching will redefine this.  We start out with the default, non-caching value.
 %    \begin{macrocode}
 \newcommand{\minted@infile}{\jobname.out.pyg}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\minted@cachedir}
-% Define a macro with the name of the cache directory.  This uses a |.minted-| prefix followed by a sanitized |\jobname| (spaces and asterisks replaced).
-%    \begin{macrocode}
-\StrSubstitute{\jobname}{ }{_}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{*}{-}[\minted@jobname]
-\newcommand{\minted@cachedir}{.minted-\minted@jobname}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{minted-xetex-hasher.py}
-% XeTeX doesn't have built-in hashing capabilities, so we create a temporary script to handle that.  (pdfTeX has |\pdfmdfivesum|, and LuaTeX has equivalent capabilities through Lua; a common hashing interface for both engines is provided by the \pkg{pdftexcmds} package.)
-%    \begin{macrocode}
-\expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
-\else
-\begin{VerbatimOut}[commandchars=!\[\]]{minted-xetex-hasher.py}
-import sys
-import hashlib
-hasher = hashlib.sha1()
-f = open('!jobname.mintedcmd', 'rb')
-hasher.update(f.read())
-f.close()
-f = open(sys.argv[1], 'rb')
-hasher.update(f.read())
-f.close()
-f = open('!jobname.mintedmd5', 'w')
-macro = r'\edef\minted@hash{' + hasher.hexdigest() + '}%\n'
-f.write('\\makeatletter\n')
-f.write(macro)
-f.write('\\makeatother\n')
-f.close()
-\end{VerbatimOut}
-\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1062,7 +1147,7 @@ f.close()
       \renewcommand{\do}[1]{%
         \ifthenelse{\equal{##1}{}}{}{%
           \ifcsname minted@current@##1\endcsname\else
-            \DeleteFile[\minted@cachedir]{##1.pygtex}%
+            \DeleteFile[\minted@outputdir\minted@cachedir]{##1.pygtex}%
           \fi
         }%
       }%
@@ -1102,7 +1187,9 @@ f.close()
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
       {\IfFileExists{#2}{\immediate\write18{del "#2"}}{}}%
-      {\IfFileExists{#1/#2}{\immediate\write18{del "#1\@backslashchar #2"}}{}}}
+      {\IfFileExists{#1/#2}{%
+        \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
+        \immediate\write18{del "\minted@windir\@backslashchar #2"}}{}}}
 \else
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
@@ -1120,7 +1207,8 @@ f.close()
 %    \begin{macrocode}
 \ifwindows
   \newcommand{\ProvideDirectory}[1]{%
-    \immediate\write18{if not exist "#1" mkdir "#1"}}
+    \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
+    \immediate\write18{if not exist "\minted@windir" mkdir "\minted@windir"}}
 \else
   \newcommand{\ProvideDirectory}[1]{%
     \immediate\write18{mkdir -p "#1"}}
@@ -1236,8 +1324,12 @@ f.close()
 % We need a macro that will reset command-level options to null values.  This macro will be redefined as command-level options are specified, in such a way that the next time it is used it will reset all options to null values.  An equivalent at the global and command levels is not provided, since those options should persist.
 %
 % It is convenient always to reset the |extra| options, given the number of |extra| options and the proportional inconvenience of always having to check whether they have been added to the reset list.
+%
+% The |autogobble| at the command level needs to be reset separately since it is not a standard option.
 %    \begin{macrocode}
-\newcommand{\minted@resetoptcmd}{\@namedef{minted@optcmd@extra}{}}
+\newcommand{\minted@resetoptcmd}{%
+  \@namedef{minted@optcmd@extra}{}%
+  \let\minted@optcmd@autogobble\relax}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1320,24 +1412,31 @@ f.close()
 %
 % \begin{macro}{\minted@define@opt}
 %
-% Define a generic option with an optional default argument.
+% Define a generic option with an optional default argument.  Options are given in a |{key}{value}| format that is transformed into |key=value| and then passed to pygmentize.  This allows |value| to be easily stored in a separate macro for later access.  This is useful, for example, in separately accessing the value of |encoding| for performing |autogobble|.
+%
 % If a |key| option is specified without |=value|, the default is assumed.  Options are automatically created at all levels.
 %    \begin{macrocode}
-\newcommand{\minted@define@opt}[3][]{%
+\newcommand{\minted@define@opt}[4][]{%
   \ifthenelse{\equal{#1}{}}%
-    {\define@key{minted@optg}{#2}{\@namedef{minted@optg@#2}{#3}%
+    {\define@key{minted@optg}{#2}{\@namedef{minted@optg@#2}{#3=#4}%
+        \@namedef{minted@optg@#2@val}{#4}%
         \minted@regoptg{#2}}%
       \define@key{minted@optlang}{#2}{%
-        \@namedef{minted@optlang\minted@lang @#2}{#3}%
+        \@namedef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
         \minted@regoptlang{#2}}%
-      \define@key{minted@optcmd}{#2}{\@namedef{minted@optcmd@#2}{#3}%
+      \define@key{minted@optcmd}{#2}{\@namedef{minted@optcmd@#2}{#3=#4}%
+        \@namedef{minted@optcmd@#2@val}{#4}%
         \minted@regoptcmd{#2}}}%
-    {\define@key{minted@optg}{#2}[#1]{\@namedef{minted@optg@#2}{#3}%
+    {\define@key{minted@optg}{#2}[#1]{\@namedef{minted@optg@#2}{#3=#4}%
+        \@namedef{minted@optg@#2@val}{#4}%
         \minted@regoptg{#2}}%
       \define@key{minted@optlang}{#2}[#1]{%
-        \@namedef{minted@optlang\minted@lang @#2}{#3}%
+        \@namedef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
         \minted@regoptlang{#2}}%
-      \define@key{minted@optcmd}{#2}[#1]{\@namedef{minted@optcmd@#2}{#3}%
+      \define@key{minted@optcmd}{#2}[#1]{\@namedef{minted@optcmd@#2}{#3=#4}%
+        \@namedef{minted@optcmd@#2@val}{#4}%
         \minted@regoptcmd{#2}}}%
 }
 %    \end{macrocode}
@@ -1376,28 +1475,33 @@ f.close()
     \expandafter\global\expandafter%
       \let\csname minted@stylereg@#1\endcsname\@empty
     \ifthenelse{\boolean{minted@cache}}%
-      {\IfFileExists{\minted@cachedir/#1.pygstyle}{}{%
+      {\IfFileExists{\minted@outputdir\minted@cachedir/#1.pygstyle}{}{%
         \ifwindows
           \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
             -P commandprefix=PYG#1
-            > \minted@cachedir\@backslashchar#1.pygstyle}%
+            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar#1.pygstyle"}%
         \else
           \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
             -P commandprefix=PYG#1
-            > \minted@cachedir/#1.pygstyle}%
+            > "\minted@outputdir\minted@cachedir/#1.pygstyle"}%
         \fi
         }%
         \begingroup
         \let\def\gdef
         \endlinechar=-1\relax
-        \input{\minted@cachedir/#1.pygstyle}%
+        \input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
         \endgroup}%
-      {\immediate\write18{\MintedPygmentize\space -S #1 -f latex
-        -P commandprefix=PYG#1 > \jobname.pyg}%
+      {\ifwindows
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
+        \else
+          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
+        \fi
         \begingroup
         \let\def\gdef
         \endlinechar=-1\relax
-        \input{\jobname.pyg}%
+        \input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
   \fi
 }
@@ -1510,10 +1614,10 @@ f.close()
 % Lexers.
 %    \begin{macrocode}
 % The following duplicates the `extra' version; any difference? 
-%\minted@define@opt{tabsize}{-P tabsize=#1}
-\minted@define@opt{encoding}{-P encoding=#1}
-\minted@define@opt{outencoding}{-P outencoding=#1}
-\minted@define@opt{stripnl}{-P stripnl=#1}
+%\minted@define@opt{tabsize}{-P tabsize}{#1}
+\minted@define@opt{encoding}{-P encoding}{#1}
+\minted@define@opt{outencoding}{-P outencoding}{#1}
+\minted@define@opt{stripnl}{-P stripnl}{#1}
 % Python console
 \minted@define@switch{python3}{-P python3=True}
 % PHP
@@ -1524,9 +1628,9 @@ f.close()
 %
 % Filters.
 %    \begin{macrocode}
-\minted@define@opt{gobble}{-F gobble:n=#1}
-\minted@define@opt{codetagify}{-F codetagify:codetags=#1}
-\minted@define@opt{keywordcase}{-F keywordcase:case=#1}
+\minted@define@opt{gobble}{-F gobble:n}{#1}
+\minted@define@opt{codetagify}{-F codetagify:codetags}{#1}
+\minted@define@opt{keywordcase}{-F keywordcase:case}{#1}
 %    \end{macrocode}
 %
 % \LaTeX\ formatter.
@@ -1569,14 +1673,85 @@ f.close()
 \minted@define@extra@switch{obeytabs}
 %    \end{macrocode}
 %
-% Other options.
-%
-% The old |bgcolor| is retained for compatibility, but in many cases a dedicated framing package may be preferable.
+% |bgcolor|:  The old |bgcolor| is retained for compatibility, but in many cases a dedicated framing package may be preferable.
 %    \begin{macrocode}
 \let\minted@optcmd@bgcolor\@empty
 \define@key{minted@optcmd}{bgcolor}{\@namedef{minted@optcmd@bgcolor}{#1}}
 %    \end{macrocode}
 %
+% Autogobble.  We create options that govern when Python's |textwrap.dedent()| is used to autogobble code.
+%
+% To begin with, autogobbling requires access to the current encoding, so that Python can read the file correctly before dedenting and writing.
+% \begin{macro}{minted@encoding}
+% Get the current encoding.
+%    \begin{macrocode}
+\newcommand{\minted@encoding}{%
+  \ifcsname minted@optcmd@encoding@val\endcsname
+    \csname minted@optcmd@encoding@val\endcsname
+  \else
+    \ifcsname minted@optlang\minted@lang @encoding@val\endcsname
+      \csname minted@optlang\minted@lang @encoding@val\endcsname
+    \else
+      \ifcsname minted@optg@encoding@val\endcsname
+        \csname minted@optg@encoding@val\endcsname
+      \else
+        UTF8%
+      \fi
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+% 
+% Define |autogobble| options.
+%    \begin{macrocode}
+\define@booleankey{minted@optg}{autogobble}
+    {\expandafter\let\csname minted@optg@autogobble\endcsname\@empty}
+    {\expandafter\let\csname minted@optg@autogobble\endcsname\relax}
+\define@booleankey{minted@optlang}{autogobble}
+    {\expandafter\let\csname minted@optlang\minted@lang @autogobble\endcsname\@empty}
+    {\expandafter\let\csname minted@optlang\minted@lang @autogobble\endcsname\relax}
+\define@booleankey{minted@optcmd}{autogobble}
+    {\expandafter\let\csname minted@optcmd@autogobble\endcsname\@empty}
+    {\expandafter\let\csname minted@optcmd@autogobble\endcsname\relax}
+%    \end{macrocode}
+%
+% \begin{macro}{minted@autogobble}
+% We need a boolean to keep track of whether autogobbling will be performed.
+%    \begin{macrocode}
+\newboolean{minted@autogobble}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\minted@set@autogobble}
+% We need a command to set the |autogobble| boolean.  We have to make sure that all options exist to begin with
+%    \begin{macrocode}
+\newcommand{\minted@set@autogobble}{%
+  \ifcsname minted@optg@autogobble\endcsname\else
+    \expandafter\let\csname minted@optg@autogobble\endcsname\relax
+  \fi
+  \ifcsname minted@optlang\minted@lang @autogobble\endcsname\else
+    \expandafter\let\csname minted@optlang\minted@lang @autogobble\endcsname\relax
+  \fi
+  \ifcsname minted@optcmd@autogobble\endcsname\else
+    \expandafter\let\csname minted@optcmd@autogobble\endcsname\relax
+  \fi
+  \expandafter\ifx\csname minted@optcmd@autogobble\endcsname\@empty
+    \setboolean{minted@autogobble}{true}%
+  \else
+    \expandafter\ifx\csname minted@optlang\minted@lang @autogobble\endcsname\@empty
+      \setboolean{minted@autogobble}{true}%
+    \else
+      \expandafter\ifx\csname minted@optg@autogobble\endcsname\@empty
+        \setboolean{minted@autogobble}{true}%
+      \else
+        \setboolean{minted@autogobble}{false}%
+      \fi
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \subsection{Internal helpers}
 %
@@ -1620,7 +1795,7 @@ f.close()
 % Save code to be pygmentized to a file.
 %    \begin{macrocode}
 \newcommand{\minted@savecode}[1]{
-  \immediate\openout\minted@code\jobname.pyg
+  \immediate\openout\minted@code\jobname.pyg\relax
   \immediate\write\minted@code{\expandafter\detokenize\expandafter{#1}}%
   \immediate\closeout\minted@code}
 %    \end{macrocode}
@@ -1671,43 +1846,99 @@ f.close()
 %    \begin{macrocode}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
   \minted@checklang
-  \def\minted@cmd{\MintedPygmentize\space -l #2 -f latex -F tokenmerge
+  \minted@set@autogobble
+  \ifthenelse{\boolean{minted@autogobble}}%
+    {\def\minted@codefile{\jobname.pyg}}%
+    {\def\minted@codefile{#1}}%
+  \def\minted@cmd{\MintedPygmentize\space -l #2
+    -f latex -F tokenmerge
     \minted@optg \space \csname minted@optlang\minted@lang\endcsname
     \space \minted@optcmd \space -P "verboptions=\minted@getoptg{extra}%
       \minted@getoptlang{extra}\minted@getoptcmd{extra}"
-    -o \minted@infile \space #1}%
+    -o "\minted@outputdir\minted@infile" \space 
+    "\minted@outputdir\minted@codefile"}%
   % For debugging, uncomment:
   % \immediate\typeout{\minted@cmd}%
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
-        \edef\minted@hash{\pdf@filemdfivesum{#1}\pdf@mdfivesum{\minted@cmd}}%
+        \ifthenelse{\boolean{minted@autogobble}}%
+          {\edef\minted@hash{\pdf@filemdfivesum{#1}%
+            \pdf@mdfivesum{\minted@cmd autogobble}}}%
+          {\edef\minted@hash{\pdf@filemdfivesum{#1}%
+            \pdf@mdfivesum{\minted@cmd}}}%
       \else
-        \immediate\openout\minted@code\jobname.mintedcmd
+        \immediate\openout\minted@code\jobname.mintedcmd\relax
         \immediate\write\minted@code{\minted@cmd}%
+        \ifthenelse{\boolean{minted@autogobble}}%
+          {\immediate\write\minted@code{autogobble}}{}%
         \immediate\closeout\minted@code
-        \immediate\write18{python minted-xetex-hasher.py "#1"}
-        \input{\jobname.mintedmd5}
+        %Cheating a little here by using ASCII codes to write `{` and `}`
+        %in the Python code
+        \def\minted@hashcmd{%
+          \detokenize{python -c "import hashlib;
+            hasher = hashlib.sha1();
+            f = open(\'}\minted@outputdir\jobname.mintedcmd\detokenize{\', \'rb\');
+            hasher.update(f.read());
+            f.close();
+            f = open(\'}\minted@outputdir#1\detokenize{\', \'rb\');
+            hasher.update(f.read());
+            f.close();
+            f = open(\'}\minted@outputdir\jobname.mintedmd5\detokenize{\', \'w\');
+            macro = \'\\edef\\minted@hash\' + chr(123) + hasher.hexdigest() + chr(125) + \'\';
+            f.write(\'\\makeatletter\' + macro + \'\\makeatother\n\');
+            f.close();}}%
+        \immediate\write18{\minted@hashcmd}
+        \input{\minted@outputdir\jobname.mintedmd5}%
       \fi
       \ifwindows
         \edef\minted@infile{%
-          \minted@cachedir\@backslashchar\minted@hash.pygtex}%
+          \minted@cachedir@windows\@backslashchar\minted@hash.pygtex}%
       \else
         \edef\minted@infile{%
           \minted@cachedir/\minted@hash.pygtex}%
       \fi
       \IfFileExists{\minted@cachedir/\minted@hash.pygtex}{}{%
+        \ifthenelse{\boolean{minted@autogobble}}{%
+          %Need a version of open() that supports encoding under Python 2
+          \edef\minted@autogobblecmd{%
+            \detokenize{python -c "import sys;
+            import textwrap;
+            from io import open;
+            f = open(\'}\minted@outputdir#1\detokenize{\', \'r\', encoding=\'}\minted@encoding\detokenize{\');
+            t = f.read();
+            f.close();
+            f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
+            f.write(textwrap.dedent(t));
+            f.close();}%
+          }%
+          \immediate\write18{\minted@autogobblecmd}}{}%
         \immediate\write18{\minted@cmd}}%
       \expandafter\minted@addcachefile\expandafter{\minted@hash}%
       \minted@inputpyg}%
-    {\immediate\write18{\minted@cmd}%
+    {%
+      \ifthenelse{\boolean{minted@autogobble}}{%
+        %Need a version of open() that supports encoding under Python 2
+        \edef\minted@autogobblecmd{%
+          \detokenize{python -c "import sys;
+          import textwrap;
+          from io import open;
+          f = open(\'}\minted@outputdir#1\detokenize{\', \'r\', encoding=\'}\minted@encoding\detokenize{\');
+          t = f.read();
+          f.close();
+          f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
+          f.write(textwrap.dedent(t));
+          f.close();}%
+        }%
+        \immediate\write18{\minted@autogobblecmd}}{}%
+      \immediate\write18{\minted@cmd}%
       \minted@inputpyg}%
 }
 \newcommand{\minted@inputpyg}{%
   \ifthenelse{\equal{\minted@optcmd@bgcolor}{}}%
     {}%
     {\begin{minted@colorbg}{\minted@optcmd@bgcolor}}%
-  \input{\minted@infile}%
+  \input{\minted@outputdir\minted@infile}%
   \ifthenelse{\equal{\minted@optcmd@bgcolor}{}}%
     {}%
     {\end{minted@colorbg}}%
@@ -1802,7 +2033,7 @@ f.close()
   \minted@inline@ii}
 \newcommand{\minted@inline@iii}[1]{%
   \endgroup
-  \immediate\openout\minted@code\jobname.pyg
+  \immediate\openout\minted@code\jobname.pyg\relax
   \immediate\write\minted@code{\detokenize{#1}}%
   \immediate\closeout\minted@code
   \begingroup
@@ -2057,12 +2288,11 @@ f.close()
 \AtEndDocument{
   \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
   \else
-    \DeleteFile{minted-xetex-hasher.py}
-    \DeleteFile{\jobname.mintedcmd}
-    \DeleteFile{\jobname.mintedmd5}
+    \DeleteFile[\minted@outputdir]{\jobname.mintedcmd}%
+    \DeleteFile[\minted@outputdir]{\jobname.mintedmd5}%
   \fi
-  \DeleteFile{\jobname.pyg}%
-  \DeleteFile{\jobname.out.pyg}%
+  \DeleteFile[\minted@outputdir]{\jobname.pyg}%
+  \DeleteFile[\minted@outputdir]{\jobname.out.pyg}%
 }
 %    \end{macrocode}
 %

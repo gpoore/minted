@@ -8,13 +8,12 @@ by Konrad Rudolph.  Geoffrey Poore agreed to take over `minted` maintenance
 in March of 2013, since his [PythonTeX](https://github.com/gpoore/pythontex)
 package also provides an interface to Pygments.
 
-`minted` is currently in development for v2.0.  The majority of planned 
-features are already present in the current alpha release.  During this time 
-of transition, users who need maximum stability are encouraged to use 
-`minted` 1.7 or PythonTeX.  The release on CTAN will only be updated once 
-v2.0 stabilizes.
-
-`minted` is currently migrating all downloads to the new GitHub [Releases](https://github.com/blog/1547-release-your-software).
+`minted` is currently in final development for v2.0.  If no bugs are found in
+the current alpha release, it will become v2.0 with only very minor changes.
+All planned features are present in the current alpha release.  The alpha 
+release should be quite stable, but users who need maximum stability are 
+encouraged to use `minted` 1.7 or PythonTeX.  The release on CTAN will only 
+be updated once v2.0 is finalized.
 
 
 ## Overview
