@@ -501,7 +501,7 @@
             f = open(\'}\minted@outputdir\jobname.mintedmd5\detokenize{\', \'w\');
             macro = \'\\edef\\minted@hash\' + chr(123) + hasher.hexdigest() + chr(125) + \'\';
             f.write(\'\\makeatletter\' + macro + \'\\makeatother\n\');
-            f.close();}}%
+            f.close();"}}%
         \immediate\write18{\minted@hashcmd}
         \input{\minted@outputdir\jobname.mintedmd5}%
       \fi
@@ -524,7 +524,7 @@
             f.close();
             f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
             f.write(textwrap.dedent(t));
-            f.close();}%
+            f.close();"}%
           }%
           \immediate\write18{\minted@autogobblecmd}}{}%
         \immediate\write18{\minted@cmd}}%
@@ -542,7 +542,7 @@
           f.close();
           f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
           f.write(textwrap.dedent(t));
-          f.close();}%
+          f.close();"}%
         }%
         \immediate\write18{\minted@autogobblecmd}}{}%
       \immediate\write18{\minted@cmd}%
