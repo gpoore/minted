@@ -713,6 +713,18 @@
 %     Highlight special code tags in comments and docstrings.
 %   \item[encoding (string) (system-specific)]
 %     Sets the file encoding that \app{Pygments} expects.
+%
+%   \item[escapeinside (string) (system-specifyc)]
+%    Requires pygments > 2.0. Escape text inside code blocks allowing for further formatting. The supplied argument must be a 2-char string of the same character (eg. ||).
+%
+% \begin{example}
+%   \begin{minted}[escapeinside=;;]{python}
+%   def f(x):
+%     y = x;\colorbox{yellow}{**};2
+%     return y
+%   \end{minted}
+% \end{example}
+%
 %   \item[outencoding (string) (system-specific)]
 %     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
 %   \item[firstline (integer) (+1+)]
