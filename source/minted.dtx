@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2013 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2013-2014 by Geoffrey M. Poore <gpoore@gmail.com>
 % Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 % ---------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
@@ -166,9 +166,9 @@
 %
 %
 %
-% \begin{changelog}{v2.0-beta}{2014/01/14}
+% \begin{changelog}{v2.0-beta}{2014/??/??}
 % \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
-% 
+% \item Added support for \texttt{escapeinside} (requires Pygments 2.0+; \#38).
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -727,9 +727,18 @@
 %   \item[codetagify (list of strings) (highlight +XXX+, +TODO+, +BUG+, and +NOTE+)]
 %     Highlight special code tags in comments and docstrings.
 %   \item[encoding (string) (system-specific)]
-%     Sets the file encoding that \app{Pygments} expects.
-%   \item[outencoding (string) (system-specific)]
-%     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
+%     Sets the file encoding that \app{Pygments} expects.  See also +outencoding+.
+%   \item[escapeinside (string) (\meta{none})]
+%   Escape to \LaTeX\ between the two characters specified in \texttt{\string(string\string)}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting. The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (\texttt{\textbackslash\#}, \texttt{\textbackslash\%}, etc.).  Requires \app{Pygments} 2.0\string+.
+%
+% \begin{example}
+%   \begin{minted}[escapeinside=||]{py}
+%   def f(x):
+%       y = x|\colorbox{green}{**}|2
+%       return y
+%   \end{minted}
+% \end{example}
+%
 %   \item[firstline (integer) (+1+)]
 %     The first line to be shown.
 %     All lines before that line are ignored and do not appear in the output.
@@ -800,6 +809,8 @@
 %     Gap between numbers and start of line.
 %   \item[obeytabs (boolean) (+false+)]
 %     Treat tabs as tabs instead of converting them to spaces.
+%   \item[outencoding (string) (system-specific)]
+%     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
 %   \item[python3 (boolean) (+false+)] \appliesto{PythonConsoleLexer}
 %     Specifies whether Python 3 highlighting is applied.
 %   \item[resetmargins (boolean) (+false+)]
@@ -1468,6 +1479,67 @@
 % \end{macro}
 %
 %
+% \begin{macro}{\minted@define@opt@escchar}
+%
+% Define a generic option with an optional default argument, just like |\minted@define@opt|, except that the argument will function correctly when it contains escaped \LaTeX\ characters such as |\#| and |\%|.  This is needed for |escapeinside|, which may take escaped characters but must pass literal unescaped characters to the command line.
+%    \begin{macrocode}
+\newcommand{\minted@namexdef}[1]{\expandafter\xdef\csname #1\endcsname}
+\edef\minted@hashchar{\string#}
+\edef\minted@lbracechar{\string{}
+\edef\minted@rbracechar{\string}}
+\edef\minted@dollarchar{\string$}
+\edef\minted@ampchar{\string&}
+\edef\minted@uscorechar{\string_}
+\newcommand{\minted@bechar}{%
+  \begingroup
+  \let\#\minted@hashchar
+  \let\%\@percentchar
+  \let\{\minted@lbracechar
+  \let\}\minted@rbracechar
+  \let\$\minted@dollarchar
+  \let\&\minted@ampchar
+  \let\_\minted@uscorechar
+}
+\newcommand{\minted@eechar}{\endgroup}
+\newcommand{\minted@define@opt@escchar}[4][]{%
+  \ifthenelse{\equal{#1}{}}%
+    {\define@key{minted@optg}{#2}{\minted@bechar%
+        \minted@namexdef{minted@optg@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optg@#2@val}{#4}%
+        \minted@regoptg{#2}}%
+      \define@key{minted@optlang}{#2}{%
+        \minted@bechar%
+        \minted@namexdef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
+        \minted@regoptlang{#2}}%
+      \define@key{minted@optcmd}{#2}{\minted@bechar%
+        \minted@namexdef{minted@optcmd@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optcmd@#2@val}{#4}%
+        \minted@regoptcmd{#2}}}%
+    {\define@key{minted@optg}{#2}[#1]{\minted@bechar%
+        \minted@namexdef{minted@optg@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optg@#2@val}{#4}%
+        \minted@regoptg{#2}}%
+      \define@key{minted@optlang}{#2}[#1]{%
+        \minted@bechar%
+        \minted@namexdef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
+        \minted@regoptlang{#2}}%
+      \define@key{minted@optcmd}{#2}[#1]{\minted@bechar%
+        \minted@namexdef{minted@optcmd@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optcmd@#2@val}{#4}%
+        \minted@regoptcmd{#2}}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@define@optstyle}
 %
 % Define an option for styles.  These are defined independently, because styles need to be registered, so that the macros for a given style are only created and inputted once.
@@ -1642,6 +1714,7 @@
 %\minted@define@opt{tabsize}{-P tabsize}{#1}
 \minted@define@opt{encoding}{-P encoding}{#1}
 \minted@define@opt{outencoding}{-P outencoding}{#1}
+\minted@define@opt@escchar{escapeinside}{-O escapeinside}{"#1"}
 \minted@define@opt{stripnl}{-P stripnl}{#1}
 % Python console
 \minted@define@switch{python3}{-P python3=True}
@@ -1882,8 +1955,9 @@
       \minted@getoptlang{extra}\minted@getoptcmd{extra}"
     -o "\minted@outputdir\minted@infile" \space 
     "\minted@outputdir\minted@codefile"}%
-  % For debugging, uncomment:
+  % For debugging, uncomment: %%%%
   % \immediate\typeout{\minted@cmd}%
+  % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax

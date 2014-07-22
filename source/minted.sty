@@ -5,6 +5,7 @@
 %% The original source files were:
 %%
 %% minted.dtx  (with options: `package')
+%% Copyright 2013--2014 Geoffrey M. Poore
 %% Copyright 2010--2011 Konrad Rudolph
 %% 
 %% This work may be distributed and/or modified under the
@@ -20,7 +21,7 @@
 %% 
 %% This work has the LPPL maintenance status `maintained'.
 %% 
-%% The Current Maintainer of this work is Konrad Rudolph.
+%% The Current Maintainer of this work is Geoffrey Poore.
 %% 
 %% This work consists of the files minted.dtx and minted.ins
 %% and the derived file minted.sty.
@@ -220,6 +221,59 @@
         \@namedef{minted@optcmd@#2@val}{#4}%
         \minted@regoptcmd{#2}}}%
 }
+\newcommand{\minted@namexdef}[1]{\expandafter\xdef\csname #1\endcsname}
+\edef\minted@hashchar{\string#}
+\edef\minted@lbracechar{\string{}
+\edef\minted@rbracechar{\string}}
+\edef\minted@dollarchar{\string$}
+\edef\minted@ampchar{\string&}
+\edef\minted@uscorechar{\string_}
+\newcommand{\minted@bechar}{%
+  \begingroup
+  \let\#\minted@hashchar
+  \let\%\@percentchar
+  \let\{\minted@lbracechar
+  \let\}\minted@rbracechar
+  \let\$\minted@dollarchar
+  \let\&\minted@ampchar
+  \let\_\minted@uscorechar
+}
+\newcommand{\minted@eechar}{\endgroup}
+\newcommand{\minted@define@opt@escchar}[4][]{%
+  \ifthenelse{\equal{#1}{}}%
+    {\define@key{minted@optg}{#2}{\minted@bechar%
+        \minted@namexdef{minted@optg@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optg@#2@val}{#4}%
+        \minted@regoptg{#2}}%
+      \define@key{minted@optlang}{#2}{%
+        \minted@bechar%
+        \minted@namexdef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
+        \minted@regoptlang{#2}}%
+      \define@key{minted@optcmd}{#2}{\minted@bechar%
+        \minted@namexdef{minted@optcmd@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optcmd@#2@val}{#4}%
+        \minted@regoptcmd{#2}}}%
+    {\define@key{minted@optg}{#2}[#1]{\minted@bechar%
+        \minted@namexdef{minted@optg@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optg@#2@val}{#4}%
+        \minted@regoptg{#2}}%
+      \define@key{minted@optlang}{#2}[#1]{%
+        \minted@bechar%
+        \minted@namexdef{minted@optlang\minted@lang @#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optlang\minted@lang @#2@val}{#4}%
+        \minted@regoptlang{#2}}%
+      \define@key{minted@optcmd}{#2}[#1]{\minted@bechar%
+        \minted@namexdef{minted@optcmd@#2}{#3=#4}%
+        \minted@eechar%
+        \@namedef{minted@optcmd@#2@val}{#4}%
+        \minted@regoptcmd{#2}}}%
+}
 \newcommand{\minted@define@optstyle}{%
   \define@key{minted@optg}{style}{%
     \@namedef{minted@optg@style}{-P style=##1 -P commandprefix=PYG##1}%
@@ -337,6 +391,7 @@
 }
 \minted@define@opt{encoding}{-P encoding}{#1}
 \minted@define@opt{outencoding}{-P outencoding}{#1}
+\minted@define@opt@escchar{escapeinside}{-O escapeinside}{"#1"}
 \minted@define@opt{stripnl}{-P stripnl}{#1}
 \minted@define@switch{python3}{-P python3=True}
 \minted@define@switch[-P funcnamehighlighting=False]%
@@ -471,8 +526,9 @@
       \minted@getoptlang{extra}\minted@getoptcmd{extra}"
     -o "\minted@outputdir\minted@infile" \space
     "\minted@outputdir\minted@codefile"}%
-  % For debugging, uncomment:
+  % For debugging, uncomment: %%%%
   % \immediate\typeout{\minted@cmd}%
+  % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
