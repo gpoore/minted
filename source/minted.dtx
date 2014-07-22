@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1468}
+% \CheckSum{1482}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -170,6 +170,7 @@
 % \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
 % \item Added support for \texttt{escapeinside} (requires Pygments 2.0+; \#38).
 % \item Fixed issues with XeTeX and caching (\#40).
+% \item The \texttt{upquote} package now works correctly with single quotes when using Pygments 1.6+ (\#34).
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -1601,6 +1602,12 @@
         \endlinechar=-1\relax
         \input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
+    \AtBeginDocument{%
+      \@ifpackageloaded{upquote}{%
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+      }{}%
+    }%
   \fi
 }
 %    \end{macrocode}

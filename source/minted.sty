@@ -319,6 +319,12 @@
         \endlinechar=-1\relax
         \input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
+    \AtBeginDocument{%
+      \@ifpackageloaded{upquote}{%
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+      }{}%
+    }%
   \fi
 }
 \newcommand{\minted@define@switch}[3][]{
