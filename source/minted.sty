@@ -286,6 +286,22 @@
     \@namedef{minted@optcmd@style}{-P style=##1 -P commandprefix=PYG##1}%
     \minted@regoptcmd{style}\minted@regstyle{##1}}%
 }
+\newcommand{\minted@patchZsq}[1]{%
+  \ifx\upquote@cmtt\minted@undefined\else
+    \ifx\encodingdefault\upquote@OTone
+      \ifx\ttdefault\upquote@cmtt
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+                {\expandafter\gdef\csname PYG#1Zsq\endcsname{\char13 }}{}%
+      \else
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+      \fi
+    \else
+      \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+      {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+    \fi
+  \fi
+}
 \newcommand{\minted@regstyle}[1]{%
   \ifcsname minted@stylereg@#1\endcsname\else
     \expandafter\global\expandafter%
@@ -319,12 +335,12 @@
         \endlinechar=-1\relax
         \input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
-    \AtBeginDocument{%
-      \@ifpackageloaded{upquote}{%
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-      }{}%
-    }%
+    \ifx\@onlypreamble\@notprerr
+      \minted@patchZsq{#1}%
+    \else
+      \minted@patchZsq{#1}%
+      \AtBeginDocument{\minted@patchZsq{#1}}%
+    \fi
   \fi
 }
 \newcommand{\minted@define@switch}[3][]{
@@ -533,7 +549,7 @@
     -o "\minted@outputdir\minted@infile" \space
     "\minted@outputdir\minted@codefile"}%
   % For debugging, uncomment: %%%%
-  % \immediate\typeout{\minted@cmd}%
+   \immediate\typeout{\minted@cmd}%
   % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%

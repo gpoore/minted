@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1482}
+% \CheckSum{1530}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -1567,8 +1567,24 @@
 %
 % It's important that registration be done with |\def|.  The style macros are |def|ed, so they will be local if included within a group.  We need to make sure that we don't make the mistake of registering a style globally that is actually only available in a group.
 %
-% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.
+% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  We also patch the single quote macro from Pygments 1.6+ if the \pkg{upquote} package is in use.  The conditionals for the patch definition are borrowed from \pkg{upquote}.  If we are in the preamble, we check for patching twice, once immediately and once at the beginning of the document, so that \pkg{upquote} will be detected even if it is loaded after \pkg{minted}.
 %    \begin{macrocode}
+\newcommand{\minted@patchZsq}[1]{%
+  \ifx\upquote@cmtt\minted@undefined\else
+    \ifx\encodingdefault\upquote@OTone
+      \ifx\ttdefault\upquote@cmtt
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+                {\expandafter\gdef\csname PYG#1Zsq\endcsname{\char13 }}{}%
+      \else
+        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+      \fi
+    \else
+      \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
+      {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
+    \fi
+  \fi
+}
 \newcommand{\minted@regstyle}[1]{%
   \ifcsname minted@stylereg@#1\endcsname\else
     \expandafter\global\expandafter%
@@ -1602,12 +1618,12 @@
         \endlinechar=-1\relax
         \input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
-    \AtBeginDocument{%
-      \@ifpackageloaded{upquote}{%
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-      }{}%
-    }%
+    \ifx\@onlypreamble\@notprerr
+      \minted@patchZsq{#1}%
+    \else
+      \minted@patchZsq{#1}%
+      \AtBeginDocument{\minted@patchZsq{#1}}%
+    \fi
   \fi
 }
 %    \end{macrocode}
@@ -1964,7 +1980,7 @@
     -o "\minted@outputdir\minted@infile" \space 
     "\minted@outputdir\minted@codefile"}%
   % For debugging, uncomment: %%%%
-  % \immediate\typeout{\minted@cmd}%
+   \immediate\typeout{\minted@cmd}%
   % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%
