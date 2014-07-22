@@ -556,9 +556,9 @@
             f.close();
             f = open(\'}\minted@outputdir\jobname.mintedmd5\detokenize{\', \'w\');
             macro = \'\\edef\\minted@hash\' + chr(123) + hasher.hexdigest() + chr(125) + \'\';
-            f.write(\'\\makeatletter\' + macro + \'\\makeatother\n\');
+            f.write(\'\\makeatletter\' + macro + \'\\makeatother\\endinput\n\');
             f.close();"}}%
-        \immediate\write18{\minted@hashcmd}
+        \immediate\write18{\minted@hashcmd}%
         \input{\minted@outputdir\jobname.mintedmd5}%
       \fi
       \ifwindows

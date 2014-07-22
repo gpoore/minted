@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1370}
+% \CheckSum{1468}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -169,6 +169,7 @@
 % \begin{changelog}{v2.0-beta}{2014/??/??}
 % \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
 % \item Added support for \texttt{escapeinside} (requires Pygments 2.0+; \#38).
+% \item Fixed issues with XeTeX and caching (\#40).
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -1985,9 +1986,9 @@
             f.close();
             f = open(\'}\minted@outputdir\jobname.mintedmd5\detokenize{\', \'w\');
             macro = \'\\edef\\minted@hash\' + chr(123) + hasher.hexdigest() + chr(125) + \'\';
-            f.write(\'\\makeatletter\' + macro + \'\\makeatother\n\');
+            f.write(\'\\makeatletter\' + macro + \'\\makeatother\\endinput\n\');
             f.close();"}}%
-        \immediate\write18{\minted@hashcmd}
+        \immediate\write18{\minted@hashcmd}%
         \input{\minted@outputdir\jobname.mintedmd5}%
       \fi
       \ifwindows
