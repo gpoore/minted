@@ -166,6 +166,11 @@
 %
 %
 %
+% \begin{changelog}{v2.0-beta}{2014/01/14}
+% \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
+% 
+% \end{changelog}
+%
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
 % \item Added \texttt{autogobble} option.  This sends code through Python's \texttt{textwrap.dedent()} to remove common leading whitespace.
 % \item Added package option \texttt{cachedir}.  This allows the directory in which cached content is saved to be specified.
@@ -709,6 +714,16 @@
 % \end{example}
 %
 % Unlike the other options, this option is currently only supported for individual commands and environments; there is not support at the language and document-wide levels.
+%
+% \textbf{This option will prevent environments from breaking across pages.}  If you want support for page breaks and advanced options, you should consider a framing package such as \pkg{framed}, \pkg{mdframed}, or \pkg{tcolorbox}.  It is easy to add framing to \pkg{minted} commands and environments using the \pkg{etoolbox} package.  For example, using \pkg{mdframed}:
+%\begin{Verbatim}
+%\BeforeBeginEnvironment{minted}{\begin{mdframed}}
+%\AfterEndEnvironment{minted}{\end{mdframed}}
+%\end{Verbatim}
+% Some framing packages also provide built-in commands for such purposes.  For example, \pkg{mdframed} provides a \texttt{\string\surroundwithmdframed} command, which could be used to add a frame to all \texttt{minted} environments:
+%\begin{Verbatim}
+%\surroundwithmdframed{minted}
+%\end{Verbatim}
 %   \item[codetagify (list of strings) (highlight +XXX+, +TODO+, +BUG+, and +NOTE+)]
 %     Highlight special code tags in comments and docstrings.
 %   \item[encoding (string) (system-specific)]
@@ -904,6 +919,11 @@
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}| plus |\usepackage{lmodern}|, or something similar.
 %
+% \item \textbf{Backtick characters \texttt{\string`} are appearing as left quotes.}
+% This is due to how Pygments outputs \LaTeX\ code, combined with how \LaTeX\ deals with verbatim content.  Try |\usepackage{upquote}|.
+%
+% \item \textbf{I'm getting errors with Beamer.}  Due to how Beamer treats verbatim content, you may need to use either the |fragile| or |fragile=singleslide| options for frames that contain \pkg{minted} commands and environments.  |fragile=singleslide| works best, but it disables overlays.  |fragile| works by saving the contents of each frame to a temp file and then reusing them.  This approach allows overlays, but will break if you have the string |\end{frame}| at the beginning of a line (for example, in a |minted| environment).  To work around that, you can indent the content of the environment (so that the |\end{frame}| is preceded by one or more spaces) and then use the |gobble| or |autogobble| options to remove the indentation.
+%
 % \item \textbf{Extended characters do not work inside \pkg{minted} commands and environments, even when the \pkg{inputenc} package is used.}
 % Version 2.0 adds support for extended characters under the pdfTeX engine.  But if you need characters that are not supported by \pkg{inputenc}, you should use the XeTeX or LuaTeX engines instead.
 %
@@ -922,7 +942,12 @@
 %
 % \item \textbf{Tabs are eaten by Beamer.}  This is due to how Beamer works with verbatim content.  You are probably using the frame option |fragile|.  Try |fragile=singleslide| if you don't need overlays.  Otherwise, consider using \cmd\inputminted\ or converting the tabs into spaces.
 %
-% \item \textbf{I need a listing environment that supports page breaks.}  See \url{http://tex.stackexchange.com/a/53540/10742}.
+% \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example, 
+%\begin{verbatim}
+%\usepackage{caption}
+%\newenvironment{longlisting}{\captionsetup{type=listing}}{}
+%\end{verbatim}
+% See \url{http://tex.stackexchange.com/a/53540/10742} for more.
 %
 % \item \textbf{I want to use a custom script/executable to access Pygments, rather than |pygmentize|.}  Redefine |\MintedPygmentize|:
 %\begin{verbatim}
@@ -933,7 +958,7 @@
 %
 % \item \textbf{I want extended characters in labels, but am getting errors.}  This can happen with Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with Python 3, but you will need to use \pkg{minted} 2.0+ and may have to set the encoding (for example, |\begin{minted}[encoding=utf8,label=...]|).  As a workaround under Python 2.7, you can save the label text in a macro (for example, |\newcommand{\mylabel}{<label>}|), and then pass the macro to \pkg{minted} (|\begin{minted}[label=\mylabel,...]|).  You will still need \pkg{minted} 2.0+ and may need to specify the encoding.
 %
-% \item \textbf{I want automatic line breaks for long lines.}  This may not be advisable for several reasons.  First, automatic line breaks will usually be far inferior to manual line breaks, unless the line-breaking algorithm knows something about the language and its (or your) indentation conventions.  Second, even if the line breaking is acceptable, it will typically have to occur at the space nearest the margin.  So long lines of code with no spaces may not be broken, and things like quoted strings may be split in the middle.  Third, code that uses automatic line breaks must have a symbol near the left-hand side of the page that indicates which lines are continued (for example, $\Rightarrow$), because the line breaks may be in places that would make the code invalid.  The continuation symbol will make it harder for readers to copy-and-paste code from a PDF.  It will also leave less room for the inclusion of line numbers or frames.
+% \item \textbf{I want automatic line breaks for long lines in environments.}  This may not be advisable for several reasons.  First, automatic line breaks will usually be far inferior to manual line breaks, unless the line-breaking algorithm knows something about the language and its (or your) indentation conventions.  Second, even if the line breaking is acceptable, it will typically have to occur at the space nearest the margin.  So long lines of code with no spaces may not be broken, and things like quoted strings may be split in the middle.  Third, code that uses automatic line breaks must have a symbol near the left-hand side of the page that indicates which lines are continued (for example, $\Rightarrow$), because the line breaks may be in places that would make the code invalid.  The continuation symbol will make it harder for readers to copy-and-paste code from a PDF.  It will also leave less room for the inclusion of line numbers or frames.
 %
 % If you nevertheless insist on automatic line breaks, you may wish to consult \url{http://tex.stackexchange.com/questions/112559/box-around-minted-environment/112573#112573}.  Note that this solution fails when code is indented (\url{http://tex.stackexchange.com/questions/129383/break-lines-in-minted-code}).
 %
