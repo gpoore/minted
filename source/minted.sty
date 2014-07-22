@@ -549,11 +549,11 @@
     -o "\minted@outputdir\minted@infile" \space
     "\minted@outputdir\minted@codefile"}%
   % For debugging, uncomment: %%%%
-   \immediate\typeout{\minted@cmd}%
+  % \immediate\typeout{\minted@cmd}%
   % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%
-      \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
+      \ifx\XeTeXinterchartoks\minted@undefined
         \ifthenelse{\boolean{minted@autogobble}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
             \pdf@mdfivesum{\minted@cmd autogobble}}}%
@@ -570,15 +570,15 @@
         \def\minted@hashcmd{%
           \detokenize{python -c "import hashlib;
             hasher = hashlib.sha1();
-            f = open(\'}\minted@outputdir\jobname.mintedcmd\detokenize{\', \'rb\');
+            f = open(\"}\minted@outputdir\jobname.mintedcmd\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
-            f = open(\'}\minted@outputdir#1\detokenize{\', \'rb\');
+            f = open(\"}\minted@outputdir#1\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
-            f = open(\'}\minted@outputdir\jobname.mintedmd5\detokenize{\', \'w\');
-            macro = \'\\edef\\minted@hash\' + chr(123) + hasher.hexdigest() + chr(125) + \'\';
-            f.write(\'\\makeatletter\' + macro + \'\\makeatother\\endinput\n\');
+            f = open(\"}\minted@outputdir\jobname.mintedmd5\detokenize{\", \"w\");
+            macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
+            f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
             f.close();"}}%
         \immediate\write18{\minted@hashcmd}%
         \input{\minted@outputdir\jobname.mintedmd5}%
@@ -775,7 +775,7 @@
   \setminted{style=default}%
 }
 \AtEndDocument{
-  \expandafter\ifx\csname XeTeXinterchartoks\endcsname\relax
+  \ifx\XeTeXinterchartoks\minted@undefined
   \else
     \DeleteFile[\minted@outputdir]{\jobname.mintedcmd}%
     \DeleteFile[\minted@outputdir]{\jobname.mintedmd5}%
