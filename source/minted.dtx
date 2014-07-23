@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1526}
+% \CheckSum{1527}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -173,6 +173,9 @@
 % \item The \texttt{upquote} package now works correctly with single quotes when using Pygments 1.6+ (\#34).
 % \item Fixed caching incompatibility with Linux and OS X under xelatex (\#18 and \#42).
 % \item Fixed \texttt{autogobble} incompatibility with Linux and OS X.
+% \item \texttt{\string\mintinline} and derived commands are now robust, via \texttt{\string\newrobustcmd} from \texttt{etoolbox}.
+% \item Unused styles are now cleaned up when caching.
+% \item Fixed a bug that could interfere with caching (\#24).
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -932,12 +935,38 @@
 %
 % \begin{itemize}
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
-% This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}| plus |\usepackage{lmodern}|, or something similar.
+% This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
 %
-% \item \textbf{Backtick characters \texttt{\string`} are appearing as left quotes.}
+% \item \textbf{Quotation marks and backticks don't look right.  Backtick characters \texttt{\string`} are appearing as left quotes.  Single quotes are appearing as curly right quotes.}
 % This is due to how Pygments outputs \LaTeX\ code, combined with how \LaTeX\ deals with verbatim content.  Try |\usepackage{upquote}|.
 %
 % \item \textbf{I'm getting errors with Beamer.}  Due to how Beamer treats verbatim content, you may need to use either the |fragile| or |fragile=singleslide| options for frames that contain \pkg{minted} commands and environments.  |fragile=singleslide| works best, but it disables overlays.  |fragile| works by saving the contents of each frame to a temp file and then reusing them.  This approach allows overlays, but will break if you have the string |\end{frame}| at the beginning of a line (for example, in a |minted| environment).  To work around that, you can indent the content of the environment (so that the |\end{frame}| is preceded by one or more spaces) and then use the |gobble| or |autogobble| options to remove the indentation.
+%
+% \item \textbf{Tabs are eaten by Beamer.}  This is due to how Beamer works with verbatim content.  You are probably using the frame option |fragile|.  Try |fragile=singleslide| if you don't need overlays.  Otherwise, consider using \cmd\inputminted\ or converting the tabs into spaces.
+%
+% \item \textbf{I'm trying to create several new \pkg{minted} commands/environments, and want them all to have the same settings.  I'm saving the settings in a macro and then using the macro when defining the commands/environments.  But it's failing.}
+% This is due to the way that \pkg{keyval} works (\pkg{minted} uses it to manage options). Arguments are not expanded. See \href{http://tex.stackexchange.com/questions/13563/building-keyval-arguments-using-a-macro/13564#13564}{this} and \href{http://tex.stackexchange.com/questions/145363/why-does-includegraphics-varone-vartwo-not-compile/145366#145366}{this} for more information.  It is still possible to do what you want; you just need to expand the options macro before passing it to the commands that create the new commands/environments.  An example is shown below.  The |\expandafter| is the vital part.
+%\begin{verbatim}
+%\def\args{linenos,frame=single,fontsize=\footnotesize,style=bw}
+%
+%\newcommand{\makenewmintedfiles}[1]{%
+%  \newmintedfile[inputlatex]{latex}{#1}%
+%  \newmintedfile[inputc]{c}{#1}%
+%}
+%
+%\expandafter\makenewmintedfiles\expandafter{\args}
+%\end{verbatim}
+%
+% \item \textbf{I want to use \texttt{\string\mintinline} in a context that normally doesn't allow verbatim content.}
+% The |\mintinline| command will already work in many places that do not allow normal verbatim commands like |\verb|, so make sure to try it first.  If it doesn't work, one of the simplest alternatives is to save your code in a box, and then use it later.  For example,
+%\begin{verbatim}
+%\newsavebox\mybox
+%\begin{lrbox}{\mybox}
+%\mintinline{cpp}{std::cout}
+%\end{lrbox}
+%
+%\commandthatdoesnotlikeverbatim{Text \usebox{\mybox}}
+%\end{verbatim}
 %
 % \item \textbf{Extended characters do not work inside \pkg{minted} commands and environments, even when the \pkg{inputenc} package is used.}
 % Version 2.0 adds support for extended characters under the pdfTeX engine.  But if you need characters that are not supported by \pkg{inputenc}, you should use the XeTeX or LuaTeX engines instead.
@@ -954,8 +983,6 @@
 %
 % \item \textbf{The \pkg{caption} package produces an error when \texttt{\string\captionof} and other commands are used in combination with \pkg{minted}.}
 % Load the \pkg{caption} package with the option |compatibility=false|.
-%
-% \item \textbf{Tabs are eaten by Beamer.}  This is due to how Beamer works with verbatim content.  You are probably using the frame option |fragile|.  Try |fragile=singleslide| if you don't need overlays.  Otherwise, consider using \cmd\inputminted\ or converting the tabs into spaces.
 %
 % \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example, 
 %\begin{verbatim}
@@ -1184,10 +1211,10 @@
 \newcommand{\minted@cleancache}{%
   \ifthenelse{\boolean{minted@cache}}{%
     \ifcsname minted@oldcachefiles\endcsname
-      \renewcommand{\do}[1]{%
+      \def\do##1{%
         \ifthenelse{\equal{##1}{}}{}{%
           \ifcsname minted@current@##1\endcsname\else
-            \DeleteFile[\minted@outputdir\minted@cachedir]{##1.pygtex}%
+            \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
           \fi
         }%
       }%
@@ -1607,7 +1634,8 @@
         \let\def\gdef
         \endlinechar=-1\relax
         \input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-        \endgroup}%
+        \endgroup
+        \minted@addcachefile{#1.pygstyle}}%
       {\ifwindows
           \immediate\write18{\MintedPygmentize\space -S #1 -f latex
             -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
@@ -2039,7 +2067,7 @@
           }%
           \immediate\write18{\minted@autogobblecmd}}{}%
         \immediate\write18{\minted@cmd}}%
-      \expandafter\minted@addcachefile\expandafter{\minted@hash}%
+      \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
       \ifthenelse{\boolean{minted@autogobble}}{%
@@ -2136,7 +2164,7 @@
 %
 % Pygments saves code wrapped in a |Verbatim| environment.  Getting the inline command to work correctly require redefining |Verbatim| to be |BVerbatim| temporarily.  This approach would break if |BVerbatim| were ever redefined elsewhere.
 %    \begin{macrocode}
-\newcommand{\mintinline}[2][]{%
+\newrobustcmd{\mintinline}[2][]{%
   \minted@resetoptcmd
   \setkeys{minted@optcmd}{#1}%
   \def\minted@lang{#2}%
@@ -2313,7 +2341,7 @@
   \ifthenelse{\equal{#1}{}}%
     {\def\minted@shortname{#2inline}}%
     {\def\minted@shortname{#1}}%
-    \expandafter\newcommand\csname\minted@shortname\endcsname{%
+    \expandafter\newrobustcmd\csname\minted@shortname\endcsname{%
       \begingroup
       \let\do\@makeother\dospecials
       \catcode`\{=1

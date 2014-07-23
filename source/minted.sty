@@ -77,10 +77,10 @@
 \newcommand{\minted@cleancache}{%
   \ifthenelse{\boolean{minted@cache}}{%
     \ifcsname minted@oldcachefiles\endcsname
-      \renewcommand{\do}[1]{%
+      \def\do##1{%
         \ifthenelse{\equal{##1}{}}{}{%
           \ifcsname minted@current@##1\endcsname\else
-            \DeleteFile[\minted@outputdir\minted@cachedir]{##1.pygtex}%
+            \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
           \fi
         }%
       }%
@@ -322,7 +322,8 @@
         \let\def\gdef
         \endlinechar=-1\relax
         \input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-        \endgroup}%
+        \endgroup
+        \minted@addcachefile{#1.pygstyle}}%
       {\ifwindows
           \immediate\write18{\MintedPygmentize\space -S #1 -f latex
             -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
@@ -597,16 +598,16 @@
             \detokenize{python -c "import sys;
             import textwrap;
             from io import open;
-            f = open(\'}\minted@outputdir#1\detokenize{\', \'r\', encoding=\'}\minted@encoding\detokenize{\');
+            f = open(\"}\minted@outputdir#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
             t = f.read();
             f.close();
-            f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
+            f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
             f.write(textwrap.dedent(t));
             f.close();"}%
           }%
           \immediate\write18{\minted@autogobblecmd}}{}%
         \immediate\write18{\minted@cmd}}%
-      \expandafter\minted@addcachefile\expandafter{\minted@hash}%
+      \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
       \ifthenelse{\boolean{minted@autogobble}}{%
@@ -615,10 +616,10 @@
           \detokenize{python -c "import sys;
           import textwrap;
           from io import open;
-          f = open(\'}\minted@outputdir#1\detokenize{\', \'r\', encoding=\'}\minted@encoding\detokenize{\');
+          f = open(\"}\minted@outputdir#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
           t = f.read();
           f.close();
-          f = open(\'}\minted@outputdir\jobname.pyg\detokenize{\', \'w\', encoding=\'}\minted@encoding\detokenize{\');
+          f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
           f.write(textwrap.dedent(t));
           f.close();"}%
         }%
@@ -657,7 +658,7 @@
     {\def\minted@lang{#1}\setkeys{minted@optlang}{#2}}%
 }
 \newcommand{\usemintedstyle}[2][]{\setminted[#1]{style=#2}}
-\newcommand{\mintinline}[2][]{%
+\newrobustcmd{\mintinline}[2][]{%
   \minted@resetoptcmd
   \setkeys{minted@optcmd}{#1}%
   \def\minted@lang{#2}%
@@ -740,7 +741,7 @@
   \ifthenelse{\equal{#1}{}}%
     {\def\minted@shortname{#2inline}}%
     {\def\minted@shortname{#1}}%
-    \expandafter\newcommand\csname\minted@shortname\endcsname{%
+    \expandafter\newrobustcmd\csname\minted@shortname\endcsname{%
       \begingroup
       \let\do\@makeother\dospecials
       \catcode`\{=1
