@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1527}
+% \CheckSum{1722}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -176,6 +176,7 @@
 % \item \texttt{\string\mintinline} and derived commands are now robust, via \texttt{\string\newrobustcmd} from \texttt{etoolbox}.
 % \item Unused styles are now cleaned up when caching.
 % \item Fixed a bug that could interfere with caching (\#24).
+% \item Added \texttt{draft} package option (\#39).  This typesets all code using \texttt{fancyvrb}; Pygments is not used.  This trades syntax highlighting for maximum speed in compiling.
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -623,6 +624,14 @@
 % Without the |langlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.
 %
 %
+% \DescribeMacro{draft}
+% This uses \pkg{fancyvrb} alone for all typesetting; \app{Pygments} is not used.  This trades syntax highlighting and some other \app{minted} features for faster compiling.  Performance should be essentially the same as using \pkg{fancyvrb} directly; no external temporary files are used.  Note that if you are not changing much code between compiles, the difference in performance between caching and draft mode may be minimal.
+%
+% Draft mode does not support |autogobble|.  Regular |gobble|, |linenos|, and most other options not related to syntax highlighting will still function in draft mode.
+%
+% Documents can usually be compiled without shell escape in draft mode.  The \pkg{ifplatform} package may issue a warning about limited functionality due to shell escape being disabled, but this may be ignored in almost all cases.  (Shell escape is only really required if you have an unusual system configuration such that the |\ifwindows| macro must fall back to using shell escape to determine the system.  See the \pkg{ifplatform} documentation for more details:  \url{http://www.ctan.org/pkg/ifplatform}.)
+%
+% If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
 %
 % \subsection{Macro option usage}
 %
@@ -1153,6 +1162,15 @@
 % \end{macro}
 %
 %
+% \begin{macro}{draft}
+% Define an option that allows \pkg{fancyvrb} to do all typesetting directly, without using \app{Pygments}.  This trades syntax highlighting for speed.  Note that in many cases, the difference in performance between caching and draft mode will be minimal.
+%    \begin{macrocode}
+\newboolean{minted@draft}
+\DeclareVoidOption{draft}{\minted@drafttrue}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % Process package options.
 %
 %    \begin{macrocode}
@@ -1227,12 +1245,18 @@
 % \end{macro}
 %
 %
-% At the end of the document, save the list of cache files and clean the cache.
+% At the end of the document, save the list of cache files and clean the cache.  If in draft mode, don't clean up the cache and save the current cache file list for next time.
 %    \begin{macrocode}
 \ifthenelse{\boolean{minted@cache}}%
   {\AtEndDocument{%
-    \minted@savecachefiles
-    \minted@cleancache}}%
+    \ifthenelse{\boolean{minted@draft}}%
+      {\ifcsname minted@oldcachefiles\endcsname
+        \let\minted@cachefiles\minted@oldcachefiles
+        \minted@savecachefiles
+        \fi}%
+      {\minted@savecachefiles
+        \minted@cleancache}}%
+  }%
   {}%
 %    \end{macrocode}
 %
@@ -1469,7 +1493,7 @@
       \minted@optcmd\space\minted@getoptcmd{#1}}%
     \expandafter\def\expandafter\minted@resetoptcmd\expandafter{%
         \minted@resetoptcmd
-        \@namedef{minted@optcmd@#1}{}}
+        \@namedef{minted@optcmd@#1}{}}%
   \fi
 }
 %    \end{macrocode}
@@ -1656,6 +1680,7 @@
     \fi
   \fi
 }
+\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@regstyle}[1]{}}{}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1751,7 +1776,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \noindent Actual option definitions.
+% \noindent Actual option definitions.  Some of these must be defined conditionally depending on whether we are in |draft| mode; in |draft| mode, all options need to be passed directly to \pkg{fancyvrb} if that is possible.
 %
 % \changes{0.1.5}{2010/01/10}{Fixed \texttt{firstnumber} option}
 % \changes{0.1.5}{2010/01/10}{Added \texttt{fillcolor} option}
@@ -1780,7 +1805,9 @@
 %
 % Filters.
 %    \begin{macrocode}
-\minted@define@opt{gobble}{-F gobble:n}{#1}
+\ifthenelse{\boolean{minted@draft}}%
+  {\minted@define@extra{gobble}}%
+  {\minted@define@opt{gobble}{-F gobble:n}{#1}}
 \minted@define@opt{codetagify}{-F codetagify:codetags}{#1}
 \minted@define@opt{keywordcase}{-F keywordcase:case}{#1}
 %    \end{macrocode}
@@ -1790,7 +1817,10 @@
 \minted@define@switch{texcl}{-P texcomments}
 \minted@define@switch{texcomments}{-P texcomments}
 \minted@define@switch{mathescape}{-P mathescape}
-\minted@define@switch{linenos}{-P linenos}
+\ifthenelse{\boolean{minted@draft}}%
+  {\define@booleankey{FV}{linenos}{\@nameuse{FV@Numbers@left}}{}%
+    \minted@define@extra@switch{linenos}}%
+  {\minted@define@switch{linenos}{-P linenos}}
 \minted@define@optstyle
 %    \end{macrocode}
 %
@@ -2184,34 +2214,91 @@
   \begingroup
   \let\do\@makeother\dospecials  
   \minted@inline@ii}
-\newcommand{\minted@inline@iii}[1]{%
-  \endgroup
-  \immediate\openout\minted@code\jobname.pyg\relax
-  \immediate\write\minted@code{\detokenize{#1}}%
-  \immediate\closeout\minted@code
-  \begingroup
-  \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
-  \minted@pygmentize{\minted@lang}%
-  \endgroup}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\minted@inline@iii}[1]{%
+    \endgroup
+    \def\minted@argretok{%
+      \begingroup
+      \everyeof{\noexpand}%
+      \endlinechar-1\relax
+      \let\do\@makeother\dospecials
+      \catcode`\ =\active
+      \catcode`\^^I=\active
+      \scantokens{#1}%
+      \endgroup}%
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \FV@BeginVBox
+    \frenchspacing
+    \FV@SetupFont
+    \FV@DefineWhiteSpace
+    \FancyVerbDefineActive
+    \FancyVerbFormatCom
+    \FV@ObeyTabsInit
+    \hbox{\FancyVerbFormatLine{\minted@argretok}}%
+    \FV@EndVBox
+    \endgroup}}%
+  {\newcommand{\minted@inline@iii}[1]{%
+    \endgroup
+    \immediate\openout\minted@code\jobname.pyg\relax
+    \immediate\write\minted@code{\detokenize{#1}}%
+    \immediate\closeout\minted@code
+    \begingroup
+    \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
+    \minted@pygmentize{\minted@lang}%
+    \endgroup}}
 %    \end{macrocode}
 % \end{macro}
 %
 %
 % \begin{macro}{\mint}
 %
-% Highlight a small piece of verbatim code.
+% Highlight a small piece of verbatim code (a single line).
+%
+% The |draft| version digs into a lot of \pkg{fancyvrb} internals.  The code is \emph{captured} using |\SaveVerb|.  But we want to \emph{typeset} it using |\UseVerbatim| rather than |\UseVerb|, and that doesn't work.  So we let the saved code to |\FV@Line|, which is the macro in which it would have been temporarily stored had it been read in a normal |Verbatim| environment.  Once this is done, using |\FV@PreProcessLine| will yield the properly processed version of |\FV@Line|.  Then it's just a matter of sticking this into the code that |\UseVerbatim| would have invoked (actually in |\FV@UseVerbatim|).  This includes a final
+%\begin{verbatim}
+%\@doendpe\global\@ignorefalse\ignorespaces
+%\end{verbatim}
+% which prevents any immediately following, adjacent text from starting a new paragraph.  Ultimately, this was a matter of tracking down the differences between |\UseVerb| and |\UseVerbatim|, and adding in the pieces from |\UseVerbatim| that were missing.
+%
+% We have to undefine the short verb twice, because we want it off as soon as possible, but that means undefining it inside a group, so it comes back as soon as we leave the group.
 %    \begin{macrocode}
-\newcommand{\mint}[3][]{%
-  \def\minted@lang{#2}%
-  \DefineShortVerb{#3}%
-  \minted@resetoptcmd
-  \setkeys{minted@optcmd}{#1}%
-  \SaveVerb[aftersave={%
-    \UndefineShortVerb{#3}%
-    \minted@savecode{\FV@SV@minted@verb}%
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\mint}[3][]{%
+    \def\minted@lang{#2}%
+    \DefineShortVerb{#3}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
     \minted@langlinenoson
-    \minted@pygmentize{#2}
-    \minted@langlinenosoff}]{minted@verb}#3}
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \SaveVerb[aftersave={%
+      \UndefineShortVerb{#3}%
+      \let\FV@Line\FV@SV@minted@verb
+      \FV@VerbatimBegin\FV@PreProcessLine\FV@VerbatimEnd
+      \endgroup
+      \UndefineShortVerb{#3}%
+      \minted@langlinenosoff
+      \@doendpe\global\@ignorefalse\ignorespaces}]{minted@verb}#3}}%
+  {\newcommand{\mint}[3][]{%
+    \def\minted@lang{#2}%
+    \DefineShortVerb{#3}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
+    \SaveVerb[aftersave={%
+      \UndefineShortVerb{#3}%
+      \minted@langlinenoson
+      \minted@savecode{\FV@SV@minted@verb}%
+      \minted@pygmentize{#2}%
+      \minted@langlinenosoff}]{minted@verb}#3}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2221,17 +2308,33 @@
 %
 % Highlight a longer piece of code inside a verbatim environment.
 %    \begin{macrocode}
-\newenvironment{minted}[2][]
-  {\VerbatimEnvironment
-    \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
-    \def\minted@lang{#2}%
-    \minted@resetoptcmd
-    \setkeys{minted@optcmd}{#1}%
-    \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
- {\end{VerbatimOut}%
-    \minted@langlinenoson
-    \minted@pygmentize{\minted@lang}%
-    \minted@langlinenosoff}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newenvironment{minted}[2][]
+    {\VerbatimEnvironment
+      \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
+      \def\minted@lang{#2}%
+      \minted@resetoptcmd
+      \setkeys{minted@optcmd}{#1}%
+      \expandafter\fvset\expandafter{\minted@optg@extra}%
+      \minted@checklang
+      \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+      \expandafter\fvset\expandafter{\minted@optlang@extra}%
+      \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+      \minted@langlinenoson
+      \begin{Verbatim}}%
+    {\end{Verbatim}%
+      \minted@langlinenosoff}}%
+  {\newenvironment{minted}[2][]
+    {\VerbatimEnvironment
+      \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
+      \def\minted@lang{#2}%
+      \minted@resetoptcmd
+      \setkeys{minted@optcmd}{#1}%
+      \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
+    {\end{VerbatimOut}%
+        \minted@langlinenoson
+        \minted@pygmentize{\minted@lang}%
+        \minted@langlinenosoff}}
 %    \end{macrocode}
 % \end{environment}
 %
@@ -2239,11 +2342,24 @@
 %
 % Highlight an external source file.
 %    \begin{macrocode}
-\newcommand{\inputminted}[3][]{%
-  \def\minted@lang{#2}%
-  \minted@resetoptcmd
-  \setkeys{minted@optcmd}{#1}%
-  \minted@pygmentize[#3]{#2}}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\inputminted}[3][]{%
+    \def\minted@lang{#2}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \VerbatimInput{#3}%
+    \endgroup}}%
+  {\newcommand{\inputminted}[3][]{%
+    \def\minted@lang{#2}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
+    \minted@pygmentize[#3]{#2}}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2412,23 +2528,25 @@
 %
 % \changes{1.7}{2011/01/21}{More robust detection of the \texttt{-shell-escape} option}
 %    \begin{macrocode}
-\AtEndOfPackage{
-  \ifnum\pdf@shellescape=1\relax\else
-    \PackageError{minted}
-     {You must invoke LaTeX with the
-      -shell-escape flag}
-     {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-      documentation for more information.}%
-  \fi
-  \TestAppExists{pygmentize}
-  \ifAppExists\else
-    \PackageError{minted}
-     {You must have `pygmentize' installed
-      to use this package}
-     {Refer to the installation instructions in the minted
-      documentation for more information.}
-  \fi
-  \setminted{style=default}%
+\AtEndOfPackage{%
+  \ifthenelse{\boolean{minted@draft}}{}{%
+    \ifnum\pdf@shellescape=1\relax\else
+      \PackageError{minted}%
+       {You must invoke LaTeX with the
+        -shell-escape flag}%
+       {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
+        documentation for more information.}%
+    \fi
+    \TestAppExists{pygmentize}
+    \ifAppExists\else
+      \PackageError{minted}%
+       {You must have `pygmentize' installed
+        to use this package}%
+       {Refer to the installation instructions in the minted
+        documentation for more information.}%
+    \fi
+    \setminted{style=default}%
+  }%
 }
 %    \end{macrocode}
 %

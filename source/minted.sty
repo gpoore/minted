@@ -61,6 +61,8 @@
     {\@backslashchar}[\minted@outputdir@windows]}
 \newboolean{minted@langlinenos}
 \DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
+\newboolean{minted@draft}
+\DeclareVoidOption{draft}{\minted@drafttrue}
 \ProcessKeyvalOptions*
 \newcommand{\minted@infile}{\jobname.out.pyg}
 \newcommand{\minted@cachefiles}{}
@@ -91,8 +93,14 @@
 }
 \ifthenelse{\boolean{minted@cache}}%
   {\AtEndDocument{%
-    \minted@savecachefiles
-    \minted@cleancache}}%
+    \ifthenelse{\boolean{minted@draft}}%
+      {\ifcsname minted@oldcachefiles\endcsname
+        \let\minted@cachefiles\minted@oldcachefiles
+        \minted@savecachefiles
+        \fi}%
+      {\minted@savecachefiles
+        \minted@cleancache}}%
+  }%
   {}%
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
@@ -195,7 +203,7 @@
       \minted@optcmd\space\minted@getoptcmd{#1}}%
     \expandafter\def\expandafter\minted@resetoptcmd\expandafter{%
         \minted@resetoptcmd
-        \@namedef{minted@optcmd@#1}{}}
+        \@namedef{minted@optcmd@#1}{}}%
   \fi
 }
 \newcommand{\minted@define@opt}[4][]{%
@@ -344,6 +352,7 @@
     \fi
   \fi
 }
+\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@regstyle}[1]{}}{}
 \newcommand{\minted@define@switch}[3][]{
   \define@booleankey{minted@optg}{#2}
     {\@namedef{minted@optg@#2}{#3}\minted@regoptg{#2}}
@@ -420,13 +429,18 @@
 \minted@define@switch[-P funcnamehighlighting=False]%
   {funcnamehighlighting}{-P funcnamehighlighting}
 \minted@define@switch{startinline}{-P startinline}
-\minted@define@opt{gobble}{-F gobble:n}{#1}
+\ifthenelse{\boolean{minted@draft}}%
+  {\minted@define@extra{gobble}}%
+  {\minted@define@opt{gobble}{-F gobble:n}{#1}}
 \minted@define@opt{codetagify}{-F codetagify:codetags}{#1}
 \minted@define@opt{keywordcase}{-F keywordcase:case}{#1}
 \minted@define@switch{texcl}{-P texcomments}
 \minted@define@switch{texcomments}{-P texcomments}
 \minted@define@switch{mathescape}{-P mathescape}
-\minted@define@switch{linenos}{-P linenos}
+\ifthenelse{\boolean{minted@draft}}%
+  {\define@booleankey{FV}{linenos}{\@nameuse{FV@Numbers@left}}{}%
+    \minted@define@extra@switch{linenos}}%
+  {\minted@define@switch{linenos}{-P linenos}}
 \minted@define@optstyle
 \minted@define@extra{frame}
 \minted@define@extra{framesep}
@@ -678,42 +692,120 @@
   \begingroup
   \let\do\@makeother\dospecials
   \minted@inline@ii}
-\newcommand{\minted@inline@iii}[1]{%
-  \endgroup
-  \immediate\openout\minted@code\jobname.pyg\relax
-  \immediate\write\minted@code{\detokenize{#1}}%
-  \immediate\closeout\minted@code
-  \begingroup
-  \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
-  \minted@pygmentize{\minted@lang}%
-  \endgroup}
-\newcommand{\mint}[3][]{%
-  \def\minted@lang{#2}%
-  \DefineShortVerb{#3}%
-  \minted@resetoptcmd
-  \setkeys{minted@optcmd}{#1}%
-  \SaveVerb[aftersave={%
-    \UndefineShortVerb{#3}%
-    \minted@savecode{\FV@SV@minted@verb}%
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\minted@inline@iii}[1]{%
+    \endgroup
+    \def\minted@argretok{%
+      \begingroup
+      \everyeof{\noexpand}%
+      \endlinechar-1\relax
+      \let\do\@makeother\dospecials
+      \catcode`\ =\active
+      \catcode`\^^I=\active
+      \scantokens{#1}%
+      \endgroup}%
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \FV@BeginVBox
+    \frenchspacing
+    \FV@SetupFont
+    \FV@DefineWhiteSpace
+    \FancyVerbDefineActive
+    \FancyVerbFormatCom
+    \FV@ObeyTabsInit
+    \hbox{\FancyVerbFormatLine{\minted@argretok}}%
+    \FV@EndVBox
+    \endgroup}}%
+  {\newcommand{\minted@inline@iii}[1]{%
+    \endgroup
+    \immediate\openout\minted@code\jobname.pyg\relax
+    \immediate\write\minted@code{\detokenize{#1}}%
+    \immediate\closeout\minted@code
+    \begingroup
+    \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
+    \minted@pygmentize{\minted@lang}%
+    \endgroup}}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\mint}[3][]{%
+    \def\minted@lang{#2}%
+    \DefineShortVerb{#3}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
     \minted@langlinenoson
-    \minted@pygmentize{#2}
-    \minted@langlinenosoff}]{minted@verb}#3}
-\newenvironment{minted}[2][]
-  {\VerbatimEnvironment
-    \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \SaveVerb[aftersave={%
+      \UndefineShortVerb{#3}%
+      \let\FV@Line\FV@SV@minted@verb
+      \FV@VerbatimBegin\FV@PreProcessLine\FV@VerbatimEnd
+      \endgroup
+      \UndefineShortVerb{#3}%
+      \minted@langlinenosoff
+      \@doendpe\global\@ignorefalse\ignorespaces}]{minted@verb}#3}}%
+  {\newcommand{\mint}[3][]{%
+    \def\minted@lang{#2}%
+    \DefineShortVerb{#3}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
+    \SaveVerb[aftersave={%
+      \UndefineShortVerb{#3}%
+      \minted@langlinenoson
+      \minted@savecode{\FV@SV@minted@verb}%
+      \minted@pygmentize{#2}%
+      \minted@langlinenosoff}]{minted@verb}#3}}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newenvironment{minted}[2][]
+    {\VerbatimEnvironment
+      \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
+      \def\minted@lang{#2}%
+      \minted@resetoptcmd
+      \setkeys{minted@optcmd}{#1}%
+      \expandafter\fvset\expandafter{\minted@optg@extra}%
+      \minted@checklang
+      \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+      \expandafter\fvset\expandafter{\minted@optlang@extra}%
+      \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+      \minted@langlinenoson
+      \begin{Verbatim}}%
+    {\end{Verbatim}%
+      \minted@langlinenosoff}}%
+  {\newenvironment{minted}[2][]
+    {\VerbatimEnvironment
+      \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
+      \def\minted@lang{#2}%
+      \minted@resetoptcmd
+      \setkeys{minted@optcmd}{#1}%
+      \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
+    {\end{VerbatimOut}%
+        \minted@langlinenoson
+        \minted@pygmentize{\minted@lang}%
+        \minted@langlinenosoff}}
+\ifthenelse{\boolean{minted@draft}}%
+  {\newcommand{\inputminted}[3][]{%
     \def\minted@lang{#2}%
     \minted@resetoptcmd
     \setkeys{minted@optcmd}{#1}%
-    \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
- {\end{VerbatimOut}%
-    \minted@langlinenoson
-    \minted@pygmentize{\minted@lang}%
-    \minted@langlinenosoff}
-\newcommand{\inputminted}[3][]{%
-  \def\minted@lang{#2}%
-  \minted@resetoptcmd
-  \setkeys{minted@optcmd}{#1}%
-  \minted@pygmentize[#3]{#2}}
+    \begingroup
+    \expandafter\fvset\expandafter{\minted@optg@extra}%
+    \minted@checklang
+    \expandafter\let\expandafter\minted@optlang@extra\csname minted@optlang\minted@lang @extra\endcsname
+    \expandafter\fvset\expandafter{\minted@optlang@extra}%
+    \expandafter\fvset\expandafter{\minted@optcmd@extra}%
+    \VerbatimInput{#3}%
+    \endgroup}}%
+  {\newcommand{\inputminted}[3][]{%
+    \def\minted@lang{#2}%
+    \minted@resetoptcmd
+    \setkeys{minted@optcmd}{#1}%
+    \minted@pygmentize[#3]{#2}}}
 \newcommand{\newminted}[3][]{
   \ifthenelse{\equal{#1}{}}
     {\def\minted@envname{#2code}}
@@ -757,23 +849,25 @@
 \floatname{listing}{\listingscaption}
 \newcommand{\listoflistingscaption}{List of listings}
 \providecommand{\listoflistings}{\listof{listing}{\listoflistingscaption}}
-\AtEndOfPackage{
-  \ifnum\pdf@shellescape=1\relax\else
-    \PackageError{minted}
-     {You must invoke LaTeX with the
-      -shell-escape flag}
-     {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-      documentation for more information.}%
-  \fi
-  \TestAppExists{pygmentize}
-  \ifAppExists\else
-    \PackageError{minted}
-     {You must have `pygmentize' installed
-      to use this package}
-     {Refer to the installation instructions in the minted
-      documentation for more information.}
-  \fi
-  \setminted{style=default}%
+\AtEndOfPackage{%
+  \ifthenelse{\boolean{minted@draft}}{}{%
+    \ifnum\pdf@shellescape=1\relax\else
+      \PackageError{minted}%
+       {You must invoke LaTeX with the
+        -shell-escape flag}%
+       {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
+        documentation for more information.}%
+    \fi
+    \TestAppExists{pygmentize}
+    \ifAppExists\else
+      \PackageError{minted}%
+       {You must have `pygmentize' installed
+        to use this package}%
+       {Refer to the installation instructions in the minted
+        documentation for more information.}%
+    \fi
+    \setminted{style=default}%
+  }%
 }
 \AtEndDocument{
   \ifx\XeTeXinterchartoks\minted@undefined
