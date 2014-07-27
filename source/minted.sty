@@ -37,6 +37,7 @@
 \RequirePackage{pdftexcmds}
 \RequirePackage{etoolbox}
 \RequirePackage{xstring}
+\RequirePackage{lineno}
 \AtBeginDocument{\@ifpackageloaded{color}{}{\RequirePackage{xcolor}}}
 \DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
 \DeclareVoidOption{section}{\def\minted@float@within{section}}
@@ -469,6 +470,12 @@
 \minted@define@extra@switch{samepage}
 \minted@define@extra@switch{showtabs}
 \minted@define@extra@switch{obeytabs}
+\minted@define@extra@switch{breaklines}
+\minted@define@extra{breakindent}
+\minted@define@extra@switch{breakautoindent}
+\minted@define@extra{breaksymbol}
+\minted@define@extra{breaksymbolsep}
+\minted@define@extra{breaksymbolindent}
 \let\minted@optcmd@bgcolor\@empty
 \define@key{minted@optcmd}{bgcolor}{\@namedef{minted@optcmd@bgcolor}{#1}}
 \newcommand{\minted@encoding}{%
@@ -520,6 +527,109 @@
     \fi
   \fi
 }
+\let\FV@ListProcessLine@Orig\FV@ListProcessLine
+\define@booleankey{FV}{breaklines}%
+  {\let\FV@ListProcessLine\FV@ListProcessLine@Break}%
+  {\let\FV@ListProcessLine\FV@ListProcessLine@Orig}
+\newdimen\FV@BreakIndent
+\define@key{FV}{breakindent}{\FV@BreakIndent=#1}
+\fvset{breakindent=0pt}
+\newboolean{FV@BreakAutoIndent}
+\define@booleankey{FV}{breakautoindent}%
+  {\FV@BreakAutoIndenttrue}{\FV@BreakAutoIndentfalse}
+\fvset{breakautoindent=true}
+\define@key{FV}{breaksymbol}{\def\FancyVerbBreakSymbol{#1}}
+\fvset{breaksymbol=\ensuremath{\hookrightarrow}}
+\newdimen\FV@BreakSymbolSep
+\define@key{FV}{breaksymbolsep}{\FV@BreakSymbolSep=#1}
+\fvset{breaksymbolsep=10pt}
+\newdimen\FV@BreakSymbolIndent
+\settowidth{\FV@BreakSymbolIndent}{\ttfamily xxxx}
+\define@key{FV}{breaksymbolindent}{\FV@BreakSymbolIndent=#1}
+\newsavebox{\FV@LineBox}
+\newsavebox{\FV@IndentBox}
+\newsavebox{\FV@LinenoBox}
+\let\FV@LineIndentChars\@empty
+\def\FV@GetNextChar{\let\FV@NextChar=}
+\def\FV@CleanRemainingChars#1\FV@Undefined{}
+\def\FV@GetLineIndent{\afterassignment\FV@CheckChar\FV@GetNextChar}
+\def\FV@CheckChar{%
+  \ifx\FV@NextChar\FV@Undefined
+    \let\FV@Next=\relax
+  \else
+    \expandafter\ifx\FV@NextChar\FV@Space
+      \g@addto@macro{\FV@LineIndentChars}{\FV@Space}%
+      \let\FV@Next=\FV@GetLineIndent
+    \else
+      \expandafter\ifx\FV@NextChar\FV@Tab
+        \g@addto@macro{\FV@LineIndentChars}{\FV@Tab}%
+        \let\FV@Next=\FV@GetLineIndent
+      \else
+        \let\FV@Next=\FV@CleanRemainingChars
+      \fi
+    \fi
+  \fi
+  \FV@Next
+}
+\newcommand{\FancyVerbFormatBreakSymbol}{%
+  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}%
+\AtBeginEnvironment{Verbatim}{\lineskip=0pt\xdef\FV@theprevdepth{0pt}}
+\def\FV@ListProcessLine@Break#1{%
+  \hbox to \hsize{%
+  \kern\leftmargin
+  \hbox to \linewidth{%
+  \sbox{\FV@LineBox}{\FancyVerbFormatLine{#1}}%
+  \ifdim\wd\FV@LineBox>\linewidth
+    \let\FV@theprevdepth@temp\FV@theprevdepth
+    \savebox{\FV@LineBox}{%
+      \begingroup
+      \vbox{\hsize=\linewidth
+        \raggedright
+        \prevdepth\FV@theprevdepth
+        \leftlinenumbers*
+        \setcounter{linenumber}{1}%
+        \let\thelinenumber\FancyVerbFormatBreakSymbol
+        \begin{internallinenumbers}%
+        \linenumbersep=\FV@BreakSymbolSep
+        \advance\hsize by -\FV@BreakIndent
+        \advance\linewidth by -\FV@BreakIndent
+        \noindent\hspace*{-\FV@BreakIndent}%
+        \ifdefempty{\FancyVerbBreakSymbol}{}{%
+          \advance\hsize by -\FV@BreakSymbolIndent
+          \advance\linewidth by -\FV@BreakSymbolIndent
+          \hspace*{-\FV@BreakSymbolIndent}}%
+        \ifthenelse{\boolean{FV@BreakAutoIndent}}%
+          {\let\FV@LineIndentChars\@empty
+            \FV@GetLineIndent#1\FV@Undefined
+            \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
+            \advance\hsize by -\wd\FV@IndentBox
+            \advance\linewidth by -\wd\FV@IndentBox
+            \hspace*{-\wd\FV@IndentBox}%
+          }{}%
+        \FancyVerbFormatLine{#1}%
+        \end{internallinenumbers}%
+        \par\xdef\FV@theprevdepth{\the\prevdepth}}%
+        \endgroup
+    }%
+    \savebox{\FV@LinenoBox}{\FV@LeftListNumber}%
+    \vbox to\ht\FV@LineBox{%
+      \prevdepth\FV@theprevdepth@temp\FV@LeftListNumber\vfill}%
+    \FV@LeftListFrame
+    \null\hfill\usebox{\FV@LineBox}\hss
+    \FV@RightListFrame
+    \vbox to\ht\FV@LineBox{%
+      \prevdepth\FV@theprevdepth@temp\FV@RightListNumber\vfill}%
+  \else
+    \FV@LeftListNumber
+    \FV@LeftListFrame
+    \vbox{\hsize=\linewidth
+      \prevdepth\FV@theprevdepth
+      \noindent\FancyVerbFormatLine{#1}%
+      \par\xdef\FV@theprevdepth{\the\prevdepth}}\hss
+    \FV@RightListFrame
+    \FV@RightListNumber
+  \fi}%
+  \hss}}
 \newsavebox{\minted@bgbox}
 \newenvironment{minted@colorbg}[1]{
     %\setlength{\fboxsep}{-\fboxrule}
