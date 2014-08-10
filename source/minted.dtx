@@ -1192,8 +1192,7 @@
 % \begin{macro}{draft}
 % Define an option that allows \pkg{fancyvrb} to do all typesetting directly, without using \app{Pygments}.  This trades syntax highlighting for speed.  Note that in many cases, the difference in performance between caching and draft mode will be minimal.
 %    \begin{macrocode}
-\newboolean{minted@draft}
-\DeclareVoidOption{draft}{\minted@drafttrue}
+\DeclareBoolOption{draft}
 %    \end{macrocode}
 % \end{macro}
 %

@@ -62,8 +62,7 @@
     {\@backslashchar}[\minted@outputdir@windows]}
 \newboolean{minted@langlinenos}
 \DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
-\newboolean{minted@draft}
-\DeclareVoidOption{draft}{\minted@drafttrue}
+\DeclareBoolOption{draft}
 \ProcessKeyvalOptions*
 \newcommand{\minted@infile}{\jobname.out.pyg}
 \newcommand{\minted@cachefiles}{}
