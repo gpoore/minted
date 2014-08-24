@@ -178,6 +178,7 @@
 % \item Fixed a bug that could interfere with caching (\#24).
 % \item Added \texttt{draft} package option (\#39).  This typesets all code using \texttt{fancyvrb}; Pygments is not used.  This trades syntax highlighting for maximum speed in compiling.
 % \item Added automatic line breaking with \texttt{breaklines} and related options (\#1).
+% \item Fixed a bug with boolean options that needed a False argument to cooperate with \texttt{\string\setminted} (\#48).
 % \end{changelog}
 %
 % \begin{changelog}{v2.0-alpha3}{2013/12/21}
@@ -874,7 +875,7 @@
 %   \item[stripnl (boolean) (+true+)]
 %     Strip all leading and trailing whitespace from the input.
 %   \item[tabsize (integer) (+8+)]
-%     The number of spaces a tab is equivalent to if +obeytabs+ is not active.
+%     The number of spaces a tab is equivalent to.  If +obeytabs+ is \emph{not} active, tabs will be converted into this number of spaces.  If +obeytabs+ is active, tab stops will be set this number of space characters apart.
 %   \item[texcl (boolean) (+false+)]
 %     Enables \LaTeX{} code inside comments.
 %     Usage as in package \pkg{listings}.
@@ -1822,11 +1823,11 @@
 \minted@define@opt@escchar{escapeinside}{-O escapeinside}{"#1"}
 \minted@define@opt{stripnl}{-P stripnl}{#1}
 % Python console
-\minted@define@switch{python3}{-P python3=True}
+\minted@define@switch[-P python3=False]{python3}{-P python3=True}
 % PHP
 \minted@define@switch[-P funcnamehighlighting=False]%
   {funcnamehighlighting}{-P funcnamehighlighting}
-\minted@define@switch{startinline}{-P startinline}
+\minted@define@switch[-P startinline=False]{startinline}{-P startinline}
 %    \end{macrocode}
 %
 % Filters.
@@ -1840,13 +1841,13 @@
 %
 % \LaTeX\ formatter.
 %    \begin{macrocode}
-\minted@define@switch{texcl}{-P texcomments}
-\minted@define@switch{texcomments}{-P texcomments}
-\minted@define@switch{mathescape}{-P mathescape}
+\minted@define@switch[-P texcomments=False]{texcl}{-P texcomments}
+\minted@define@switch[-P texcomments=False]{texcomments}{-P texcomments}
+\minted@define@switch[-P mathescape=False]{mathescape}{-P mathescape}
 \ifthenelse{\boolean{minted@draft}}%
   {\define@booleankey{FV}{linenos}{\@nameuse{FV@Numbers@left}}{}%
     \minted@define@extra@switch{linenos}}%
-  {\minted@define@switch{linenos}{-P linenos}}
+  {\minted@define@switch[-P linenos=False]{linenos}{-P linenos}}
 \minted@define@optstyle
 %    \end{macrocode}
 %
