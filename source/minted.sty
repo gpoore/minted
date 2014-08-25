@@ -438,7 +438,7 @@
 \minted@define@switch[-P texcomments=False]{texcomments}{-P texcomments}
 \minted@define@switch[-P mathescape=False]{mathescape}{-P mathescape}
 \ifthenelse{\boolean{minted@draft}}%
-  {\define@booleankey{FV}{linenos}{\@nameuse{FV@Numbers@left}}{}%
+  {\define@booleankey{FV}{linenos}{\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}%
     \minted@define@extra@switch{linenos}}%
   {\minted@define@switch[-P linenos=False]{linenos}{-P linenos}}
 \minted@define@optstyle
