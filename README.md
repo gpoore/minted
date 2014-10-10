@@ -1,3 +1,5 @@
+[![flattr](https://api.flattr.com/button/flattr-badge-large.png)][flattr]
+
 # minted — highlighted source code for LaTeX
 
 
@@ -69,3 +71,8 @@ Additionally, the project may be distributed under the terms of the
 
 Please use the project's GitHub site at <https://github.com/gpoore/minted>
 for suggestions, feature requests, and bug reports.
+
+
+
+
+[flattr]: https://flattr.com/submit/auto?user_id=gpoore&url=https://github.com/gpoore/minted&title=minted&category=software
