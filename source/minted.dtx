@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1966}
+% \CheckSum{1973}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -166,7 +166,8 @@
 %
 %
 %
-% \begin{changelog}{v2.0-beta}{2014/??/??}
+% \begin{changelog}{v2.0-beta}{2015/01/??}
+% \item Fixed buffer size error caused by using \texttt{cache} with a very large number of files (\#61).
 % \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
 % \item Added support for \texttt{escapeinside} (requires Pygments 2.0+; \#38).
 % \item Fixed issues with XeTeX and caching (\#40).
@@ -720,10 +721,12 @@
 %     Value to use as for baselinestretch inside the listing.
 %   \item[breakautoindent (boolean) (+true+)]
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
+%   \item[breakbytoken (boolean) (+false+)]
+%     NOT YET IMPLEMENTED. Only automatically break lines at spaces that are not part of tokens.  For example, do not break lines at spaces within strings.  This keeps tokens from being split by automatic line breaks.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
 %   \item[breakindent (dimension) (+0pt)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
 %   \item[breaklines (boolean) (+false+)] 
-%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands.  Automatic breaks \emph{only} occur at the space character closest to the margin.  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands.  Automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 %     To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbol, use \texttt{breaksymbol}.  To customize the separation between the continuation symbol and the code, use \texttt{breaksymbolsep}.  To customize the extra indentation that is supplied around the break symbol, use \texttt{breaksymbolindent}.
 %
@@ -1230,7 +1233,8 @@
 %    \begin{macrocode}
 \newcommand{\minted@addcachefile}[1]{%
   \expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,#1}%
+    \minted@cachefiles,%
+    #1}%
   \expandafter\gdef\csname minted@current@#1\endcsname{}%
 }
 %    \end{macrocode}
@@ -1881,6 +1885,7 @@
 \minted@define@extra@switch{showtabs}
 \minted@define@extra@switch{obeytabs}
 \minted@define@extra@switch{breaklines}
+\minted@define@extra@switch{breakbytoken}
 \minted@define@extra{breakindent}
 \minted@define@extra@switch{breakautoindent}
 \minted@define@extra{breaksymbol}
@@ -1980,6 +1985,14 @@
 \define@booleankey{FV}{breaklines}%
   {\let\FV@ListProcessLine\FV@ListProcessLine@Break}%
   {\let\FV@ListProcessLine\FV@ListProcessLine@Orig}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{breakbytoken}
+%    \begin{macrocode}
+\define@booleankey{FV}{breakbytoken}%
+  {\let\minted@pyghook\minted@pyghook@breakbytoken}%
+  {\let\minted@pyghook\minted@pyghook@null}
 %    \end{macrocode}
 % \end{macro}
 %

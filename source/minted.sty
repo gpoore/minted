@@ -68,7 +68,8 @@
 \newcommand{\minted@cachefiles}{}
 \newcommand{\minted@addcachefile}[1]{%
   \expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,#1}%
+    \minted@cachefiles,%
+    #1}%
   \expandafter\gdef\csname minted@current@#1\endcsname{}%
 }
 \newcommand{\minted@savecachefiles}{%
@@ -470,6 +471,7 @@
 \minted@define@extra@switch{showtabs}
 \minted@define@extra@switch{obeytabs}
 \minted@define@extra@switch{breaklines}
+\minted@define@extra@switch{breakbytoken}
 \minted@define@extra{breakindent}
 \minted@define@extra@switch{breakautoindent}
 \minted@define@extra{breaksymbol}
@@ -530,6 +532,9 @@
 \define@booleankey{FV}{breaklines}%
   {\let\FV@ListProcessLine\FV@ListProcessLine@Break}%
   {\let\FV@ListProcessLine\FV@ListProcessLine@Orig}
+\define@booleankey{FV}{breakbytoken}%
+  {\let\minted@pyghook\minted@pyghook@breakbytoken}%
+  {\let\minted@pyghook\minted@pyghook@null}
 \newdimen\FV@BreakIndent
 \define@key{FV}{breakindent}{\FV@BreakIndent=#1}
 \fvset{breakindent=0pt}
