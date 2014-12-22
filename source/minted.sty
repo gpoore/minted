@@ -67,9 +67,9 @@
 \newcommand{\minted@infile}{\jobname.out.pyg}
 \newcommand{\minted@cachefiles}{}
 \newcommand{\minted@addcachefile}[1]{%
-  \expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,%
-    #1}%
+  \expandafter\long\expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
+    \minted@cachefiles,^^J%
+    \space\space#1}%
   \expandafter\gdef\csname minted@current@#1\endcsname{}%
 }
 \newcommand{\minted@savecachefiles}{%

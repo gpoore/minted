@@ -1229,12 +1229,12 @@
 % \end{macro}
 %
 % \begin{macro}{\minted@addcachefile}
-% This adds a file to the list of cache files.  It also creates a macro involving the hash, so that the current usage of the hash can be easily checked.
+% This adds a file to the list of cache files.  It also creates a macro involving the hash, so that the current usage of the hash can be easily checked.  The list of cache files must be created with built-in linebreaks, so that when it is written to the aux file, it won't all be on one line and thereby risk buffer errors.
 %    \begin{macrocode}
 \newcommand{\minted@addcachefile}[1]{%
-  \expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,%
-    #1}%
+  \expandafter\long\expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
+    \minted@cachefiles,^^J%
+    \space\space#1}%
   \expandafter\gdef\csname minted@current@#1\endcsname{}%
 }
 %    \end{macrocode}
