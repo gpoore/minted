@@ -38,7 +38,10 @@
 \RequirePackage{etoolbox}
 \RequirePackage{xstring}
 \RequirePackage{lineno}
-\AtBeginDocument{\@ifpackageloaded{color}{}{\RequirePackage{xcolor}}}
+\AtBeginDocument{%
+  \@ifpackageloaded{color}{}{%
+    \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
+}
 \DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
 \DeclareVoidOption{section}{\def\minted@float@within{section}}
 \newboolean{minted@cache}
@@ -65,44 +68,42 @@
 \DeclareBoolOption{draft}
 \ProcessKeyvalOptions*
 \newcommand{\minted@infile}{\jobname.out.pyg}
-\newcommand{\minted@cachefiles}{}
+\newcommand{\minted@cachelist}{}
 \newcommand{\minted@addcachefile}[1]{%
-  \expandafter\long\expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,^^J%
+  \expandafter\long\expandafter\gdef\expandafter\minted@cachelist\expandafter{%
+    \minted@cachelist,^^J%
     \space\space#1}%
-  \expandafter\gdef\csname minted@current@#1\endcsname{}%
+  \expandafter\gdef\csname minted@cached@#1\endcsname{}%
 }
-\newcommand{\minted@savecachefiles}{%
-  \immediate\write\@mainaux{%
-    \string\gdef\string\minted@oldcachefiles\string{%
-      \minted@cachefiles\string}}%
+\newcommand{\minted@savecachelist}{%
+  \ifdefempty{\minted@cachelist}{}{%
+    \immediate\write\@mainaux{%
+      \string\gdef\string\minted@oldcachelist\string{%
+        \minted@cachelist\string}}%
+  }%
 }
 \newcommand{\minted@cleancache}{%
-  \ifthenelse{\boolean{minted@cache}}{%
-    \ifcsname minted@oldcachefiles\endcsname
-      \def\do##1{%
-        \ifthenelse{\equal{##1}{}}{}{%
-          \ifcsname minted@current@##1\endcsname\else
-            \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
-          \fi
-        }%
+  \ifcsname minted@oldcachelist\endcsname
+    \def\do##1{%
+      \ifthenelse{\equal{##1}{}}{}{%
+        \ifcsname minted@cached@##1\endcsname\else
+          \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
+        \fi
       }%
-      \expandafter\docsvlist\expandafter{\minted@oldcachefiles}%
-    \else
-    \fi
-  }{}%
+    }%
+    \expandafter\docsvlist\expandafter{\minted@oldcachelist}%
+  \else
+  \fi
 }
-\ifthenelse{\boolean{minted@cache}}%
+\ifthenelse{\boolean{minted@draft}}%
   {\AtEndDocument{%
-    \ifthenelse{\boolean{minted@draft}}%
-      {\ifcsname minted@oldcachefiles\endcsname
-        \let\minted@cachefiles\minted@oldcachefiles
-        \minted@savecachefiles
-        \fi}%
-      {\minted@savecachefiles
-        \minted@cleancache}}%
-  }%
-  {}%
+      \ifcsname minted@oldcachelist\endcsname
+        \let\minted@cachelist\minted@oldcachelist
+        \minted@savecachelist
+      \fi}}%
+  {\AtEndDocument{%
+      \minted@savecachelist
+      \minted@cleancache}}%
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%

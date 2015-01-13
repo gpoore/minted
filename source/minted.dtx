@@ -146,7 +146,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{1973}
+% \CheckSum{1977}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -1122,9 +1122,12 @@
 \RequirePackage{lineno}
 %    \end{macrocode}
 %
-% Make sure that either |color| or |xcolor| is loaded.
+% Make sure that either |color| or |xcolor| is loaded by the beginning of the document.
 %    \begin{macrocode}
-\AtBeginDocument{\@ifpackageloaded{color}{}{\RequirePackage{xcolor}}}
+\AtBeginDocument{%
+  \@ifpackageloaded{color}{}{%
+    \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
+}
 %    \end{macrocode}
 %
 %
@@ -1173,7 +1176,7 @@
 %
 %
 % \begin{macro}{\minted@outputdir}
-% The |-output-directory| command-line option for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in the output directory, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option.  But it is possible to allow the output directory to be specified manually as a package option.
+% The |-output-directory| command-line option for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in the output directory, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option.  But it is possible to allow the output directory to be specified manually as a package option.  A trailing slash is automatically appended to the |outputdir|, so that it may be directly joined to |cachedir|.  This may be redundant if the user-supplied value already ends with a slash, but doubled slashes are ignored under *nix and Windows, so it isn't a problem.
 %    \begin{macrocode}
 \let\minted@outputdir\@empty
 \let\minted@outputdir@windows\@empty
@@ -1194,7 +1197,7 @@
 %
 %
 % \begin{macro}{draft}
-% Define an option that allows \pkg{fancyvrb} to do all typesetting directly, without using \app{Pygments}.  This trades syntax highlighting for speed.  Note that in many cases, the difference in performance between caching and draft mode will be minimal.
+% Define an option that allows \pkg{fancyvrb} to do all typesetting directly, without using \app{Pygments}.  This trades syntax highlighting for speed.  Note that in many cases, the difference in performance between caching and draft mode will be minimal.  Also note that draft settings may be inherited from the document class.
 %    \begin{macrocode}
 \DeclareBoolOption{draft}
 %    \end{macrocode}
@@ -1219,36 +1222,38 @@
 % \end{macro}
 %
 %
-% We need a way to track the cache files that are created, and delete those that are not in use.
+% We need a way to track the cache files that are created, and delete those that are not in use.  This is accomplished by creating a comma-delimited list of cache files and saving this list to the |.aux| file so that it may be accessed on subsequent runs.  During subsequent runs, this list is compared against the cache files that are actually used, and unused files are deleted.  Cache file names are created with MD5 hashes of highlighting settings and file contents, with a |.pygtex| extension, so they never contain commas. Thus comma-delimiting the list of file names doesn't introduce a potential for errors.
 %
-% \begin{macro}{\minted@cachefiles}
+% \begin{macro}{\minted@cachelist}
 % This is a list of the current cache files.
 %    \begin{macrocode}
-\newcommand{\minted@cachefiles}{}
+\newcommand{\minted@cachelist}{}
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\minted@addcachefile}
-% This adds a file to the list of cache files.  It also creates a macro involving the hash, so that the current usage of the hash can be easily checked.  The list of cache files must be created with built-in linebreaks, so that when it is written to the aux file, it won't all be on one line and thereby risk buffer errors.
+% This adds a file to the list of cache files.  It also creates a macro involving the hash, so that the current usage of the hash can be easily checked by seeing if the macro exists.  The list of cache files must be created with built-in linebreaks, so that when it is written to the |.aux| file, it won't all be on one line and thereby risk buffer errors.
 %    \begin{macrocode}
 \newcommand{\minted@addcachefile}[1]{%
-  \expandafter\long\expandafter\gdef\expandafter\minted@cachefiles\expandafter{%
-    \minted@cachefiles,^^J%
+  \expandafter\long\expandafter\gdef\expandafter\minted@cachelist\expandafter{%
+    \minted@cachelist,^^J%
     \space\space#1}%
-  \expandafter\gdef\csname minted@current@#1\endcsname{}%
+  \expandafter\gdef\csname minted@cached@#1\endcsname{}%
 }
 %    \end{macrocode}
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@savecachefiles}
+% \begin{macro}{\minted@savecachelist}
 %
 % We need to be able to save the list of cache files to the |.aux| file, so that we can reload it on the next run.
 %    \begin{macrocode}
-\newcommand{\minted@savecachefiles}{%
-  \immediate\write\@mainaux{%
-    \string\gdef\string\minted@oldcachefiles\string{%
-      \minted@cachefiles\string}}%
+\newcommand{\minted@savecachelist}{%
+  \ifdefempty{\minted@cachelist}{}{%
+    \immediate\write\@mainaux{%
+      \string\gdef\string\minted@oldcachelist\string{%
+        \minted@cachelist\string}}%
+  }%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1258,37 +1263,33 @@
 % Clean up old cache files that are no longer in use.
 %    \begin{macrocode}
 \newcommand{\minted@cleancache}{%
-  \ifthenelse{\boolean{minted@cache}}{%
-    \ifcsname minted@oldcachefiles\endcsname
-      \def\do##1{%
-        \ifthenelse{\equal{##1}{}}{}{%
-          \ifcsname minted@current@##1\endcsname\else
-            \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
-          \fi
-        }%
+  \ifcsname minted@oldcachelist\endcsname
+    \def\do##1{%
+      \ifthenelse{\equal{##1}{}}{}{%
+        \ifcsname minted@cached@##1\endcsname\else
+          \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
+        \fi
       }%
-      \expandafter\docsvlist\expandafter{\minted@oldcachefiles}%
-    \else
-    \fi
-  }{}%
+    }%
+    \expandafter\docsvlist\expandafter{\minted@oldcachelist}%
+  \else
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
 %
 %
-% At the end of the document, save the list of cache files and clean the cache.  If in draft mode, don't clean up the cache and save the current cache file list for next time.
+% At the end of the document, save the list of cache files and clean the cache.  If in draft mode, don't clean up the cache and save the old cache file list for next time.  This allows draft mode to be switched on and off without requiring that all highlighted content be regenerated.  The saving and cleaning operations may be called without conditionals, since their definitions already contain all necessary checks for their correct operation.
 %    \begin{macrocode}
-\ifthenelse{\boolean{minted@cache}}%
+\ifthenelse{\boolean{minted@draft}}%
   {\AtEndDocument{%
-    \ifthenelse{\boolean{minted@draft}}%
-      {\ifcsname minted@oldcachefiles\endcsname
-        \let\minted@cachefiles\minted@oldcachefiles
-        \minted@savecachefiles
-        \fi}%
-      {\minted@savecachefiles
-        \minted@cleancache}}%
-  }%
-  {}%
+      \ifcsname minted@oldcachelist\endcsname
+        \let\minted@cachelist\minted@oldcachelist
+        \minted@savecachelist
+      \fi}}%
+  {\AtEndDocument{%
+      \minted@savecachelist
+      \minted@cleancache}}%
 %    \end{macrocode}
 %
 %
