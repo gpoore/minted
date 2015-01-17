@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/15 20150115dev ]
+    [2015/01/16 20150116dev ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -154,7 +154,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2122}
+% \CheckSum{2158}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -175,6 +175,8 @@
 %
 %
 % \begin{changelog}{v2.0-beta}{2015/01/??}
+% \item Added support for Pygments option \texttt{stripall}.
+% \item Added \texttt{breakbytoken} option that prevents \texttt{breaklines} from breaking lines within Pygments tokens.
 % \item \texttt{\string\mintinline} uses a \texttt{\string\colorbox} when \texttt{bgcolor} is set, to give more reasonable behavior (\#57).
 % \item For PHP, \texttt{\string\mintinline} automatically begins with \texttt{startinline=true} (\#23).
 % \item Fixed a bug that threw off line numbering in \texttt{minted} when \texttt{langlinenos=false} and \texttt{firstnumber=last}.  Fixed a bug in \texttt{\string\mintinline} that threw off subsequent line numbering when \texttt{langlinenos=false} and \texttt{firstnumber=last}.
@@ -727,7 +729,7 @@
 %   \item[breakautoindent (boolean) (+true+)]
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
 %   \item[breakbytoken (boolean) (+false+)]
-%     NOT YET IMPLEMENTED. Only automatically break lines at spaces that are not part of tokens.  For example, do not break lines at spaces within strings.  This keeps tokens from being split by automatic line breaks.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
+%   Only break lines at spaces that are not within tokens; prevent tokens from being split by line breaks.  By default, line breaking occurs at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if the break occurs in the middle of a string or similar token.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
 %   \item[breakindent (dimension) (+0pt+)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
 %   \item[breaklines (boolean) (+false+)] 
@@ -880,8 +882,10 @@
 %     Sets the stylesheet used by \app{Pygments}.
 %   \item[stepnumber (integer) (+1+)]
 %     Interval at which line numbers appear.
-%   \item[stripnl (boolean) (+true+)]
+%   \item[stripall (boolean) (+false+)]
 %     Strip all leading and trailing whitespace from the input.
+%   \item[stripnl (boolean) (+true+)]
+%     Strip leading and trailing newlines from the input.
 %   \item[tabsize (integer) (+8+)]
 %     The number of spaces a tab is equivalent to.  If +obeytabs+ is \emph{not} active, tabs will be converted into this number of spaces.  If +obeytabs+ is active, tab stops will be set this number of space characters apart.
 %   \item[texcl (boolean) (+false+)]
@@ -1855,41 +1859,51 @@
 % Before actually creating the option-definition macro, we need a few helper macros.
 %
 % \begin{macro}{\minted@get@opt}
-% We need a way to traverse the hierarchy of values for a given key and return the current value that has precedence.  In doing this, we need to be able to specify a default value to use if no value is found.  Otherwise, an error should be produced by invoking |\minted@undefined|.
+% We need a way to traverse the hierarchy of values for a given key and return the current value that has precedence.  In doing this, we need to be able to specify a default value to use if no value is found.  Otherwise, an error should be produced by invoking |\minted@undefined|.  In general, a default value should be required, so a case could be made for having the default be a mandatory argument.  From a programming perspective, it also needs to be mandatory, so that |\minted@get@opt| can be fully expandable, which significantly simplifies accessing options.
 %
-% When working with \pkg{minted}-specific values, there should generally be a default value.  But this macro should also work with Pygments settings, which are stored in macros of the same form and will sometimes need to be accessed (for example, |encoding|).  In the Pygments case, there may very well be no default values on the \LaTeX\ side, because we are falling back on Pygments own built-in defaults.  There is no need to duplicate those when very few Pygments values are ever needed; it is simpler to specify the default fallback when accessing the macro value.
+% When working with \pkg{minted}-specific values, there should generally be a default value.  But the macro should also work with Pygments settings, which are stored in macros of the same form and will sometimes need to be accessed (for example, |encoding|).  In the Pygments case, there may very well be no default values on the \LaTeX\ side, because we are falling back on Pygments own built-in defaults.  There is no need to duplicate those when very few Pygments values are ever needed; it is simpler to specify the default fallback when accessing the macro value.
 %    \begin{macrocode}
-\newcommand{\minted@get@opt}[2][]{%
-  \ifcsname minted@opt@cmd:#2\endcsname
-    \csname minted@opt@cmd:#2\endcsname
+\def\minted@get@opt#1#2{%
+  \ifcsname minted@opt@cmd:#1\endcsname
+    \csname minted@opt@cmd:#1\endcsname
   \else
-    \ifthenelse{\boolean{minted@isinline}}%
-     {\ifcsname minted@opt@lang\minted@lang @i\endcsname
-        \csname minted@opt@lang\minted@lang @i\endcsname
+    \ifminted@isinline
+      \ifcsname minted@opt@lang\minted@lang @i:#1\endcsname
+        \csname minted@opt@lang\minted@lang @i:#1\endcsname
       \else
-        \ifcsname minted@opt@g@i:#2\endcsname
-          \csname minted@opt@g@i:#2\endcsname
+        \ifcsname minted@opt@g@i:#1\endcsname
+          \csname minted@opt@g@i:#1\endcsname
         \else
-          \ifcsname minted@opt@lang\minted@lang:#2\endcsname
-            \csname minted@opt@lang\minted@lang:#2\endcsname
+          \ifcsname minted@opt@lang\minted@lang:#1\endcsname
+            \csname minted@opt@lang\minted@lang:#1\endcsname
           \else
-            \ifcsname minted@opt@g:#2\endcsname
-              \csname minted@opt@g:#2\endcsname
+            \ifcsname minted@opt@g:#1\endcsname
+              \csname minted@opt@g:#1\endcsname
             \else
-              \ifthenelse{\equal{#1}{}}{\minted@undefined}{#1}%
+              \ifx\relax\detokenize{#2}\relax
+                \minted@undefined
+              \else
+                #2
+              \fi
             \fi
           \fi
         \fi
-      \fi}%
-     {\ifcsname minted@opt@lang\minted@lang:#2\endcsname
-        \csname minted@opt@lang\minted@lang:#2\endcsname
+      \fi
+    \else
+      \ifcsname minted@opt@lang\minted@lang:#1\endcsname
+        \csname minted@opt@lang\minted@lang:#1\endcsname
       \else
-        \ifcsname minted@opt@g:#2\endcsname
-          \csname minted@opt@g:#2\endcsname
+        \ifcsname minted@opt@g:#1\endcsname
+          \csname minted@opt@g:#1\endcsname
         \else
-          \ifthenelse{\equal{#1}{}}{\minted@undefined}{#1}%
+          \ifx\relax\detokenize{#2}\relax
+            \minted@undefined
+          \else
+            #2
+          \fi
         \fi
-      \fi}%
+      \fi
+    \fi
   \fi
 }%
 %    \end{macrocode}
@@ -1918,7 +1932,7 @@
 % \begin{macro}{\minted@def@opt@switch}
 % And we need a switch version.
 %
-% It would be possible to create a special version of |\minted@get@opt| to work with these, but that would be redundant.  During the key processing, any values other than |true| and |false| are filtered out.  So when using |\minted@get@opt| later, we know that that part has already been taken care of, and we can just use something like |\ifthenelse{\equal{\minted@get@opt{<opt>}}{true}}{...}{...}|.  Of course, there is the possibility that a default value has not been set, but  |\minted@def@opt@switch| sets a global default of |false| to avoid this.  And as usual, Pygments values shouldn't be used without considering whether |\minted@get@opt| needs a fallback value.
+% It would be possible to create a special version of |\minted@get@opt| to work with these, but that would be redundant.  During the key processing, any values other than |true| and |false| are filtered out.  So when using |\minted@get@opt| later, we know that that part has already been taken care of, and we can just use something like |\ifthenelse{\equal{\minted@get@opt{<opt>}{<default>}}{true}}{...}{...}|.  Of course, there is the possibility that a default value has not been set, but  |\minted@def@opt@switch| sets a global default of |false| to avoid this.  And as usual, Pygments values shouldn't be used without considering whether |\minted@get@opt| needs a fallback value.
 %    \begin{macrocode}
 \newcommand{\minted@def@opt@switch}[2][false]{%
   \define@booleankey{minted@opt@g}{#2}%
@@ -1935,8 +1949,8 @@
     {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
   \define@booleankey{minted@opt@cmd}{#2}%
     {\@namedef{minted@opt@cmd:#2}{true}}%
-    {\@namedef{minted@opt@cmd:#2}{false}}
-  \newboolean{minted@opt:#2}
+    {\@namedef{minted@opt@cmd:#2}{false}}%
+  \@namedef{minted@opt@g:#2}{#1}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1949,7 +1963,8 @@
 \minted@def@optcl{encoding}{-P encoding}{#1}
 \minted@def@optcl{outencoding}{-P outencoding}{#1}
 \minted@def@optcl@e{escapeinside}{-P "escapeinside}{#1"}
-\minted@def@optcl{stripnl}{-P stripnl}{#1}
+\minted@def@optcl@switch{stripnl}{-P stripnl}
+\minted@def@optcl@switch{stripall}{-P stripall}
 % Python console
 \minted@def@optcl@switch{python3}{-P python3}
 % PHP
@@ -2056,7 +2071,7 @@
 % \begin{macro}{\minted@encoding}
 % When working with encoding, we will need access to the current encoding.  That may be done via |\minted@get@opt|, but it is more convenient to go ahead and define a shortcut with an appropriate default
 %    \begin{macrocode}
-\newcommand{\minted@encoding}{\minted@get@opt[UTF8]{encoding}}
+\newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2366,7 +2381,7 @@
 %
 %    \begin{macrocode}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
-  \ifthenelse{\equal{\minted@get@opt{autogobble}}{true}}%
+  \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
     {\def\minted@codefile{\jobname.pyg}}%
     {\def\minted@codefile{#1}}%
   \ifthenelse{\boolean{minted@isinline}}%
@@ -2386,7 +2401,7 @@
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \ifx\XeTeXinterchartoks\minted@undefined
-        \ifthenelse{\equal{\minted@get@opt{autogobble}}{true}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
             \pdf@mdfivesum{\minted@cmd autogobble}}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
@@ -2394,7 +2409,7 @@
       \else
         \immediate\openout\minted@code\jobname.mintedcmd\relax
         \immediate\write\minted@code{\minted@cmd}%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{true}}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
           {\immediate\write\minted@code{autogobble}}{}%
         \immediate\closeout\minted@code
         %Cheating a little here by using ASCII codes to write `{` and `}`
@@ -2423,7 +2438,7 @@
           \minted@cachedir/\minted@hash.pygtex}%
       \fi
       \IfFileExists{\minted@cachedir/\minted@hash.pygtex}{}{%
-        \ifthenelse{\equal{\minted@get@opt{minted@autogobble}}{true}}{%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
           %Need a version of open() that supports encoding under Python 2
           \edef\minted@autogobblecmd{%
             \detokenize{python -c "import sys;
@@ -2441,7 +2456,7 @@
       \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
-      \ifthenelse{\boolean{minted@autogobble}}{%
+      \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
         %Need a version of open() that supports encoding under Python 2
         \edef\minted@autogobblecmd{%
           \detokenize{python -c "import sys;
@@ -2458,20 +2473,33 @@
       \immediate\write18{\minted@cmd}%
       \minted@inputpyg}%
 }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\minted@inputpyg}
+% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  Also, if we are not inline, then the |breakbytoken| option may apply.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.
+%    \begin{macrocode}
 \newcommand{\minted@inputpyg}{%
-  \ifthenelse{\equal{\minted@get@opt{breakbytoken}}{}}%
-    {\def\}%
-    {}%
   \ifthenelse{\boolean{minted@isinline}}%
     {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
       {\input{\minted@outputdir\minted@infile}}%
       {\expandafter\colorbox\expandafter{\minted@opt@cmd@bgcolor}%
         {\input{\minted@outputdir\minted@infile}}}}%
-    {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
+    {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{}}{true}}%
+      {\expandafter\let\expandafter\minted@orig@PYG%
+         \csname PYG\minted@get@opt{style}{default}\endcsname
+       \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+       \ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
         {\input{\minted@outputdir\minted@infile}}%
         {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
            \input{\minted@outputdir\minted@infile}%
            \end{minted@colorbg}}}%
+      {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
+        {\input{\minted@outputdir\minted@infile}}%
+        {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
+           \input{\minted@outputdir\minted@infile}%
+           \end{minted@colorbg}}}}%
 }
 %    \end{macrocode}
 % \end{macro}

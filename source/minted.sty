@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/15 20150115dev ]
+    [2015/01/16 20150116dev ]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -486,37 +486,47 @@
    {}%
   \expandafter\fvset\expandafter{\minted@optlistfv@cmd}%
 }
-\newcommand{\minted@get@opt}[2][]{%
-  \ifcsname minted@opt@cmd:#2\endcsname
-    \csname minted@opt@cmd:#2\endcsname
+\def\minted@get@opt#1#2{%
+  \ifcsname minted@opt@cmd:#1\endcsname
+    \csname minted@opt@cmd:#1\endcsname
   \else
-    \ifthenelse{\boolean{minted@isinline}}%
-     {\ifcsname minted@opt@lang\minted@lang @i\endcsname
-        \csname minted@opt@lang\minted@lang @i\endcsname
+    \ifminted@isinline
+      \ifcsname minted@opt@lang\minted@lang @i:#1\endcsname
+        \csname minted@opt@lang\minted@lang @i:#1\endcsname
       \else
-        \ifcsname minted@opt@g@i:#2\endcsname
-          \csname minted@opt@g@i:#2\endcsname
+        \ifcsname minted@opt@g@i:#1\endcsname
+          \csname minted@opt@g@i:#1\endcsname
         \else
-          \ifcsname minted@opt@lang\minted@lang:#2\endcsname
-            \csname minted@opt@lang\minted@lang:#2\endcsname
+          \ifcsname minted@opt@lang\minted@lang:#1\endcsname
+            \csname minted@opt@lang\minted@lang:#1\endcsname
           \else
-            \ifcsname minted@opt@g:#2\endcsname
-              \csname minted@opt@g:#2\endcsname
+            \ifcsname minted@opt@g:#1\endcsname
+              \csname minted@opt@g:#1\endcsname
             \else
-              \ifthenelse{\equal{#1}{}}{\minted@undefined}{#1}%
+              \ifx\relax\detokenize{#2}\relax
+                \minted@undefined
+              \else
+                #2
+              \fi
             \fi
           \fi
         \fi
-      \fi}%
-     {\ifcsname minted@opt@lang\minted@lang:#2\endcsname
-        \csname minted@opt@lang\minted@lang:#2\endcsname
+      \fi
+    \else
+      \ifcsname minted@opt@lang\minted@lang:#1\endcsname
+        \csname minted@opt@lang\minted@lang:#1\endcsname
       \else
-        \ifcsname minted@opt@g:#2\endcsname
-          \csname minted@opt@g:#2\endcsname
+        \ifcsname minted@opt@g:#1\endcsname
+          \csname minted@opt@g:#1\endcsname
         \else
-          \ifthenelse{\equal{#1}{}}{\minted@undefined}{#1}%
+          \ifx\relax\detokenize{#2}\relax
+            \minted@undefined
+          \else
+            #2
+          \fi
         \fi
-      \fi}%
+      \fi
+    \fi
   \fi
 }%
 \newcommand{\minted@def@opt}[2][]{%
@@ -546,14 +556,15 @@
     {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
   \define@booleankey{minted@opt@cmd}{#2}%
     {\@namedef{minted@opt@cmd:#2}{true}}%
-    {\@namedef{minted@opt@cmd:#2}{false}}
-  \newboolean{minted@opt:#2}
+    {\@namedef{minted@opt@cmd:#2}{false}}%
+  \@namedef{minted@opt@g:#2}{#1}%
 }
 
 \minted@def@optcl{encoding}{-P encoding}{#1}
 \minted@def@optcl{outencoding}{-P outencoding}{#1}
 \minted@def@optcl@e{escapeinside}{-P "escapeinside}{#1"}
-\minted@def@optcl{stripnl}{-P stripnl}{#1}
+\minted@def@optcl@switch{stripnl}{-P stripnl}
+\minted@def@optcl@switch{stripall}{-P stripall}
 \minted@def@optcl@switch{python3}{-P python3}
 \minted@def@optcl@switch{funcnamehighlighting}{-P funcnamehighlighting}
 \minted@def@optcl@switch{startinline}{-P startinline}
@@ -626,7 +637,7 @@
     tcolorbox, mdframed, or framed}%
 }
 \minted@def@opt@switch{autogobble}
-\newcommand{\minted@encoding}{\minted@get@opt[UTF8]{encoding}}
+\newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
 \newboolean{FV@BreakLines}
 \let\FV@ListProcessLine@Orig\FV@ListProcessLine
 \define@booleankey{FV}{breaklines}%
@@ -770,7 +781,7 @@
   \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}}%
 \newcommand{\MintedPygmentize}{pygmentize}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
-  \ifthenelse{\equal{\minted@get@opt{autogobble}}{true}}%
+  \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
     {\def\minted@codefile{\jobname.pyg}}%
     {\def\minted@codefile{#1}}%
   \ifthenelse{\boolean{minted@isinline}}%
@@ -790,7 +801,7 @@
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \ifx\XeTeXinterchartoks\minted@undefined
-        \ifthenelse{\equal{\minted@get@opt{autogobble}}{true}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
             \pdf@mdfivesum{\minted@cmd autogobble}}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
@@ -798,7 +809,7 @@
       \else
         \immediate\openout\minted@code\jobname.mintedcmd\relax
         \immediate\write\minted@code{\minted@cmd}%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{true}}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
           {\immediate\write\minted@code{autogobble}}{}%
         \immediate\closeout\minted@code
         %Cheating a little here by using ASCII codes to write `{` and `}`
@@ -827,7 +838,7 @@
           \minted@cachedir/\minted@hash.pygtex}%
       \fi
       \IfFileExists{\minted@cachedir/\minted@hash.pygtex}{}{%
-        \ifthenelse{\equal{\minted@get@opt{minted@autogobble}}{true}}{%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
           %Need a version of open() that supports encoding under Python 2
           \edef\minted@autogobblecmd{%
             \detokenize{python -c "import sys;
@@ -845,7 +856,7 @@
       \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
-      \ifthenelse{\boolean{minted@autogobble}}{%
+      \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
         %Need a version of open() that supports encoding under Python 2
         \edef\minted@autogobblecmd{%
           \detokenize{python -c "import sys;
@@ -868,11 +879,21 @@
       {\input{\minted@outputdir\minted@infile}}%
       {\expandafter\colorbox\expandafter{\minted@opt@cmd@bgcolor}%
         {\input{\minted@outputdir\minted@infile}}}}%
-    {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
+    {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{}}{true}}%
+      {\expandafter\let\expandafter\minted@orig@PYG%
+         \csname PYG\minted@get@opt{style}{default}\endcsname
+       \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+       \ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
         {\input{\minted@outputdir\minted@infile}}%
         {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
            \input{\minted@outputdir\minted@infile}%
            \end{minted@colorbg}}}%
+      {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
+        {\input{\minted@outputdir\minted@infile}}%
+        {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
+           \input{\minted@outputdir\minted@infile}%
+           \end{minted@colorbg}}}}%
 }
 \newcommand{\minted@langlinenoson}{%
   \ifcsname c@minted@lang\minted@lang\endcsname\else
