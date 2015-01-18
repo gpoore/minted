@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/16 20150116dev ]
+    [2015/01/17 20150117dev ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -154,7 +154,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2158}
+% \CheckSum{2185}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -175,6 +175,9 @@
 %
 %
 % \begin{changelog}{v2.0-beta}{2015/01/??}
+% \item When math is enabled via \texttt{texcomments}, \texttt{mathescape}, or \texttt{escapeinside}, space characters now behave as in normal math by vanishing, instead of appearing as literal spaces.  Math need no longer be specially formatted to avoid undesired spaces.
+% \item In default value of \texttt{\string\listoflistingscaption}, capitalized ``Listings'' so that capitalization is consistent with default values for other lists (figures, tables, algorithms, etc.).
+% \item Added \texttt{newfloat} package option that creates the \texttt{listing} environment using \texttt{newfloat} rather than \texttt{float}, thus providing better compatibility with the \texttt{caption} package (\#12).
 % \item Added support for Pygments option \texttt{stripall}.
 % \item Added \texttt{breakbytoken} option that prevents \texttt{breaklines} from breaking lines within Pygments tokens.
 % \item \texttt{\string\mintinline} uses a \texttt{\string\colorbox} when \texttt{bgcolor} is set, to give more reasonable behavior (\#57).
@@ -557,6 +560,18 @@
 %   \listoflistings
 % \end{example}
 %
+% \subsection*{Customizing the \texttt{listing} environment}
+% By default, the |listing| environment is created using the \pkg{float} package.  In that case, the |\listingscaption| and |\listoflistingscaption| macros described below may be used to customize the caption and list of listings.  If \pkg{minted} is loaded with the |newfloat| option, then the |listing| environment will be created with the more powerful \href{http://www.ctan.org/pkg/newfloat}{\pkg{newfloat}} package instead.  \pkg{newfloat} is part of \href{http://www.ctan.org/pkg/caption}{\pkg{caption}}, which provides many options for customizing captions.
+%
+% When \pkg{newfloat} is used to create the |listing| environment, customization should be achieved using \pkg{newfloat}'s |\SetupFloatingEnvironment| command.  For example, the string ``Listing'' in the caption could be changed to ``Program code'' using 
+%\begin{verbatim}
+%\SetupFloatingEnvironment{listing}{name=Program code}
+%\end{verbatim}
+% And ``List of Listings'' could be changed to ``List of Program Code'' with %\begin{verbatim}
+%\SetupFloatingEnvironment{listing}{listname=List of Program Code}
+%\end{verbatim}
+% Refer to the \pkg{newfloat} and \pkg{caption} documentation for additional information.
+%
 % \DescribeMacro{\listingscaption}
 % The string ``Listing'' in a listing's caption can be changed.
 % To do this, simply redefine the macro |\listingscaption|, for example:
@@ -564,10 +579,10 @@
 % \mint[frame=lines]{latex}/\renewcommand{\listingscaption}{Program code}/
 %
 % \DescribeMacro{\listoflistingscaption}
-% Likewise, the caption of the listings list, ``List of listings,'' can be changed by redefining
+% Likewise, the caption of the listings list, ``List of Listings,'' can be changed by redefining
 % |\listoflistingscaption|:
 %
-% \mint[frame=lines]{latex}/\renewcommand{\listoflistingscaption}{List of program codes}/
+% \mint[frame=lines]{latex}/\renewcommand{\listoflistingscaption}{List of Program Code}/
 %
 %
 % \section{Options}
@@ -582,6 +597,9 @@
 % For example, the following will cause listings to be counted by section:
 %
 % \mint[frame=lines]{latex}/\usepackage[section]{minted}/
+%
+% \DescribeMacro{newfloat}
+% By default, the |listing| environment is created using the \pkg{float} package.  The |newfloat| option creates the environment using \pkg{newfloat} instead.  This provides better integration with the \pkg{caption} package.
 %
 % \DescribeMacro{cache}
 % \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are many chunks of code to highlight.  To avoid this, the package provides a |cache| option.
@@ -854,7 +872,6 @@
 %     Essentially the same as +linenos+, except the side on which the numbers appear may be specified.
 %   \item[mathescape (boolean) (+false+)]
 %     Enable \LaTeX{} math mode inside comments.
-%     Do \emph{not} use spaces inside math mode---they will be rendered like other full-width verbatim spaces.
 %     Usage as in package \pkg{listings}.
 %   \item[numberblanklines (boolean) (+true+)]
 %     Enables or disables numbering of blank lines.
@@ -982,6 +999,7 @@
 % In some cases, \pkg{minted} may not give the desired result due to other document settings that it cannot control.  Common issues are described below, with workarounds or solutions.  You may also wish to search \href{http://tex.stackexchange.com/}{tex.stackexchange.com} or ask a question there, if you are working with \pkg{minted} in a non-typical context.
 %
 % \begin{itemize}
+% \item \textbf{When I use \pkg{minted} with KOMA-Script document classes, I get warnings about \texttt{\string\float@addtolists}.}  \pkg{minted} uses the \pkg{float} package to produce floated listings, but this conflicts with the way KOMA-Script does floats.  Load the package \pkg{scrhack} to resolve the conflict.
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
 %
@@ -1109,6 +1127,19 @@
 %    \begin{macrocode}
 \DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
 \DeclareVoidOption{section}{\def\minted@float@within{section}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@newfloat}
+%
+% Define an option to use \pkg{newfloat} rather than \pkg{float} to create a floated |listing| environment.
+%
+%    \begin{macrocode}
+\newboolean{minted@newfloat}
+\DeclareVoidOption{newfloat}{%
+  \RequirePackage{newfloat}%
+  \minted@newfloattrue}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1880,10 +1911,10 @@
             \ifcsname minted@opt@g:#1\endcsname
               \csname minted@opt@g:#1\endcsname
             \else
-              \ifx\relax\detokenize{#2}\relax
+              \if\relax\detokenize{#2}\relax
                 \minted@undefined
               \else
-                #2
+                #2%
               \fi
             \fi
           \fi
@@ -1896,10 +1927,10 @@
         \ifcsname minted@opt@g:#1\endcsname
           \csname minted@opt@g:#1\endcsname
         \else
-          \ifx\relax\detokenize{#2}\relax
+          \if\relax\detokenize{#2}\relax
             \minted@undefined
           \else
-            #2
+            #2%
           \fi
         \fi
       \fi
@@ -2477,9 +2508,11 @@
 % \end{macro}
 %
 % \begin{macro}{\minted@inputpyg}
-% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  Also, if we are not inline, then the |breakbytoken| option may apply.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.
+% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  Also, if we are not inline, then the |breakbytoken| option may apply.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.
 %    \begin{macrocode}
+\def\FV@SpaceMMode{ }
 \newcommand{\minted@inputpyg}{%
+  \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\boolean{minted@isinline}}%
     {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
       {\input{\minted@outputdir\minted@infile}}%
@@ -2891,15 +2924,26 @@
 %
 % \begin{environment}{listing}
 %
-% Define a new floating environment to use for floated listings.
+% Define a new floating environment to use for floated listings.  This is defined conditionally based on the |newfloat| package option.
 %
 %    \begin{macrocode}
-\@ifundefined{minted@float@within}
-  {\newfloat{listing}{h}{lol}}
-  {\newfloat{listing}{h}{lol}[\minted@float@within]}
+\ifthenelse{\boolean{minted@newfloat}}%
+ {\@ifundefined{minted@float@within}%
+    {\DeclareFloatingEnvironment[fileext=lol,placement=h]{listing}}%
+    {\def\minted@tmp#1{%
+       \DeclareFloatingEnvironment[fileext=lol,placement=h, within=#1]{listing}}%
+     \expandafter\minted@tmp\expandafter{\minted@float@within}}}%
+ {\@ifundefined{minted@float@within}%
+    {\newfloat{listing}{h}{lol}}%
+    {\newfloat{listing}{h}{lol}[\minted@float@within]}}
 %    \end{macrocode}
 % \end{environment}
 %
+% The following macros only apply when |listing| is created with the \pkg{float} package.  When |listing| is created with \pkg{newfloat}, its properties should be modified using \pkg{newfloat}'s |\SetupFloatingEnvironment|.
+%    \begin{macrocode}
+\ifminted@newfloat\else
+%    \end{macrocode}
+
 % \begin{macro}{\listingcaption}
 %
 % The name that is displayed before each individual listings caption and its number.
@@ -2921,7 +2965,7 @@
 % The caption that is displayed for the list of listings.
 %
 %    \begin{macrocode}
-\newcommand{\listoflistingscaption}{List of listings}
+\newcommand{\listoflistingscaption}{List of Listings}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2936,6 +2980,10 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% Again, the preceding macros only apply when \pkg{float} is used to create listings, so we need to end the conditional.
+%    \begin{macrocode}
+\fi
+%    \end{macrocode}
 %
 % \subsection{Epilogue}
 %

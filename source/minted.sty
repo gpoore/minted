@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/16 20150116dev ]
+    [2015/01/17 20150117dev ]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -45,6 +45,10 @@
 }
 \DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
 \DeclareVoidOption{section}{\def\minted@float@within{section}}
+\newboolean{minted@newfloat}
+\DeclareVoidOption{newfloat}{%
+  \RequirePackage{newfloat}%
+  \minted@newfloattrue}
 \newboolean{minted@cache}
 \DeclareVoidOption{cache}{%
   \minted@cachetrue
@@ -503,10 +507,10 @@
             \ifcsname minted@opt@g:#1\endcsname
               \csname minted@opt@g:#1\endcsname
             \else
-              \ifx\relax\detokenize{#2}\relax
+              \if\relax\detokenize{#2}\relax
                 \minted@undefined
               \else
-                #2
+                #2%
               \fi
             \fi
           \fi
@@ -519,10 +523,10 @@
         \ifcsname minted@opt@g:#1\endcsname
           \csname minted@opt@g:#1\endcsname
         \else
-          \ifx\relax\detokenize{#2}\relax
+          \if\relax\detokenize{#2}\relax
             \minted@undefined
           \else
-            #2
+            #2%
           \fi
         \fi
       \fi
@@ -873,7 +877,9 @@
       \immediate\write18{\minted@cmd}%
       \minted@inputpyg}%
 }
+\def\FV@SpaceMMode{ }
 \newcommand{\minted@inputpyg}{%
+  \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\boolean{minted@isinline}}%
     {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
       {\input{\minted@outputdir\minted@infile}}%
@@ -1104,13 +1110,22 @@
         {\endgroup\minted@inliner[#3][#2][]}}%
     \def\minted@inliner[##1][##2][##3]{\mintinline[##1,##3]{##2}}%
 }
-\@ifundefined{minted@float@within}
-  {\newfloat{listing}{h}{lol}}
-  {\newfloat{listing}{h}{lol}[\minted@float@within]}
+\ifthenelse{\boolean{minted@newfloat}}%
+ {\@ifundefined{minted@float@within}%
+    {\DeclareFloatingEnvironment[fileext=lol,placement=h]{listing}}%
+    {\def\minted@tmp#1{%
+       \DeclareFloatingEnvironment[fileext=lol,placement=h, within=#1]{listing}}%
+     \expandafter\minted@tmp\expandafter{\minted@float@within}}}%
+ {\@ifundefined{minted@float@within}%
+    {\newfloat{listing}{h}{lol}}%
+    {\newfloat{listing}{h}{lol}[\minted@float@within]}}
+\ifminted@newfloat\else
+
 \newcommand{\listingscaption}{Listing}
 \floatname{listing}{\listingscaption}
-\newcommand{\listoflistingscaption}{List of listings}
+\newcommand{\listoflistingscaption}{List of Listings}
 \providecommand{\listoflistings}{\listof{listing}{\listoflistingscaption}}
+\fi
 \AtEndOfPackage{%
   \ifthenelse{\boolean{minted@draft}}{}{%
     \ifnum\pdf@shellescape=1\relax\else
