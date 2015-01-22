@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/17 20150117dev ]
+    [2015/01/22 20150122dev ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -154,7 +154,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2185}
+% \CheckSum{2224}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -175,6 +175,10 @@
 %
 %
 % \begin{changelog}{v2.0-beta}{2015/01/??}
+% \item Added \texttt{final} package option (opposite of \texttt{draft}).
+% \item Renamed the default cache directory to \texttt{\_minted-<jobname>} (replaced leading period with underscore).  The leading period caused the cache directory to be hidden on many systems, which was a potential source of confusion.
+% \item \texttt{breaklines} and \texttt{breakbytoken} now work with \texttt{\string\mintinline} (\#31).
+% \item \texttt{bgcolor} may now be set throught \texttt{\string\setminted} and \texttt{\string\setmintedinline}.
 % \item When math is enabled via \texttt{texcomments}, \texttt{mathescape}, or \texttt{escapeinside}, space characters now behave as in normal math by vanishing, instead of appearing as literal spaces.  Math need no longer be specially formatted to avoid undesired spaces.
 % \item In default value of \texttt{\string\listoflistingscaption}, capitalized ``Listings'' so that capitalization is consistent with default values for other lists (figures, tables, algorithms, etc.).
 % \item Added \texttt{newfloat} package option that creates the \texttt{listing} environment using \texttt{newfloat} rather than \texttt{float}, thus providing better compatibility with the \texttt{caption} package (\#12).
@@ -604,7 +608,7 @@
 % \DescribeMacro{cache}
 % \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are many chunks of code to highlight.  To avoid this, the package provides a |cache| option.
 %
-% By default, the |cache| option creates a directory |.minted-|\meta{jobname} in the document's root directory.  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
+% By default, the |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory.  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
 %
 % Cached files that are no longer in use are automatically deleted.\footnote{This depends on the main auxiliary file not being deleted or becoming corrupted.  If that happens, you could simply delete the cache directory and start over.}
 %
@@ -658,6 +662,9 @@
 % Documents can usually be compiled without shell escape in draft mode.  The \pkg{ifplatform} package may issue a warning about limited functionality due to shell escape being disabled, but this may be ignored in almost all cases.  (Shell escape is only really required if you have an unusual system configuration such that the |\ifwindows| macro must fall back to using shell escape to determine the system.  See the \pkg{ifplatform} documentation for more details:  \url{http://www.ctan.org/pkg/ifplatform}.)
 %
 % If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
+%
+% \DescribeMacro{final}
+% This is the opposite of |draft|; it is equivalent to |draft=false|.
 %
 % \subsection{Macro option usage}
 %
@@ -745,15 +752,15 @@
 %   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
 %     Value to use as for baselinestretch inside the listing.
 %   \item[breakautoindent (boolean) (+true+)]
-%     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
+%     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breakbytoken (boolean) (+false+)]
 %   Only break lines at spaces that are not within tokens; prevent tokens from being split by line breaks.  By default, line breaking occurs at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if the break occurs in the middle of a string or similar token.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
 %   \item[breakindent (dimension) (+0pt+)]
-%     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.
+%     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaklines (boolean) (+false+)] 
-%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands.  Automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  Currently, automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
-%     To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbol, use \texttt{breaksymbol}.  To customize the separation between the continuation symbol and the code, use \texttt{breaksymbolsep}.  To customize the extra indentation that is supplied around the break symbol, use \texttt{breaksymbolindent}.
+%     Breaking in \texttt{minted} and \texttt{\string\mint} may be customized in several ways.  To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbol, use \texttt{breaksymbol}.  To customize the separation between the continuation symbol and the code, use \texttt{breaksymbolsep}.  To customize the extra indentation that is supplied around the break symbol, use \texttt{breaksymbolindent}.  Note than none of these options applies to \texttt{\string\mintinline}, since they are not relevant in the inline context.
 %
 %     Automatic line breaks are not compatible with \app{Pygments} styles that use a colored backgroup behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \pkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
 %\begin{Verbatim}
@@ -765,11 +772,11 @@
 %
 %     Automatic breaks are not compatible with the \texttt{frame} option.  You may wish to use \pkg{framed}, \pkg{mdframed}, \pkg{tcolorbox}, or a similar package instead.
 %   \item[breaksymbol (string) (+\string\righthookarrow+, $\hookrightarrow$)]
-%     The symbol used at the beginning of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbol} to an empty string.
+%     The symbol used at the beginning of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbol} to an empty string.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaksymbolindent (dimension) (width of 4 characters in teletype font at default point size)]
-%     The extra indentation that is provided to make room for \texttt{breaksymbol}.
+%     The extra indentation that is provided to make room for \texttt{breaksymbol}.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaksymbolsep (dimension) (+10pt+)]
-%     The separation between the \texttt{breaksymbol} and the adjacent code.
+%     The separation between the \texttt{breaksymbol} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
 %   \item[bgcolor (string) (\emph{none})]
 %     Background color of the listing.
 %     Notice that the value of this option must \emph{not} be a color command. Instead, it must be a color
@@ -784,7 +791,9 @@
 %   \end{minted}
 % \end{example}
 %
-% Unlike the other options, this option is currently only supported for individual commands and environments; there is not support at the language and document-wide levels.
+% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a minipage with a colored background.  It puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
+%
+% \textbf{This option will prevent \texttt{breaklines} from working with \texttt{\string\mintinline}.}  A \texttt{\string\colorbox} cannot break across lines.
 %
 % \textbf{This option will prevent environments from breaking across pages.}  If you want support for page breaks and advanced options, you should consider a framing package such as \pkg{framed}, \pkg{mdframed}, or \pkg{tcolorbox}.  It is easy to add framing to \pkg{minted} commands and environments using the \pkg{etoolbox} package.  For example, using \pkg{mdframed}:
 %\begin{Verbatim}
@@ -795,6 +804,8 @@
 %\begin{Verbatim}
 %\surroundwithmdframed{minted}
 %\end{Verbatim}
+% \pkg{tcolorbox} even provides a built-in framing environment with \pkg{minted} support.
+%
 %   \item[codetagify (list of strings) (highlight +XXX+, +TODO+, +BUG+, and +NOTE+)]
 %     Highlight special code tags in comments and docstrings.
 %   \item[encoding (string) (system-specific)]
@@ -810,6 +821,7 @@
 %   \end{minted}
 % \end{example}
 %
+% \textbf{Note that when math is used inside escapes, in a few cases ligature handling may need to be modified.}  The single-quote character (\texttt{\textquotesingle}) is normally a shortcut for \texttt{\string^\string\prime} in math mode, but this is disabled in verbatim content as a byproduct of ligatures being disabled.  For the same reason, any package that relies on active characters in math mode (for example, \pkg{icomma}) will produce errors along the lines of \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.  This may be fixed by modifying \texttt{\string\@noligs}, as described at \url{http://tex.stackexchange.com/questions/223876}.  \pkg{minted} currently does not attempt to patch \texttt{\string\@noligs} due to the potential for package conflicts.
 %   \item[firstline (integer) (+1+)]
 %     The first line to be shown.
 %     All lines before that line are ignored and do not appear in the output.
@@ -873,6 +885,7 @@
 %   \item[mathescape (boolean) (+false+)]
 %     Enable \LaTeX{} math mode inside comments.
 %     Usage as in package \pkg{listings}.
+%     See the note under \texttt{escapeinside} regarding math and ligatures.
 %   \item[numberblanklines (boolean) (+true+)]
 %     Enables or disables numbering of blank lines.
 %   \item[numbersep (dimension) (+12pt+)]
@@ -907,9 +920,9 @@
 %     The number of spaces a tab is equivalent to.  If +obeytabs+ is \emph{not} active, tabs will be converted into this number of spaces.  If +obeytabs+ is active, tab stops will be set this number of space characters apart.
 %   \item[texcl (boolean) (+false+)]
 %     Enables \LaTeX{} code inside comments.
-%     Usage as in package \pkg{listings}.
+%     Usage as in package \pkg{listings}.  See the note under \texttt{escapeinside} regarding math and ligatures.
 %   \item[texcomments (boolean) (+false+)]
-%     Enables \LaTeX{} code inside comments.  The newer name for +texcl+.
+%     Enables \LaTeX{} code inside comments.  The newer name for +texcl+.  See the note under \texttt{escapeinside} regarding math and ligatures.
 %   \item[xleftmargin (dimension) (+0+)]
 %     Indentation to add before the listing.
 %   \item[xrightmargin (dimension) (+0+)]
@@ -1003,6 +1016,8 @@
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
 %
+% \item \textbf{I'm getting errors with math, something like \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.}  This is due to ligatures being disabled within verbatim content.  See the note under |escapeinside|.
+%
 % \item \textbf{Quotation marks and backticks don't look right.  Backtick characters \texttt{\string`} are appearing as left quotes.  Single quotes are appearing as curly right quotes.}
 % This is due to how Pygments outputs \LaTeX\ code, combined with how \LaTeX\ deals with verbatim content.  Try |\usepackage{upquote}|.
 %
@@ -1064,8 +1079,7 @@
 %
 % \item \textbf{I want to use the command-line option \texttt{-output-directory}, or MiKTeX's \texttt{-aux-directory}, but am getting errors.}  Use the package option |outputdir| to specify the location of the output directory.  Unfortunately, there is no way for \pkg{minted} to detect the output directory automatically.
 %
-% \item \textbf{I want extended characters in labels, but am getting errors.}  This can happen with Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with Python 3, but you will need to use \pkg{minted} 2.0+ and may have to set the encoding (for example, |\begin{minted}[encoding=utf8,label=...]|).  As a workaround under Python 2.7, you can save the label text in a macro (for example, |\newcommand{\mylabel}{<label>}|), and then pass the macro to \pkg{minted} (|\begin{minted}[label=\mylabel,...]|).  You will still need \pkg{minted} 2.0+ and may need to specify the encoding.
-% 
+% \item \textbf{I want extended characters in frame labels, but am getting errors.}  This can happen with \pkg{minted} <2.0 and Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with any version of Python with \pkg{minted} 2.0+, which processes labels internally and does not send them to Python.
 % \end{itemize}
 %
 %
@@ -1073,7 +1087,7 @@
 %
 % \section*{Acknowledgements}
 %
-% Konrad Rudolph:  Special thanks to Philipp Stephani and the rest of the guys from \url{comp.text.tex} and \url{tex.stackexchange.com}.
+% Konrad Rudolph:  Special thanks to Philipp Stephani and the rest of the guys from \texttt{comp.text.tex} and \texttt{tex.stackexchange.com}.
 %
 % Geoffrey Poore:  Thanks to Marco Daniel for the code on \url{tex.stackexchange.com} that inspired automatic line breaking.
 %
@@ -1157,12 +1171,12 @@
 %
 %
 % \begin{macro}{\minted@cachedir}
-% Set the directory in which cached content is saved.  The default uses a |.minted-| prefix followed by a sanitized |\jobname| (spaces and asterisks replaced).
+% Set the directory in which cached content is saved.  The default uses a |minted-| prefix followed by a sanitized |\jobname| (spaces and asterisks replaced).
 %    \begin{macrocode}
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{-}[\minted@jobname]
-\newcommand{\minted@cachedir}{.minted-\minted@jobname}
+\newcommand{\minted@cachedir}{\detokenize{_}minted-\minted@jobname}
 \let\minted@cachedir@windows\minted@cachedir
 \define@key{minted}{cachedir}{%
   \@namedef{minted@cachedir}{#1}%
@@ -1196,6 +1210,13 @@
 % Define an option that allows \pkg{fancyvrb} to do all typesetting directly, without using \app{Pygments}.  This trades syntax highlighting for speed.  Note that in many cases, the difference in performance between caching and draft mode will be minimal.  Also note that draft settings may be inherited from the document class.
 %    \begin{macrocode}
 \DeclareBoolOption{draft}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{final}
+% Define a |final| option that is the opposite of |draft|, since many packages do this.
+%    \begin{macrocode}
+\DeclareComplementaryOption{final}{draft}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1781,77 +1802,92 @@
 \newcommand{\minted@def@optfv}[1]{%
   \define@key{minted@opt@g}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=##1,}}
+      \minted@optlistfv@g#1=##1,}%
+    \@namedef{minted@opt@g:#1}{##1}}
   \define@key{minted@opt@g@i}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=##1,}}
+      \minted@optlistfv@g@i#1=##1,}%
+    \@namedef{minted@opt@g@i:#1}{##1}}
   \define@key{minted@opt@lang}{#1}{%
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
       \minted@tmp#1=##1,}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-      \minted@tmp}
+      \minted@tmp
+    \@namedef{minted@opt@lang\minted@lang:#1}{##1}}
   \define@key{minted@opt@lang@i}{#1}{%
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang @i\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
       \minted@tmp#1=##1,}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-      \minted@tmp}
+      \minted@tmp
+    \@namedef{minted@opt@lang\minted@lang @i:#1}{##1}}
   \define@key{minted@opt@cmd}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=##1,}}
+      \minted@optlistfv@cmd#1=##1,}%
+    \@namedef{minted@opt@cmd:#1}{##1}}
 }
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\minted@def@optfv@switch}
 %
-% Define \pkg{fancyvrb} options.
+% Define \pkg{fancyvrb} boolean options.
 %    \begin{macrocode}
 \newcommand{\minted@def@optfv@switch}[1]{%
   \define@booleankey{minted@opt@g}{#1}%
     {\expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=true,}}%
+      \minted@optlistfv@g#1=true,}%
+     \@namedef{minted@opt@g:#1}{true}}%
     {\expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=false,}}%
+      \minted@optlistfv@g#1=false,}%
+     \@namedef{minted@opt@g:#1}{false}}%
   \define@booleankey{minted@opt@g@i}{#1}%
     {\expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=true,}}%
+      \minted@optlistfv@g@i#1=true,}%
+     \@namedef{minted@opt@g@i:#1}{true}}%
     {\expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=false,}}%
+      \minted@optlistfv@g@i#1=false,}%
+     \@namedef{minted@opt@g@i:#1}{false}}%
   \define@booleankey{minted@opt@lang}{#1}%
     {\expandafter\let\expandafter\minted@tmp%
         \csname minted@optlistfv@lang\minted@lang\endcsname
       \expandafter\def\expandafter\minted@tmp\expandafter{%
         \minted@tmp#1=true,}%
       \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-        \minted@tmp}%
+        \minted@tmp
+     \@namedef{minted@opt@lang\minted@lang:#1}{true}}%
     {\expandafter\let\expandafter\minted@tmp%
         \csname minted@optlistfv@lang\minted@lang\endcsname
       \expandafter\def\expandafter\minted@tmp\expandafter{%
         \minted@tmp#1=false,}%
       \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-        \minted@tmp}%
+        \minted@tmp
+     \@namedef{minted@opt@lang\minted@lang:#1}{false}}%
   \define@booleankey{minted@opt@lang@i}{#1}%
     {\expandafter\let\expandafter\minted@tmp%
         \csname minted@optlistfv@lang\minted@lang @i\endcsname
       \expandafter\def\expandafter\minted@tmp\expandafter{%
         \minted@tmp#1=true,}%
       \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-        \minted@tmp}%
+        \minted@tmp
+     \@namedef{minted@opt@lang\minted@lang @i:#1}{true}}%
     {\expandafter\let\expandafter\minted@tmp%
         \csname minted@optlistfv@lang\minted@lang @i\endcsname
       \expandafter\def\expandafter\minted@tmp\expandafter{%
         \minted@tmp#1=false,}%
       \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-        \minted@tmp}%
+        \minted@tmp
+     \@namedef{minted@opt@lang\minted@lang @i:#1}{false}}%
   \define@booleankey{minted@opt@cmd}{#1}%
     {\expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=true,}}%
+      \minted@optlistfv@cmd#1=true,}%
+     \@namedef{minted@opt@cmd:#1}{true}}%
     {\expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=false,}}%
+      \minted@optlistfv@cmd#1=false,}%
+     \@namedef{minted@opt@cmd:#1}{false}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1890,9 +1926,9 @@
 % Before actually creating the option-definition macro, we need a few helper macros.
 %
 % \begin{macro}{\minted@get@opt}
-% We need a way to traverse the hierarchy of values for a given key and return the current value that has precedence.  In doing this, we need to be able to specify a default value to use if no value is found.  Otherwise, an error should be produced by invoking |\minted@undefined|.  In general, a default value should be required, so a case could be made for having the default be a mandatory argument.  From a programming perspective, it also needs to be mandatory, so that |\minted@get@opt| can be fully expandable, which significantly simplifies accessing options.
+% We need a way to traverse the hierarchy of values for a given key and return the current value that has precedence.  In doing this, we need to specify a default value to use if no value is found.  When working with \pkg{minted}-specific values, there should generally be a default value; in those cases, an empty default may be supplied.  But the macro should also work with Pygments settings, which are stored in macros of the same form and will sometimes need to be accessed (for example, |encoding|).  In the Pygments case, there may very well be no default values on the \LaTeX\ side, because we are falling back on Pygments' own built-in defaults.  There is no need to duplicate those when very few Pygments values are ever needed; it is simpler to specify the default fallback when accessing the macro value.
 %
-% When working with \pkg{minted}-specific values, there should generally be a default value.  But the macro should also work with Pygments settings, which are stored in macros of the same form and will sometimes need to be accessed (for example, |encoding|).  In the Pygments case, there may very well be no default values on the \LaTeX\ side, because we are falling back on Pygments own built-in defaults.  There is no need to duplicate those when very few Pygments values are ever needed; it is simpler to specify the default fallback when accessing the macro value.
+% From a programming perspective, the default argument value needs to be mandatory, so that |\minted@get@opt| can be fully expandable. This significantly simplifies accessing options.
 %    \begin{macrocode}
 \def\minted@get@opt#1#2{%
   \ifcsname minted@opt@cmd:#1\endcsname
@@ -1911,11 +1947,7 @@
             \ifcsname minted@opt@g:#1\endcsname
               \csname minted@opt@g:#1\endcsname
             \else
-              \if\relax\detokenize{#2}\relax
-                \minted@undefined
-              \else
-                #2%
-              \fi
+              #2%
             \fi
           \fi
         \fi
@@ -1927,11 +1959,7 @@
         \ifcsname minted@opt@g:#1\endcsname
           \csname minted@opt@g:#1\endcsname
         \else
-          \if\relax\detokenize{#2}\relax
-            \minted@undefined
-          \else
-            #2%
-          \fi
+          #2%
         \fi
       \fi
     \fi
@@ -2068,30 +2096,9 @@
 \minted@def@opt@switch{breakbytoken}
 %    \end{macrocode}
 %
-% |bgcolor|:  The old |bgcolor| is retained for compatibility.  As such, its implementation does not currently match that of other options.  A dedicated framing package will often be preferable.
+% |bgcolor|:  The old |bgcolor| is retained for compatibility.  A dedicated framing package will often be preferable.
 %    \begin{macrocode}
-\let\minted@opt@cmd@bgcolor\@empty
-\define@key{minted@opt@cmd}{bgcolor}{\@namedef{minted@opt@cmd@bgcolor}{#1}}
-\define@key{minted@opt@lang}{bgcolor}{%
-  \PackageError{minted}{The bgcolor option is only supported at the 
-    command and environment level}{At the document level, consider 
-    tcolorbox, mdframed, or framed}%
-}
-\define@key{minted@opt@lang@i}{bgcolor}{%
-  \PackageError{minted}{The bgcolor option is only supported at the 
-    command and environment level}{At the document level, consider 
-    tcolorbox, mdframed, or framed}%
-}
-\define@key{minted@opt@g}{bgcolor}{%
-  \PackageError{minted}{The bgcolor option is only supported at the 
-    command and environment level}{At the document level, consider 
-    tcolorbox, mdframed, or framed}%
-}
-\define@key{minted@opt@g@i}{bgcolor}{%
-  \PackageError{minted}{The bgcolor option is only supported at the 
-    command and environment level}{At the document level, consider 
-    tcolorbox, mdframed, or framed}%
-}
+\minted@def@opt{bgcolor}
 %    \end{macrocode}
 %
 % Autogobble.  We create an option that governs when Python's |textwrap.dedent()| is used to autogobble code.
@@ -2412,7 +2419,7 @@
 %
 %    \begin{macrocode}
 \newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
-  \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
+  \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
     {\def\minted@codefile{\jobname.pyg}}%
     {\def\minted@codefile{#1}}%
   \ifthenelse{\boolean{minted@isinline}}%
@@ -2432,7 +2439,7 @@
   \ifthenelse{\boolean{minted@cache}}%
     {%
       \ifx\XeTeXinterchartoks\minted@undefined
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
             \pdf@mdfivesum{\minted@cmd autogobble}}}%
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
@@ -2440,7 +2447,7 @@
       \else
         \immediate\openout\minted@code\jobname.mintedcmd\relax
         \immediate\write\minted@code{\minted@cmd}%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
           {\immediate\write\minted@code{autogobble}}{}%
         \immediate\closeout\minted@code
         %Cheating a little here by using ASCII codes to write `{` and `}`
@@ -2469,7 +2476,7 @@
           \minted@cachedir/\minted@hash.pygtex}%
       \fi
       \IfFileExists{\minted@cachedir/\minted@hash.pygtex}{}{%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
           %Need a version of open() that supports encoding under Python 2
           \edef\minted@autogobblecmd{%
             \detokenize{python -c "import sys;
@@ -2487,7 +2494,7 @@
       \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
-      \ifthenelse{\equal{\minted@get@opt{autogobble}{}}{true}}{%
+      \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
         %Need a version of open() that supports encoding under Python 2
         \edef\minted@autogobblecmd{%
           \detokenize{python -c "import sys;
@@ -2514,26 +2521,39 @@
 \newcommand{\minted@inputpyg}{%
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\boolean{minted@isinline}}%
-    {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
-      {\input{\minted@outputdir\minted@infile}}%
-      {\expandafter\colorbox\expandafter{\minted@opt@cmd@bgcolor}%
-        {\input{\minted@outputdir\minted@infile}}}}%
-    {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{}}{true}}%
+   {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
+    {\let\FV@BeginVBox\relax
+     \let\FV@EndVBox\relax
+     \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
+     \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
       {\expandafter\let\expandafter\minted@orig@PYG%
-         \csname PYG\minted@get@opt{style}{default}\endcsname
+       \csname PYG\minted@get@opt{style}{default}\endcsname
        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
          \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
-       \ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
-        {\input{\minted@outputdir\minted@infile}}%
-        {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
-           \input{\minted@outputdir\minted@infile}%
-           \end{minted@colorbg}}}%
-      {\ifthenelse{\equal{\minted@opt@cmd@bgcolor}{}}%
-        {\input{\minted@outputdir\minted@infile}}%
-        {\begin{minted@colorbg}{\minted@opt@cmd@bgcolor}%
-           \input{\minted@outputdir\minted@infile}%
-           \end{minted@colorbg}}}}%
+       \minted@inputpyg@inline}%
+      {\minted@inputpyg@inline}}%
+    {\minted@inputpyg@inline}}%
+   {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
+     {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
+       {\expandafter\let\expandafter\minted@orig@PYG%
+        \csname PYG\minted@get@opt{style}{default}\endcsname
+        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+        \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+        \minted@inputpyg@block}%
+       {\minted@inputpyg@block}}%
+     {\minted@inputpyg@block}}%
 }
+\def\minted@inputpyg@inline{%
+  \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
+   {\input{\minted@outputdir\minted@infile}}%
+   {\colorbox{\minted@get@opt{bgcolor}{}}{\input{\minted@outputdir\minted@infile}}}%
+}
+\def\minted@inputpyg@block{%
+  \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
+   {\input{\minted@outputdir\minted@infile}}%
+   {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%
+    \input{\minted@outputdir\minted@infile}%
+    \end{minted@colorbg}}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2685,7 +2705,12 @@
     \def\FV@SV@minted@tmp{%
       \FV@Gobble
       \expandafter\FV@ProcessLine\expandafter{\FV@Line}}%
-    \BUseVerbatim{minted@tmp}%
+    \ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
+     {\let\FV@BeginVBox\relax
+      \let\FV@EndVBox\relax
+      \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
+      \BUseVerbatim{minted@tmp}}%
+     {\BUseVerbatim{minted@tmp}}%
     \endgroup}}%
   {\newcommand{\minted@inline@iii}[1]{%
     \endgroup
@@ -2943,7 +2968,7 @@
 %    \begin{macrocode}
 \ifminted@newfloat\else
 %    \end{macrocode}
-
+%
 % \begin{macro}{\listingcaption}
 %
 % The name that is displayed before each individual listings caption and its number.
