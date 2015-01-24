@@ -5,7 +5,7 @@
 %% The original source files were:
 %%
 %% minted.dtx  (with options: `package')
-%% Copyright 2013--2014 Geoffrey M. Poore
+%% Copyright 2013--2015 Geoffrey M. Poore
 %% Copyright 2010--2011 Konrad Rudolph
 %% 
 %% This work may be distributed and/or modified under the
@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/22 20150122dev ]
+    [2015/01/24 20150124dev ]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -68,11 +68,25 @@
   \@namedef{minted@outputdir}{#1/}%
   \StrSubstitute{\minted@outputdir}{/}%
     {\@backslashchar}[\minted@outputdir@windows]}
+\DeclareBoolOption{kpsewhich}
 \newboolean{minted@langlinenos}
 \DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
 \DeclareBoolOption{draft}
 \DeclareComplementaryOption{final}{draft}
 \ProcessKeyvalOptions*
+\newcommand{\minted@input}[1]{%
+  \IfFileExists{#1}%
+   {\input{#1}}%
+   {\PackageError{minted}{Missing Pygments output; \string\inputminted\space
+     was^^Jprobably given a file that does not exist--otherwise, you may need
+     ^^Jthe outputdir package option, or may be using an incompatible build
+     tool\ifwindows,^^Jor may be using the kpsewhich option without having
+     PowerShell installed\fi}%
+    {This could be caused by using -output-directory or -aux-directory
+     ^^Jwithout setting minted's outputdir, or by using a build tool that
+     ^^Jchanges paths in ways minted cannot detect\ifwindows, or by using the
+     ^^Jkpsewhich option without PowerShell\fi.}}%
+}
 \newcommand{\minted@infile}{\jobname.out.pyg}
 \newcommand{\minted@cachelist}{}
 \newcommand{\minted@addcachefile}[1]{%
@@ -358,7 +372,7 @@
         \begingroup
         \let\def\gdef
         \endlinechar=-1\relax
-        \input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
+        \minted@input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
         \endgroup
         \minted@addcachefile{#1.pygstyle}}%
       {\ifwindows
@@ -371,7 +385,7 @@
         \begingroup
         \let\def\gdef
         \endlinechar=-1\relax
-        \input{\minted@outputdir\jobname.out.pyg}%
+        \minted@input{\minted@outputdir\jobname.out.pyg}%
         \endgroup}%
     \ifx\@onlypreamble\@notprerr
       \minted@patch@Zsq{#1}%
@@ -771,21 +785,32 @@
   \immediate\closeout\FV@OutFile\endgroup\@esphack
   \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}}%
 \newcommand{\MintedPygmentize}{pygmentize}
-\newcommand{\minted@pygmentize}[2][\jobname.pyg]{%
+\newcommand{\minted@pygmentize}[2][\minted@outputdir\jobname.pyg]{%
   \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-    {\def\minted@codefile{\jobname.pyg}}%
+    {\def\minted@codefile{\minted@outputdir\jobname.pyg}}%
     {\def\minted@codefile{#1}}%
   \ifthenelse{\boolean{minted@isinline}}%
     {\def\minted@optlistcl@inlines{%
       \minted@optlistcl@g@i
       \csname minted@optlistcl@lang\minted@lang @i\endcsname}}%
     {\let\minted@optlistcl@inlines\@empty}%
-  \def\minted@cmd{\MintedPygmentize\space -l #2
+  \def\minted@cmd{%
+    \ifminted@kpsewhich\ifwindows powershell\space\fi\fi
+    \MintedPygmentize\space -l #2
     -f latex -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
     \minted@optlistcl@inlines
     \minted@optlistcl@cmd -o "\minted@outputdir\minted@infile"
-    "\minted@outputdir\minted@codefile"}%
+    \ifminted@kpsewhich
+      \ifwindows
+        \detokenize{$}(kpsewhich "\minted@codefile")%
+      \else
+        \detokenize{`}kpsewhich "\minted@codefile"
+          \detokenize{||} "\minted@codefile"\detokenize{`}%
+      \fi
+    \else
+      "\minted@codefile"
+    \fi}%
   % For debugging, uncomment: %%%%
   % \immediate\typeout{\minted@cmd}%
   % %%%%
@@ -811,7 +836,7 @@
             f = open(\"}\minted@outputdir\jobname.mintedcmd\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
-            f = open(\"}\minted@outputdir#1\detokenize{\", \"rb\");
+            f = open(\"}#1\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
             f = open(\"}\minted@outputdir\jobname.mintedmd5\detokenize{\", \"w\");
@@ -819,23 +844,17 @@
             f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
             f.close();"}}%
         \immediate\write18{\minted@hashcmd}%
-        \input{\minted@outputdir\jobname.mintedmd5}%
+        \minted@input{\minted@outputdir\jobname.mintedmd5}%
       \fi
-      \ifwindows
-        \edef\minted@infile{%
-          \minted@cachedir@windows\@backslashchar\minted@hash.pygtex}%
-      \else
-        \edef\minted@infile{%
-          \minted@cachedir/\minted@hash.pygtex}%
-      \fi
-      \IfFileExists{\minted@cachedir/\minted@hash.pygtex}{}{%
+      \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
+      \IfFileExists{\minted@infile}{}{%
         \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
           %Need a version of open() that supports encoding under Python 2
           \edef\minted@autogobblecmd{%
             \detokenize{python -c "import sys;
             import textwrap;
             from io import open;
-            f = open(\"}\minted@outputdir#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
+            f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
             t = f.read();
             f.close();
             f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
@@ -853,7 +872,7 @@
           \detokenize{python -c "import sys;
           import textwrap;
           from io import open;
-          f = open(\"}\minted@outputdir#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
+          f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
           t = f.read();
           f.close();
           f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
@@ -892,14 +911,14 @@
 }
 \def\minted@inputpyg@inline{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
-   {\input{\minted@outputdir\minted@infile}}%
-   {\colorbox{\minted@get@opt{bgcolor}{}}{\input{\minted@outputdir\minted@infile}}}%
+   {\minted@input{\minted@outputdir\minted@infile}}%
+   {\colorbox{\minted@get@opt{bgcolor}{}}{\minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
-   {\input{\minted@outputdir\minted@infile}}%
+   {\minted@input{\minted@outputdir\minted@infile}}%
    {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%
-    \input{\minted@outputdir\minted@infile}%
+    \minted@input{\minted@outputdir\minted@infile}%
     \end{minted@colorbg}}}
 \newcommand{\minted@langlinenoson}{%
   \ifcsname c@minted@lang\minted@lang\endcsname\else
