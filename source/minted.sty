@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/24 20150124dev ]
+    [2015/01/27 20150127dev ]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -602,8 +602,10 @@
 \minted@def@optcl@switch{texcl}{-P texcomments}
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
+\ifcsname KV@FV@linenos\endcsname\else
 \define@booleankey{FV}{linenos}%
   {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
+\fi
 \minted@def@optfv@switch{linenos}
 \minted@def@optcl@style
 \minted@def@optfv{frame}
@@ -643,6 +645,7 @@
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
+\ifcsname KV@FV@breaklines\endcsname\else
 \newboolean{FV@BreakLines}
 \let\FV@ListProcessLine@Orig\FV@ListProcessLine
 \define@booleankey{FV}{breaklines}%
@@ -661,18 +664,17 @@
 \fvset{breaksymbol=\ensuremath{\hookrightarrow}}
 \newdimen\FV@BreakSymbolSep
 \define@key{FV}{breaksymbolsep}{\FV@BreakSymbolSep=#1}
-\fvset{breaksymbolsep=10pt}
+\fvset{breaksymbolsep=1em}
 \newdimen\FV@BreakSymbolIndent
 \settowidth{\FV@BreakSymbolIndent}{\ttfamily xxxx}
 \define@key{FV}{breaksymbolindent}{\FV@BreakSymbolIndent=#1}
 \newsavebox{\FV@LineBox}
 \newsavebox{\FV@IndentBox}
-\newsavebox{\FV@LinenoBox}
 \let\FV@LineIndentChars\@empty
 \def\FV@GetNextChar{\let\FV@NextChar=}
 \def\FV@CleanRemainingChars#1\FV@Undefined{}
-\def\FV@GetLineIndent{\afterassignment\FV@CheckChar\FV@GetNextChar}
-\def\FV@CheckChar{%
+\def\FV@GetLineIndent{\afterassignment\FV@CheckIndentChar\FV@GetNextChar}
+\def\FV@CheckIndentChar{%
   \ifx\FV@NextChar\FV@Undefined
     \let\FV@Next=\relax
   \else
@@ -691,65 +693,68 @@
   \FV@Next
 }
 \newcommand{\FancyVerbFormatBreakSymbol}{%
-  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}%
-\AtBeginEnvironment{Verbatim}{\lineskip=0pt\xdef\FV@theprevdepth{0pt}}
-
+  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}
 \def\FV@ListProcessLine@Break#1{%
   \hbox to \hsize{%
   \kern\leftmargin
   \hbox to \linewidth{%
+  \ifx\FV@RightListFrame\relax\else
+    \advance\linewidth by -\FV@FrameSep
+    \advance\linewidth by -\FV@FrameRule
+  \fi
+  \ifx\FV@LeftListFrame\relax\else
+    \advance\linewidth by -\FV@FrameSep
+    \advance\linewidth by -\FV@FrameRule
+  \fi
   \sbox{\FV@LineBox}{\FancyVerbFormatLine{#1}}%
   \ifdim\wd\FV@LineBox>\linewidth
-    \let\FV@theprevdepth@temp\FV@theprevdepth
     \savebox{\FV@LineBox}{%
-      \begingroup
-      \vbox{\hsize=\linewidth
+      \advance\hsize by -\FV@BreakIndent
+      \advance\linewidth by -\FV@BreakIndent
+      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
+       {\let\FV@LineIndentChars\@empty
+        \FV@GetLineIndent#1\FV@Undefined
+        \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
+        \hbox to \wd\FV@IndentBox{\hfill}%
+        \advance\hsize by -\wd\FV@IndentBox
+        \advance\linewidth by -\wd\FV@IndentBox}%
+       {}%
+      \ifdefempty{\FancyVerbBreakSymbol}{}%
+       {\hbox to \FV@BreakSymbolIndent{\hfill}%
+        \advance\hsize by -\FV@BreakSymbolIndent
+        \advance\linewidth by -\FV@BreakSymbolIndent}%
+      \parbox[t]{\linewidth}{%
         \raggedright
-        \prevdepth\FV@theprevdepth
         \leftlinenumbers*
         \setcounter{linenumber}{1}%
         \let\thelinenumber\FancyVerbFormatBreakSymbol
         \begin{internallinenumbers}%
         \linenumbersep=\FV@BreakSymbolSep
-        \advance\hsize by -\FV@BreakIndent
-        \advance\linewidth by -\FV@BreakIndent
         \noindent\hspace*{-\FV@BreakIndent}%
         \ifdefempty{\FancyVerbBreakSymbol}{}{%
-          \advance\hsize by -\FV@BreakSymbolIndent
-          \advance\linewidth by -\FV@BreakSymbolIndent
           \hspace*{-\FV@BreakSymbolIndent}}%
         \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-          {\let\FV@LineIndentChars\@empty
-            \FV@GetLineIndent#1\FV@Undefined
-            \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
-            \advance\hsize by -\wd\FV@IndentBox
-            \advance\linewidth by -\wd\FV@IndentBox
-            \hspace*{-\wd\FV@IndentBox}%
-          }{}%
-        \FancyVerbFormatLine{#1}%
+         {\hspace*{-\wd\FV@IndentBox}}%
+         {}%
+        \strut#1\strut
         \end{internallinenumbers}%
-        \par\xdef\FV@theprevdepth{\the\prevdepth}}%
-        \endgroup
+      }%
     }%
-    \savebox{\FV@LinenoBox}{\FV@LeftListNumber}%
-    \vbox to\ht\FV@LineBox{%
-      \prevdepth\FV@theprevdepth@temp\FV@LeftListNumber\vfill}%
+    \FV@LeftListNumber
     \FV@LeftListFrame
-    \null\hfill\usebox{\FV@LineBox}\hss
+    \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
     \FV@RightListFrame
-    \vbox to\ht\FV@LineBox{%
-      \prevdepth\FV@theprevdepth@temp\FV@RightListNumber\vfill}%
+    \FV@RightListNumber
   \else
     \FV@LeftListNumber
     \FV@LeftListFrame
-    \vbox{\hsize=\linewidth
-      \prevdepth\FV@theprevdepth
-      \noindent\FancyVerbFormatLine{#1}%
-      \par\xdef\FV@theprevdepth{\the\prevdepth}}\hss
+    \FancyVerbFormatLine{%
+      \parbox[t]{\linewidth}{\noindent\strut#1\strut}}%
     \FV@RightListFrame
     \FV@RightListNumber
   \fi}%
-  \hss}}
+  \hss}\baselineskip\z@\lineskip\z@}
+\fi
 \newsavebox{\minted@bgbox}
 \newenvironment{minted@colorbg}[1]{
     %\setlength{\fboxsep}{-\fboxrule}
@@ -951,7 +956,6 @@
 \catcode`\ =\active
 \catcode`\^^I=\active
 \gdef\minted@defwhitespace@retok{\def {\noexpand\FV@Space}\def^^I{\noexpand\FV@Tab}}%
-\gdef\minted@defwhitespace@retoktwo{\def {\noexpand\noexpand\noexpand\FV@Space}\def^^I{\noexpand\noexpand\noexpand\FV@Tab}}%
 \endgroup
 \newcommand{\minted@writecmdcode}[1]{%
   \immediate\openout\minted@code\jobname.pyg\relax

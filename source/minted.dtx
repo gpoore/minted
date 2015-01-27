@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/24 20150124dev ]
+    [2015/01/27 20150127dev ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -46,6 +46,7 @@
 \usepackage{fixltx2e}
 \usepackage{lstdoc}
 \usepackage{xcolor}
+\usepackage{upquote}
 \usepackage[cache, langlinenos]{minted}
 % Need to set the style here so that it is defined and brought in here.
 % If the style is set later, then docstrip interferes with any comments in
@@ -155,7 +156,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2224}
+% \CheckSum{2235}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -793,9 +794,17 @@
 %   \item[breaklines (boolean) (+false+)] 
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  Currently, automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
+% \begin{example}
+%   ...text.
+%   \begin{minted}[breaklines]{python}
+%   def f(x):
+%       return 'Some text ' + str(x)
+%   \end{minted}
+% \end{example}
+%
 %     Breaking in \texttt{minted} and \texttt{\string\mint} may be customized in several ways.  To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbol, use \texttt{breaksymbol}.  To customize the separation between the continuation symbol and the code, use \texttt{breaksymbolsep}.  To customize the extra indentation that is supplied around the break symbol, use \texttt{breaksymbolindent}.  Note than none of these options applies to \texttt{\string\mintinline}, since they are not relevant in the inline context.
 %
-%     Automatic line breaks are not compatible with \app{Pygments} styles that use a colored backgroup behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \pkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
+%     Automatic line breaks are limited with \app{Pygments} styles that use a colored background behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \pkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
 %\begin{Verbatim}
 %\AtBeginEnvironment{minted}{\renewcommand{\colorbox}[3][]{#3}}
 %\end{Verbatim}
@@ -803,11 +812,17 @@
 %
 %     Automatic line breaks will not work with \texttt{showspaces=true}.  You may be able to change the definition of \texttt{\string\FV@Space} if you need this; see the \pkg{fancyvrb} implementation for details.
 %
-%     Automatic breaks are not compatible with the \texttt{frame} option.  You may wish to use \pkg{framed}, \pkg{mdframed}, \pkg{tcolorbox}, or a similar package instead.
 %   \item[breaksymbol (string) (+\string\righthookarrow+, $\hookrightarrow$)]
 %     The symbol used at the beginning of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbol} to an empty string.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaksymbolindent (dimension) (width of 4 characters in teletype font at default point size)]
 %     The extra indentation that is provided to make room for \texttt{breaksymbol}.  Does not apply to \texttt{\string\mintinline}.
+%
+%     This may be set to the width of a specific number of (fixed-width) characters by using an approach such as 
+%\begin{Verbatim}
+%\newdimen\temporarydimen
+%\settowidth{\temporarydimen}{\ttfamily aaaa}
+%\end{Verbatim}
+% and then using \texttt{breaksymbolindent=\string\temporarydimen}.
 %   \item[breaksymbolsep (dimension) (+10pt+)]
 %     The separation between the \texttt{breaksymbol} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
 %   \item[bgcolor (string) (\emph{none})]
@@ -2102,13 +2117,15 @@
 \minted@def@optcl{keywordcase}{-F keywordcase:case}{#1}
 %    \end{macrocode}
 %
-% \LaTeX\ formatter.  Since \pkg{fancyvrb} currently doesn't have a |linenos| key, we create one.
+% \LaTeX\ formatter.  Since \pkg{fancyvrb} currently doesn't have a |linenos| key, we create one (but only after checking to make sure that another package hasn't already patched this).
 %    \begin{macrocode}
 \minted@def@optcl@switch{texcl}{-P texcomments}
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
+\ifcsname KV@FV@linenos\endcsname\else
 \define@booleankey{FV}{linenos}%
   {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
+\fi
 \minted@def@optfv@switch{linenos}
 \minted@def@optcl@style
 %    \end{macrocode}
@@ -2178,10 +2195,17 @@
 %
 % \subsection{Additions to \texttt{fancyvrb}}
 %
-% The following code adds automatic line breaking functionality to \pkg{fancyvrb}.  The code is intentionally written as an extension to \pkg{fancyvrb}, rather than as part of \pkg{minted}.  Once the code has received more use and been further refined, it probably should be separated out into its own package as an extension of \pkg{fancyvrb}.
+% The following code adds automatic line breaking functionality to \pkg{fancyvrb}'s |Verbatim| environment.  The code is intentionally written as an extension to \pkg{fancyvrb}, rather than as part of \pkg{minted}.  Once the code has received more use and been further refined, it probably should be separated out into its own package as an extension of \pkg{fancyvrb}.
+%
+% The line breaking defined here is used in \pkg{minted}'s |minted| environment and |\mint| command, which use |Verbatim| internally.  The |\mintinline| command implements line wrapping using a slightly different system (essentially, |BVerbatim|, with the |\vbox| |\let| to |\relax|).  This is implemented separately within \pkg{minted}, rather than as an extension to \pkg{fancyvrb}, for simplicity and because |BVerbatim| wouldn't be itself without the box.  Likewise, |breaklines| is not applied to |fancyvrb|'s |\Verb| or short verb, since their implementation is different from that of |\mintinline|. Ideally, an extension of |fancyvrb| would add line breaks to these, or provide equivalent commands that support breaks.
+%
+% \textbf{All of the additions to \pkg{fancyvrb} should be defined conditionally.}  If an extension to \pkg{fancyvrb} (such as that proposed above) is loaded before \pkg{minted}, and if this extension provides |breaklines|, then we don't want to overwrite that definition and create a conflict.  We assume that any extension of \pkg{fancyvrb} would use the \pkg{keyval} package, since that is what \pkg{fancyvrb} currently uses, and test for the existence of a \pkg{fancyrvb} \pkg{keyval} key |breaklines|.
+%    \begin{macrocode}
+\ifcsname KV@FV@breaklines\endcsname\else
+%    \end{macrocode}
 %
 % Begin by defining keys, with associated macros, bools, and dimens.
-% \begin{macro}{breaklines}
+% \begin{macro}{FV@BreakLines}
 %    \begin{macrocode}
 \newboolean{FV@BreakLines}
 \let\FV@ListProcessLine@Orig\FV@ListProcessLine
@@ -2221,7 +2245,7 @@
 %    \begin{macrocode}
 \newdimen\FV@BreakSymbolSep
 \define@key{FV}{breaksymbolsep}{\FV@BreakSymbolSep=#1}
-\fvset{breaksymbolsep=10pt}
+\fvset{breaksymbolsep=1em}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2248,13 +2272,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@LinenoBox}
-% A box for saving the line number, so that its dimensions may be determined for use in proper spacing
-%    \begin{macrocode}
-\newsavebox{\FV@LinenoBox}
-%    \end{macrocode}
-% \end{macro}
-%
 % \begin{macro}{\FV@LineIndentChars}
 % A macro for storing the indentation characters, if any, of a given line.  For use in autoindentation of continuation lines
 %    \begin{macrocode}
@@ -2267,8 +2284,8 @@
 %    \begin{macrocode}
 \def\FV@GetNextChar{\let\FV@NextChar=}
 \def\FV@CleanRemainingChars#1\FV@Undefined{}
-\def\FV@GetLineIndent{\afterassignment\FV@CheckChar\FV@GetNextChar}
-\def\FV@CheckChar{%
+\def\FV@GetLineIndent{\afterassignment\FV@CheckIndentChar\FV@GetNextChar}
+\def\FV@CheckIndentChar{%
   \ifx\FV@NextChar\FV@Undefined
     \let\FV@Next=\relax
   \else
@@ -2293,84 +2310,82 @@
 % A macro that determines exactly how the continuation character will be typeset.
 %    \begin{macrocode}
 \newcommand{\FancyVerbFormatBreakSymbol}{%
-  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}%
+  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}
 %    \end{macrocode}
 % \end{macro}
 %
-% We need to patch the |Verbatim| environment.  Within the environment, we will need to keep track of previously used |\prevdepth| between lines, so as to avoid extra vertical space.  We need to initialize the macro that will keep track of this at the beginning of each environment.  Some additional information about all the |\prevdepth| trickery may be found \href{http://tex.stackexchange.com/questions/34971/how-to-keep-a-constant-baselineskip-when-using-minipages-or-parboxes}{here}.  We also need a particular value of |\lineskip| for the same reason.  Since \pkg{fancyvrb} only specifies a particular |\lineskip| for frames, and |breaklines| already breaks frames, this isn't an issue.
-%
-% Since we don't want to 
-% \begin{macro}{\FV@theprevdepth}
-%    \begin{macrocode}
-\AtBeginEnvironment{Verbatim}{\lineskip=0pt\xdef\FV@theprevdepth{0pt}}
-%    \end{macrocode}
-% \end{macro}
 %
 % And finally the important things.
 % \begin{macro}{\FV@ListProcessLine@Break}
-% This is the macro that does all the work.  This was inspired by Marco Daniel's code at \url{http://tex.stackexchange.com/a/112573/10742}.
-%
-% We save the current line in a box, and only do special things if the box is too wide.  We have to make a backup ``copy'' of |\FV@theprevdepth| because we need to redefine it before we are through using it.
+% This is the macro that does all the work.  This was inspired by Marco Daniel's code at \url{http://tex.stackexchange.com/a/112573/10742}.  We save the current line in a box, and only do special things if the box is too wide.  The macro is based on |\FV@ListProcessLine| and follows it as closely as possible.  The |\linewidth| is reduced by |\FV@FrameSep| so that text will not overrun frames.
 %    \begin{macrocode}
-
 \def\FV@ListProcessLine@Break#1{%
   \hbox to \hsize{%
   \kern\leftmargin
   \hbox to \linewidth{%
+  \ifx\FV@RightListFrame\relax\else
+    \advance\linewidth by -\FV@FrameSep
+    \advance\linewidth by -\FV@FrameRule
+  \fi
+  \ifx\FV@LeftListFrame\relax\else
+    \advance\linewidth by -\FV@FrameSep
+    \advance\linewidth by -\FV@FrameRule
+  \fi
   \sbox{\FV@LineBox}{\FancyVerbFormatLine{#1}}%
   \ifdim\wd\FV@LineBox>\linewidth
-    \let\FV@theprevdepth@temp\FV@theprevdepth
     \savebox{\FV@LineBox}{%
-      \begingroup
-      \vbox{\hsize=\linewidth
+      \advance\hsize by -\FV@BreakIndent
+      \advance\linewidth by -\FV@BreakIndent
+      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
+       {\let\FV@LineIndentChars\@empty
+        \FV@GetLineIndent#1\FV@Undefined
+        \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
+        \hbox to \wd\FV@IndentBox{\hfill}%
+        \advance\hsize by -\wd\FV@IndentBox
+        \advance\linewidth by -\wd\FV@IndentBox}%
+       {}%
+      \ifdefempty{\FancyVerbBreakSymbol}{}%
+       {\hbox to \FV@BreakSymbolIndent{\hfill}%
+        \advance\hsize by -\FV@BreakSymbolIndent
+        \advance\linewidth by -\FV@BreakSymbolIndent}%
+      \parbox[t]{\linewidth}{%
         \raggedright
-        \prevdepth\FV@theprevdepth
         \leftlinenumbers*
         \setcounter{linenumber}{1}%
         \let\thelinenumber\FancyVerbFormatBreakSymbol
         \begin{internallinenumbers}%
         \linenumbersep=\FV@BreakSymbolSep
-        \advance\hsize by -\FV@BreakIndent
-        \advance\linewidth by -\FV@BreakIndent
         \noindent\hspace*{-\FV@BreakIndent}%
         \ifdefempty{\FancyVerbBreakSymbol}{}{%
-          \advance\hsize by -\FV@BreakSymbolIndent
-          \advance\linewidth by -\FV@BreakSymbolIndent
           \hspace*{-\FV@BreakSymbolIndent}}%
         \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-          {\let\FV@LineIndentChars\@empty
-            \FV@GetLineIndent#1\FV@Undefined
-            \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
-            \advance\hsize by -\wd\FV@IndentBox
-            \advance\linewidth by -\wd\FV@IndentBox
-            \hspace*{-\wd\FV@IndentBox}%
-          }{}%
-        \FancyVerbFormatLine{#1}%
+         {\hspace*{-\wd\FV@IndentBox}}%
+         {}%
+        \strut#1\strut
         \end{internallinenumbers}%
-        \par\xdef\FV@theprevdepth{\the\prevdepth}}%
-        \endgroup
+      }%
     }%
-    \savebox{\FV@LinenoBox}{\FV@LeftListNumber}%
-    \vbox to\ht\FV@LineBox{%
-      \prevdepth\FV@theprevdepth@temp\FV@LeftListNumber\vfill}%
+    \FV@LeftListNumber
     \FV@LeftListFrame
-    \null\hfill\usebox{\FV@LineBox}\hss
+    \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
     \FV@RightListFrame
-    \vbox to\ht\FV@LineBox{%
-      \prevdepth\FV@theprevdepth@temp\FV@RightListNumber\vfill}%
+    \FV@RightListNumber
   \else
     \FV@LeftListNumber
     \FV@LeftListFrame
-    \vbox{\hsize=\linewidth
-      \prevdepth\FV@theprevdepth
-      \noindent\FancyVerbFormatLine{#1}%
-      \par\xdef\FV@theprevdepth{\the\prevdepth}}\hss
+    \FancyVerbFormatLine{%
+      \parbox[t]{\linewidth}{\noindent\strut#1\strut}}%
     \FV@RightListFrame
     \FV@RightListNumber
   \fi}%
-  \hss}}
+  \hss}\baselineskip\z@\lineskip\z@}
 %    \end{macrocode}
 % \end{macro}
+%
+% Finally, end the conditional creation of \pkg{fancyvrb} extensions.
+%    \begin{macrocode}
+\fi
+%    \end{macrocode}
 %
 %
 % \subsection{Internal helpers}
@@ -2707,7 +2722,6 @@
 \catcode`\ =\active
 \catcode`\^^I=\active
 \gdef\minted@defwhitespace@retok{\def {\noexpand\FV@Space}\def^^I{\noexpand\FV@Tab}}%
-\gdef\minted@defwhitespace@retoktwo{\def {\noexpand\noexpand\noexpand\FV@Space}\def^^I{\noexpand\noexpand\noexpand\FV@Tab}}%
 \endgroup
 %    \end{macrocode}
 % \end{macro}
