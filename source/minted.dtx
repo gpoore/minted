@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/27 20150127dev ]
+    [2015/01/30 20150130dev ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -56,6 +56,8 @@
 \usepackage{textcomp}
 \usepackage{microtype}
 \usepackage{environ}
+\usepackage{graphicx}
+\usepackage{dingbat}
 \usepackage{hyperref}
 
 
@@ -123,6 +125,19 @@
    \end{minipage}%
    \vspace{1ex}}}
 
+\newenvironment{longexample}
+  {\VerbatimEnvironment
+   \begin{VerbatimOut}[gobble=3]{example.out}}
+  {\end{VerbatimOut}%
+   \vspace{1ex}%
+   \setlength{\parindent}{0pt}%
+   \fbox{\begin{minipage}{0.95\linewidth}%
+     \inputminted[resetmargins]{latex}{example.out}%
+     ~\hrulefill~
+     \input{example.out}%
+   \end{minipage}%
+   \vspace{1ex}}}
+
 \def\minted@printopt#1(#2) (#3){%
   \leavevmode%
   \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{#1}}\ }%
@@ -156,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2235}
+% \CheckSum{2303}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -176,8 +191,9 @@
 %
 %
 %
-% \begin{changelog}{Development releases}{2014-2015}
-% \item Added |kpsewhich| package option. This uses |kpsewhich| to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
+% \begin{changelog}{Development releases for 2.0}{2014-2015}
+% \item Added \texttt{breaksymbolleft}, \texttt{breaksymbolsepleft}, \texttt{breaksymbolindentleft}, \texttt{breaksymbolright}, \texttt{breaksymbolsepright}, and \texttt{breaksymbolindentright} options.  \texttt{breaksymbol}, \texttt{breaksymbolsep}, and \texttt{breaksymbolindent} are now aliases for the correspondent \texttt{*left} options.
+% \item Added \texttt{kpsewhich} package option. This uses |kpsewhich| to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
 % \item Fixed a bug that prevented \texttt{\string\inputminted} from working with \texttt{outputdir}.
 % \item Added informative error messages when Pygments output is missing.
 % \item Added \texttt{final} package option (opposite of \texttt{draft}).
@@ -786,11 +802,11 @@
 %   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
 %     Value to use as for baselinestretch inside the listing.
 %   \item[breakautoindent (boolean) (+true+)]
-%     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.  Does not apply to \texttt{\string\mintinline}.
+%     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breakbytoken (boolean) (+false+)]
 %   Only break lines at spaces that are not within tokens; prevent tokens from being split by line breaks.  By default, line breaking occurs at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if the break occurs in the middle of a string or similar token.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
 %   \item[breakindent (dimension) (+0pt+)]
-%     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindent} to give the total actual indentation.  Does not apply to \texttt{\string\mintinline}.
+%     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaklines (boolean) (+false+)] 
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  Currently, automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
@@ -802,7 +818,27 @@
 %   \end{minted}
 % \end{example}
 %
-%     Breaking in \texttt{minted} and \texttt{\string\mint} may be customized in several ways.  To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbol, use \texttt{breaksymbol}.  To customize the separation between the continuation symbol and the code, use \texttt{breaksymbolsep}.  To customize the extra indentation that is supplied around the break symbol, use \texttt{breaksymbolindent}.  Note than none of these options applies to \texttt{\string\mintinline}, since they are not relevant in the inline context.
+%     Breaking in \texttt{minted} and \texttt{\string\mint} may be customized in several ways.  To customize the indentation of broken lines, see \texttt{breakindent} and \texttt{breakautoindent}.  To customize the line continuation symbols, use \texttt{breaksymbolleft} and \texttt{breaksymbolright}.  To customize the separation between the continuation symbols and the code, use \texttt{breaksymbolsepleft} and \texttt{breaksymbolsepright}.  To customize the extra indentation that is supplied to make room for the break symbols, use \texttt{breaksymbolindentleft} and \texttt{breaksymbolindentright}.  Since only the left-hand symbol is used by default, it may also be modified using the alias options \texttt{breaksymbol}, \texttt{breaksymbolsep}, and \texttt{breaksymbolindent}.  Note than none of these options applies to \texttt{\string\mintinline}, since they are not relevant in the inline context.
+%
+% An example using these options to customize the \texttt{minted} environment is shown below.  This uses the \texttt{\string\carriagereturn} symbol from the \pkg{dingbat} package.
+%
+% \begingroup
+% \fvset{breaklines, xleftmargin=2em, xrightmargin=2em}
+% \begin{longexample}
+%   \begin{minted}[breaklines,
+%                  breakautoindent=false,
+%                  breaksymbolleft=\raisebox{0.8ex}{
+%                    \small\reflectbox{\carriagereturn}},
+%                  breaksymbolindentleft=0pt,
+%                  breaksymbolsepleft=0pt,
+%                  breaksymbolright=\small\carriagereturn,
+%                  breaksymbolindentright=0pt,
+%                  breaksymbolsepright=0pt]{python}
+%   def f(x):
+%       return 'Some text ' + str(x) + ' some more text ' + str(x) + ' even more text that goes on for a while'
+%   \end{minted}
+% \end{longexample}
+% \endgroup
 %
 %     Automatic line breaks are limited with \app{Pygments} styles that use a colored background behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \pkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
 %\begin{Verbatim}
@@ -812,20 +848,47 @@
 %
 %     Automatic line breaks will not work with \texttt{showspaces=true}.  You may be able to change the definition of \texttt{\string\FV@Space} if you need this; see the \pkg{fancyvrb} implementation for details.
 %
-%   \item[breaksymbol (string) (+\string\righthookarrow+, $\hookrightarrow$)]
-%     The symbol used at the beginning of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbol} to an empty string.  Does not apply to \texttt{\string\mintinline}.
-%   \item[breaksymbolindent (dimension) (width of 4 characters in teletype font at default point size)]
-%     The extra indentation that is provided to make room for \texttt{breaksymbol}.  Does not apply to \texttt{\string\mintinline}.
+%   \item[breaksymbol (string) (+breaksymbolleft+)]
+%     Alias for \texttt{breaksymbolleft}.
+%
+%   \item[breaksymbolleft (string) (+\string\tiny\string\ensuremath\{\string\hookrightarrow\}+, {\tiny\ensuremath{\hookrightarrow}})]
+%     The symbol used at the beginning (left) of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbolleft} to an empty string (``\texttt{=,}'' or ``\texttt{=\{\}}'').  The symbol is wrapped within curly braces \texttt{\{\}} when used, so there is no danger of formatting commands such as \texttt{\string\tiny} ``escaping.''
+%
+%     The \texttt{\string\hookrightarrow} and \texttt{\string\hookleftarrow} may be further customized by the use of the \texttt{\string\rotatebox} command provided by \pkg{graphicx}.  Additional arrow-type symbols that may be useful are available in the \pkg{dingbat} (\texttt{\string\carriagereturn}) and \pkg{mnsymbol} (hook and curve arrows) packages, among others.
+%
+%     Does not apply to \texttt{\string\mintinline}.
+%
+%   \item[breaksymbolright (string) (\meta{none})]
+%     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
+%
+%   \item[breaksymbolindent (dimension) (+breaksymbolindentleft+)]
+%     Alias for \texttt{breaksymbolindentleft}.
+%
+%   \item[breaksymbolindentleft (dimension) (width of 4 characters in teletype font at default point size)]
+%     The extra left indentation that is provided to make room for \texttt{breaksymbolleft}.  This indentation is only applied when there is a \texttt{breaksymbolleft}.
 %
 %     This may be set to the width of a specific number of (fixed-width) characters by using an approach such as 
 %\begin{Verbatim}
 %\newdimen\temporarydimen
 %\settowidth{\temporarydimen}{\ttfamily aaaa}
 %\end{Verbatim}
-% and then using \texttt{breaksymbolindent=\string\temporarydimen}.
-%   \item[breaksymbolsep (dimension) (+10pt+)]
-%     The separation between the \texttt{breaksymbol} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
-%   \item[bgcolor (string) (\emph{none})]
+% and then using \texttt{breaksymbolindentleft=\string\temporarydimen}.
+%
+%     Does not apply to \texttt{\string\mintinline}.
+%
+%   \item[breaksymbolindentright (dimension) (width of 4 characters in teletype font at default point size)]
+%     The extra right indentation that is provided to make room for \texttt{breaksymbolright}.  This indentation is only applied when there is a \texttt{breaksymbolright}.
+%
+%   \item[breaksymbolsep (dimension) (+breaksymbolsepleft+)]
+%     Alias for \texttt{breaksymbolsepleft}
+%
+%   \item[breaksymbolsepleft (dimension) (+1em+)]
+%     The separation between the \texttt{breaksymbolleft} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
+%
+%   \item[breaksymbolsepright (dimension) (+1em+)]
+%     The separation between the \texttt{breaksymbolright} and the adjacent code.
+%
+%   \item[bgcolor (string) (\meta{none})]
 %     Background color of the listing.
 %     Notice that the value of this option must \emph{not} be a color command. Instead, it must be a color
 %     \emph{name}, given as a string, of a previously-defined color:
@@ -884,7 +947,7 @@
 %     The size of the font to use, as a size command, e.g. +\footnotesize+.
 %   \item[fontshape (font shape) (+auto+ -- the same as the current font)]
 %     The font shape to use.
-%   \item[formatcom (command) (\emph{none})]
+%   \item[formatcom (command) (\meta{none})]
 %     A format to execute before printing verbatim text.
 %   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+) (+none+)]
 %     The type of frame to put around the source code listing.
@@ -2166,6 +2229,12 @@
 \minted@def@optfv{breaksymbol}
 \minted@def@optfv{breaksymbolsep}
 \minted@def@optfv{breaksymbolindent}
+\minted@def@optfv{breaksymbolleft}
+\minted@def@optfv{breaksymbolsepleft}
+\minted@def@optfv{breaksymbolindentleft}
+\minted@def@optfv{breaksymbolright}
+\minted@def@optfv{breaksymbolsepright}
+\minted@def@optfv{breaksymbolindentright}
 %    \end{macrocode}
 %
 % Finally, options specific to \pkg{minted}.
@@ -2197,7 +2266,7 @@
 %
 % The following code adds automatic line breaking functionality to \pkg{fancyvrb}'s |Verbatim| environment.  The code is intentionally written as an extension to \pkg{fancyvrb}, rather than as part of \pkg{minted}.  Once the code has received more use and been further refined, it probably should be separated out into its own package as an extension of \pkg{fancyvrb}.
 %
-% The line breaking defined here is used in \pkg{minted}'s |minted| environment and |\mint| command, which use |Verbatim| internally.  The |\mintinline| command implements line wrapping using a slightly different system (essentially, |BVerbatim|, with the |\vbox| |\let| to |\relax|).  This is implemented separately within \pkg{minted}, rather than as an extension to \pkg{fancyvrb}, for simplicity and because |BVerbatim| wouldn't be itself without the box.  Likewise, |breaklines| is not applied to |fancyvrb|'s |\Verb| or short verb, since their implementation is different from that of |\mintinline|. Ideally, an extension of |fancyvrb| would add line breaks to these, or provide equivalent commands that support breaks.
+% The line breaking defined here is used in \pkg{minted}'s |minted| environment and |\mint| command, which use |Verbatim| internally.  The |\mintinline| command implements line wrapping using a slightly different system (essentially, |BVerbatim|, with the |\vbox| |\let| to |\relax|).  This is implemented separately within \pkg{minted}, rather than as an extension to \pkg{fancyvrb}, for simplicity and because |BVerbatim| wouldn't be itself without the box.  Likewise, |breaklines| is not applied to |fancyvrb|'s |\Verb| or short verb, since their implementation is different from that of |\mintinline|. Ideally, an extension of |fancyvrb| would add line breaking to these, or (probable better) provide equivalent commands that support breaks.
 %
 % \textbf{All of the additions to \pkg{fancyvrb} should be defined conditionally.}  If an extension to \pkg{fancyvrb} (such as that proposed above) is loaded before \pkg{minted}, and if this extension provides |breaklines|, then we don't want to overwrite that definition and create a conflict.  We assume that any extension of \pkg{fancyvrb} would use the \pkg{keyval} package, since that is what \pkg{fancyvrb} currently uses, and test for the existence of a \pkg{fancyrvb} \pkg{keyval} key |breaklines|.
 %    \begin{macrocode}
@@ -2234,26 +2303,87 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FancyVerbBreakSymbol}
+% \begin{macro}{\FancyVerbBreakSymbolLeft}
+% The left-hand symbol indicating a break.  Since breaking is done in such a way that a left-hand symbol will often be desired while a right-hand symbol may not be, a shorthand option |breaksymbol| is supplied.  This shorthand convention is continued with other options applying to the left-hand symbol.
 %    \begin{macrocode}
-\define@key{FV}{breaksymbol}{\def\FancyVerbBreakSymbol{#1}}
-\fvset{breaksymbol=\ensuremath{\hookrightarrow}}
+\define@key{FV}{breaksymbolleft}{\def\FancyVerbBreakSymbolLeft{#1}}
+\define@key{FV}{breaksymbol}{\fvset{breaksymbolleft=#1}}
+\fvset{breaksymbolleft=\tiny\ensuremath{\hookrightarrow}}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakSymbolSep}
+% \begin{macro}{\FancyVerbBreakSymbolRight}
+% The right-hand symbol indicating a break.
 %    \begin{macrocode}
-\newdimen\FV@BreakSymbolSep
-\define@key{FV}{breaksymbolsep}{\FV@BreakSymbolSep=#1}
-\fvset{breaksymbolsep=1em}
+\define@key{FV}{breaksymbolright}{\def\FancyVerbBreakSymbolRight{#1}}
+\fvset{breaksymbolright={}}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakSymbolIndent}
+% Separation of break symbols from the text.
+%
+% \begin{macro}{\FV@BreakSymbolSepLeft}
 %    \begin{macrocode}
-\newdimen\FV@BreakSymbolIndent
-\settowidth{\FV@BreakSymbolIndent}{\ttfamily xxxx}
-\define@key{FV}{breaksymbolindent}{\FV@BreakSymbolIndent=#1}
+\newdimen\FV@BreakSymbolSepLeft
+\define@key{FV}{breaksymbolsepleft}{\FV@BreakSymbolSepLeft=#1}
+\define@key{FV}{breaksymbolsep}{\fvset{breaksymbolsepleft=#1}}
+\fvset{breaksymbolsepleft=1em}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\FV@BreakSymbolSepRight}
+%    \begin{macrocode}
+\newdimen\FV@BreakSymbolSepRight
+\define@key{FV}{breaksymbolsepright}{\FV@BreakSymbolSepRight=#1}
+\fvset{breaksymbolsepright=1em}
+%    \end{macrocode}
+% \end{macro}
+%
+% Additional indentation to make room for the break symbols.
+%
+% \begin{macro}{\FV@BreakSymbolIndentLeft}
+%    \begin{macrocode}
+\newdimen\FV@BreakSymbolIndentLeft
+\settowidth{\FV@BreakSymbolIndentLeft}{\ttfamily xxxx}
+\define@key{FV}{breaksymbolindentleft}{\FV@BreakSymbolIndentLeft=#1}
+\define@key{FV}{breaksymbolindent}{\fvset{breaksymbolindentleft=#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\FV@BreakSymbolIndentRight}
+%    \begin{macrocode}
+\newdimen\FV@BreakSymbolIndentRight
+\settowidth{\FV@BreakSymbolIndentRight}{\ttfamily xxxx}
+\define@key{FV}{breaksymbolindentright}{\FV@BreakSymbolIndentRight=#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% We need macros that contain the logic for typesetting the break symbols.  By default, the symbol macros contain everything regarding the symbol and its typesetting, while these macros contain pure logic.  The symbols should be wrapped in braces so that formatting commands (for example, |\tiny|) don't escape.
+% \begin{macro}{\FancyVerbFormatBreakSymbolLeft}
+%    \begin{macrocode}
+\newcommand{\FancyVerbFormatBreakSymbolLeft}[1]{%
+  \ifnum\value{linenumber}=1\relax\else{#1}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{FancyVerbLineBreakLast}
+% We need a counter for keeping track of the internal line number for the last segment of a broken line, so that we can avoid putting a right continuation symbol there.
+%    \begin{macrocode}
+\newcounter{FancyVerbLineBreakLast}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\FV@SetLineBreakLast}
+%    \begin{macrocode}
+\newcommand{\FV@SetLineBreakLast}{%
+  \setcounter{FancyVerbLineBreakLast}{\value{linenumber}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\FancyVerbFormatBreakSymbolRight}
+%    \begin{macrocode}
+\newcommand{\FancyVerbFormatBreakSymbolRight}[1]{%
+  \ifnum\value{linenumber}=\value{FancyVerbLineBreakLast}\relax\else{#1}\fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2265,10 +2395,10 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@IndentBox}
+% \begin{macro}{\FV@LineIndentBox}
 % A box for saving the indentation of code, so that its dimensions may be determined for use in autoindentation of continuation lines.
 %    \begin{macrocode}
-\newsavebox{\FV@IndentBox}
+\newsavebox{\FV@LineIndentBox}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2306,18 +2436,71 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FancyVerbFormatBreakSymbol}
-% A macro that determines exactly how the continuation character will be typeset.
+%
+% And finally the really important things.
+%
+% \begin{macro}{\FV@makeLineNumber}
+% We need a version of \pkg{lineno}'s |\makeLineNumber| that is adapted for our purposes.  This is adapted directly from the example |\makeLineNumber| that is given in the \pkg{lineno} documentation under the discussion of internal line numbers.  The |\FV@SetLineBreakLast| is needed to determine the internal line number of the last segment of the broken line, so that we can disable the right-hand break symbol on this segment.  When a right-hand break symbol is in use, a line of code will be processed twice:  once to determine the last internal line number, and once to use this information only to insert right-hand break symbols on the appropriate lines.  During the second run, |\FV@SetLineBreakLast| is disabled by |\let|ting it to |\relax|.
 %    \begin{macrocode}
-\newcommand{\FancyVerbFormatBreakSymbol}{%
-  \ifnum\value{linenumber}=1\relax\else\FancyVerbBreakSymbol\fi}
+\def\FV@makeLineNumber{%
+  \hss
+  \FancyVerbFormatBreakSymbolLeft{\FancyVerbBreakSymbolLeft}%
+  \hbox to \FV@BreakSymbolSepLeft{\hfill}%
+  \rlap{\hskip\linewidth
+    \hbox to \FV@BreakSymbolSepRight{\hfill}%
+    \FancyVerbFormatBreakSymbolRight{\FancyVerbBreakSymbolRight}%
+    \FV@SetLineBreakLast
+  }%
+}
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\FV@SaveLineBox}
+% This is the macro that does most of the work.  This was inspired by Marco Daniel's code at \url{http://tex.stackexchange.com/a/112573/10742}.
 %
-% And finally the important things.
+% This macro is invoked when a line is too long.  We modify the |\linewidth| to take into account |breakindent| and |breakautoindent|, and insert |\hbox|es to fill the empty space.  We also account for |breaksymbolindentleft| and |breaksymbolindentright|, but \emph{only} when there are actually break symbols.  The code is placed in a |\parbox|.  Break symbols are inserted via \pkg{lineno}'s |internallinenumbers*|, which does internal line numbers without continuity between environments (the |linenumber| counter is automatically reset).  The beginning of the code has negative |\hspace| inserted to pull it out to the correct starting position.  |\strut|s are used to maintain correct line heights.  The |\parbox| is followed by an empty |\hbox| that takes up the space needed for a right-hand break symbol (if any).
+%    \begin{macrocode}
+\def\FV@SaveLineBox#1{%
+  \savebox{\FV@LineBox}{%
+    \advance\linewidth by -\FV@BreakIndent
+    \hbox to \FV@BreakIndent{\hfill}%
+    \ifthenelse{\boolean{FV@BreakAutoIndent}}%
+     {\let\FV@LineIndentChars\@empty
+      \FV@GetLineIndent#1\FV@Undefined
+      \savebox{\FV@LineIndentBox}{\FV@LineIndentChars}%
+      \hbox to \wd\FV@LineIndentBox{\hfill}%
+      \advance\linewidth by -\wd\FV@LineIndentBox}%
+     {}%
+    \ifdefempty{\FancyVerbBreakSymbolLeft}{}%
+     {\hbox to \FV@BreakSymbolIndentLeft{\hfill}%
+      \advance\linewidth by -\FV@BreakSymbolIndentLeft}%
+    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
+     {\advance\linewidth by -\FV@BreakSymbolIndentRight}%
+    \parbox[t]{\linewidth}{%
+      \raggedright
+      \leftlinenumbers*
+      \begin{internallinenumbers*}%
+      \let\makeLineNumber\FV@makeLineNumber
+      \noindent\hspace*{-\FV@BreakIndent}%
+      \ifdefempty{\FancyVerbBreakSymbolLeft}{}{%
+        \hspace*{-\FV@BreakSymbolIndentLeft}}%
+      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
+       {\hspace*{-\wd\FV@LineIndentBox}}%
+       {}%
+      \strut#1\strut
+      \end{internallinenumbers*}
+    }%
+    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
+     {\hbox to \FV@BreakSymbolIndentRight{\hfill}}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\FV@ListProcessLine@Break}
-% This is the macro that does all the work.  This was inspired by Marco Daniel's code at \url{http://tex.stackexchange.com/a/112573/10742}.  We save the current line in a box, and only do special things if the box is too wide.  The macro is based on |\FV@ListProcessLine| and follows it as closely as possible.  The |\linewidth| is reduced by |\FV@FrameSep| so that text will not overrun frames.
+% This macro is based on |\FV@ListProcessLine| and follows it as closely as possible.  The |\linewidth| is reduced by |\FV@FrameSep| and |\FV@FrameRule| so that text will not overrun frames.  This is done conditionally based on which frames are in use.  We save the current line in a box, and only do special things if the box is too wide.  For uniformity, all text is placed in a |\parbox|, even if it doesn't need to be wrapped.
+%
+% If a line is too wide, then it is passed to |\FV@SaveLineBox|.  If there is no right-hand break symbol, then the saved result in |\FV@LineBox| may be used immediately.  If there is a right-hand break symbol, then the line must be processed a second time, so that the right-hand break symbol may be removed from the final segment of the broken line (since it does not continue).  During the first use of |\FV@SaveLineBox|, the counter |FancyVerbLineBreakLast| is set to the internal line number of the last segment of the broken line.  During the second use of |\FV@SaveLineBox|, we disable this (|\let\FV@SetLineBreakLast\relax|) so that the value of |FancyVerbLineBreakLast| remains fixed and thus may be used to determine when a right-hand break symbol should be inserted.
 %    \begin{macrocode}
 \def\FV@ListProcessLine@Break#1{%
   \hbox to \hsize{%
@@ -2333,38 +2516,11 @@
   \fi
   \sbox{\FV@LineBox}{\FancyVerbFormatLine{#1}}%
   \ifdim\wd\FV@LineBox>\linewidth
-    \savebox{\FV@LineBox}{%
-      \advance\hsize by -\FV@BreakIndent
-      \advance\linewidth by -\FV@BreakIndent
-      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-       {\let\FV@LineIndentChars\@empty
-        \FV@GetLineIndent#1\FV@Undefined
-        \savebox{\FV@IndentBox}{\FV@LineIndentChars}%
-        \hbox to \wd\FV@IndentBox{\hfill}%
-        \advance\hsize by -\wd\FV@IndentBox
-        \advance\linewidth by -\wd\FV@IndentBox}%
-       {}%
-      \ifdefempty{\FancyVerbBreakSymbol}{}%
-       {\hbox to \FV@BreakSymbolIndent{\hfill}%
-        \advance\hsize by -\FV@BreakSymbolIndent
-        \advance\linewidth by -\FV@BreakSymbolIndent}%
-      \parbox[t]{\linewidth}{%
-        \raggedright
-        \leftlinenumbers*
-        \setcounter{linenumber}{1}%
-        \let\thelinenumber\FancyVerbFormatBreakSymbol
-        \begin{internallinenumbers}%
-        \linenumbersep=\FV@BreakSymbolSep
-        \noindent\hspace*{-\FV@BreakIndent}%
-        \ifdefempty{\FancyVerbBreakSymbol}{}{%
-          \hspace*{-\FV@BreakSymbolIndent}}%
-        \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-         {\hspace*{-\wd\FV@IndentBox}}%
-         {}%
-        \strut#1\strut
-        \end{internallinenumbers}%
-      }%
-    }%
+    \setcounter{FancyVerbLineBreakLast}{0}%
+    \FV@SaveLineBox{#1}%
+    \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
+      \let\FV@SetLineBreakLast\relax
+      \FV@SaveLineBox{#1}}%
     \FV@LeftListNumber
     \FV@LeftListFrame
     \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
