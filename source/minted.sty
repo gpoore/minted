@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/30 20150130dev ]
+    [2015/01/30 20150130dev2 ]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -45,15 +45,8 @@
 }
 \DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
 \DeclareVoidOption{section}{\def\minted@float@within{section}}
-\newboolean{minted@newfloat}
-\DeclareVoidOption{newfloat}{%
-  \RequirePackage{newfloat}%
-  \minted@newfloattrue}
-\newboolean{minted@cache}
-\DeclareVoidOption{cache}{%
-  \minted@cachetrue
-  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}%
-}
+\DeclareBoolOption{newfloat}
+\DeclareBoolOption[true]{cache}
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{-}[\minted@jobname]
@@ -69,11 +62,13 @@
   \StrSubstitute{\minted@outputdir}{/}%
     {\@backslashchar}[\minted@outputdir@windows]}
 \DeclareBoolOption{kpsewhich}
-\newboolean{minted@langlinenos}
-\DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
+\DeclareBoolOption{langlinenos}
 \DeclareBoolOption{draft}
 \DeclareComplementaryOption{final}{draft}
 \ProcessKeyvalOptions*
+\ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
+\ifthenelse{\boolean{minted@cache}}{%
+  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
 \newcommand{\minted@input}[1]{%
   \IfFileExists{#1}%
    {\input{#1}}%
@@ -151,8 +146,8 @@
   \ifwindows
     \DeleteFile{\jobname.aex}
     \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set >\jobname.aex <nul: /p
-      x=\string^\@percentchar \string~$PATH:i>>\jobname.aex}
+      do set >"\jobname.aex" <nul: /p
+      x=\string^\@percentchar \string~$PATH:i>>"\jobname.aex"}
     %$ <- balance syntax highlighting
     \immediate\openin\minted@appexistsfile\jobname.aex
     \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
@@ -165,7 +160,7 @@
     \immediate\closein\minted@appexistsfile
     \DeleteFile{\jobname.aex}
   \else
-    \immediate\write18{which #1 && touch \jobname.aex}
+    \immediate\write18{which "#1" && touch "\jobname.aex"}
     \IfFileExists{\jobname.aex}
       {\AppExiststrue
         \DeleteFile{\jobname.aex}}

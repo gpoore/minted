@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/30 20150130dev ]
+    [2015/01/30 20150130dev2 ]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -40,10 +40,10 @@
 %\DisableCrossrefs
 %\RecordChanges
 %\OnlyDescription
+\usepackage{fixltx2e}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage{fixltx2e}
 \usepackage{lstdoc}
 \usepackage{xcolor}
 \usepackage{upquote}
@@ -58,6 +58,7 @@
 \usepackage{environ}
 \usepackage{graphicx}
 \usepackage{dingbat}
+\usepackage{multicol}
 \usepackage{hyperref}
 
 
@@ -171,7 +172,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2303}
+% \CheckSum{2301}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -191,7 +192,9 @@
 %
 %
 %
-% \begin{changelog}{Development releases for 2.0}{2014-2015}
+% \begin{changelog}{Development releases for 2.0}{2014--2015}
+% \item Caching is now on by default.
+% \item Fixed a bug that prevented compiling under Windows when file names contained commas.
 % \item Added \texttt{breaksymbolleft}, \texttt{breaksymbolsepleft}, \texttt{breaksymbolindentleft}, \texttt{breaksymbolright}, \texttt{breaksymbolsepright}, and \texttt{breaksymbolindentright} options.  \texttt{breaksymbol}, \texttt{breaksymbolsep}, and \texttt{breaksymbolindent} are now aliases for the correspondent \texttt{*left} options.
 % \item Added \texttt{kpsewhich} package option. This uses |kpsewhich| to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
 % \item Fixed a bug that prevented \texttt{\string\inputminted} from working with \texttt{outputdir}.
@@ -273,7 +276,7 @@
 % \newcommand\app[1]{\textsf{#1}}
 %
 % \title{The \textcolor{minted@mint}{\pkg{minted}} package:\\Highlighted source code in \LaTeX}
-% \author{Geoffrey M.\ Poore \\ \url{gpoore@gmail.com} \\ \href{https://github.com/gpoore/minted}{\texttt{github.com/gpoore/minted}} \\ ~\\ Originally created and maintained (2009-2013) by \\ Konrad Rudolph}
+% \author{Geoffrey M.\ Poore \\ \url{gpoore@gmail.com} \\ \href{https://github.com/gpoore/minted}{\texttt{github.com/gpoore/minted}} \\ ~\\ Originally created and maintained (2009--2013) by \\ Konrad Rudolph}
 % \date{\fileversion~from \filedate}
 %
 % \maketitle
@@ -284,12 +287,7 @@
 %   customize the highlighted source code output.
 % \end{abstract}
 %
-%
-% \section*{Current status}
-%
-% \pkg{minted} was created in \href{http://stackoverflow.com/questions/1966425/source-code-highlighting-in-latex/1985330#1985330}{2009} by Konrad Rudolph.  Geoffrey Poore agreed to take over \pkg{minted} maintenance in March of 2013, since his \href{https://github.com/gpoore/pythontex}{PythonTeX} package also provides an interface to Pygments.
-%
-% \pkg{minted} is currently in an alpha release for v2.0.  The goal is to  close all current issues, including those on the old \href{https://code.google.com/p/minted/}{Google Code site}, before the full v2.0 release.  During this time of transition, users who need maximum stability are encouraged to use \pkg{minted} 1.7 or PythonTeX.  The release on CTAN will only be updated once v2.0 stabilizes.
+% \vspace{2in}
 %
 % \subsection*{License}
 % \href{http://www.latex-project.org/lppl.txt}{LaTeX Project Public License (LPPL)} version 1.3.
@@ -316,14 +314,14 @@
 % \pkg{minted} is a package that allows formatting source code in \LaTeX.
 % For example:
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \begin{minted}{language}
-%     code
+%   \begin{minted}{<language>}
+%     <code>
 %   \end{minted}
 % \end{VerbatimOut}
 % \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
 %
 % will highlight a piece of code in a chosen language.
-% The display can be customized by a number of arguments and colour schemes.
+% The appearance can be customized with a number of options and color schemes.
 %
 % Unlike some other packages, most notably \pkg{listings}, \pkg{minted} requires
 % the installation of additional software, \app{Pygments}.
@@ -354,25 +352,6 @@
 % Additionally, installing \app{Pygments} is actually incredibly easy (see the next section).
 %
 %
-% \section{Transitioning to version 2}
-%
-% Transitioning from \pkg{minted} 1.7 to 2.0+ should require no changes in almost all cases.  Version 2 provides the same interface and all of the same features.
-%
-% A brief summary of new features in version 2.0 is provided below.  More detail is available in the \hyperref[sec:version-history]{Version History}.
-% \begin{itemize}
-% \item New inline command |\mintinline|.
-% \item Support for caching with new package option |cache|.  This drastically reduces package overhead.
-% \item Automatic line breaking for all commands and environments with new option |breaklines|.
-% \item Support for Unicode under the pdfTeX engine.
-% \item Set document-wide options using |\setminted{|\meta{opts}|}|.  Set language-specific options using |\setminted[|\meta{lang}|]{|\meta{opts}|}|.  Similarly, set inline-specific options using |\setmintedinline|.
-% \item Package option |langlinenos|:  do line numbering by language.
-% \item Many new options, including |encoding|, |autogobble|, and |escapeinside| (requires Pygments 2.0+).
-% \item New package option |outputdir| provides compatibility with command-line options |-output-directory| and |-aux-directory|.
-% \item New package option |draft| disables Python use to give maximum performance.
-% \item |\mint| can now take code delimited by matched curly braces |{}|.
-% \end{itemize}
-%
-%
 % \section{Installation}
 %
 % \subsection{Prerequisites}
@@ -387,13 +366,14 @@
 % If you don't have Python installed, you can download it from the \href{http://www.python.org/download/}{Python website} or
 % use your operating system's package manager.
 %
-% Some Python distributions include Pygments (see some of the options under ``Alternative Implementations'' on the Python site).  Otherwise, you will need to install Pygments manually.
-%
-% This may  be done by installing \href{http://pypi.python.org/pypi/setuptools}{\app{setuptools}}, which facilitates the distribution of Python applications.  You can then install \app{Pygments} using the following command:
+% Some Python distributions include \pkg{Pygments} (see some of the options under ``Alternative Implementations'' on the Python site).  Otherwise, you will need to install \pkg{Pygments} manually. This may  be done by installing \href{http://pypi.python.org/pypi/setuptools}{\app{setuptools}}, which facilitates the distribution of Python applications.  You can then install \app{Pygments} using the following command:
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
 %   \$ sudo easy_install Pygments
 % \end{Verbatim}
-% Under Windows, you will not need the |sudo|, but may need to run the command prompt as administrator.
+% Under Windows, you will not need the |sudo|, but may need to run the command prompt as administrator.  \pkg{Pygments} may also be installed with |pip|:
+% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
+%   \$ pip install Pygments
+% \end{Verbatim}
 %
 % If you already have \app{Pygments} installed, be aware that the latest version is recommended (at least 1.4 or later).  Some features, such as |escapeinside|, will only work with 2.0+.  \pkg{minted} may work with versions as early as 1.2, but there are no guarantees.
 %
@@ -402,6 +382,7 @@
 %
 % \pkg{minted} requires that the following packages be available and reasonably up to date on your system.  All of these ship with recent \TeX\ distributions.
 %
+% \begin{multicols}{3}
 % \begingroup
 % \setlength\parskip{0pt}
 % \setlength\topsep{0pt}
@@ -420,6 +401,7 @@
 %   \item lineno
 % \end{list}
 % \endgroup
+% \end{multicols}
 %
 %
 % \subsection{Installing \pkg{minted}}
@@ -433,6 +415,24 @@
 % \href{http://www.tex.ac.uk/cgi-bin/texfaq2html?label=inst-wlcf}{\TeX{} FAQ}.
 % If you just want to experiment with the latest version, you could locate your current |minted.sty| in your \TeX\ installation and replace it with the latest version.  Or you could just put the latest |minted.sty| in the same directory as the file you wish to use it with.
 %
+%
+% \section{Transitioning to version 2}
+%
+% Transitioning from \pkg{minted} 1.7 to 2.0+ should require no changes in almost all cases.  Version 2 provides the same interface and all of the same features.
+%
+% A brief summary of new features in version 2.0 is provided below.  More detail is available in the \hyperref[sec:version-history]{Version History}.
+% \begin{itemize}
+% \item New inline command |\mintinline|.
+% \item Support for caching highlighted code with new package option |cache|.  This drastically reduces package overhead.  Caching is on by default.  A cache directory called |_minted-|\meta{document~name} will be created in the document root directory.  This may be modified with the |cachedir| package option.
+% \item Automatic line breaking for all commands and environments with new option |breaklines|.  Many additional options for customizing line breaking.
+% \item Support for Unicode under the pdfTeX engine.
+% \item Set document-wide options using |\setminted{|\meta{opts}|}|.  Set language-specific options using |\setminted[|\meta{lang}|]{|\meta{opts}|}|.  Similarly, set inline-specific options using |\setmintedinline|.
+% \item Package option |langlinenos|:  do line numbering by language.
+% \item Many new options, including |encoding|, |autogobble|, and |escapeinside| (requires Pygments 2.0+).
+% \item New package option |outputdir| provides compatibility with command-line options |-output-directory| and |-aux-directory|.
+% \item New package option |draft| disables Python use to give maximum performance.
+% \item |\mint| can now take code delimited by matched curly braces |{}|.
+% \end{itemize}
 %
 %
 % \section{Basic usage}
@@ -537,7 +537,7 @@
 %
 % The syntax is  \cmd\mintinline\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim}.  The delimiters can be a pair of characters, as for \cmd\mint.  They can also be a matched pair of curly braces, |{}|.
 %
-% The command has been carefully crafted so that in most cases it will function correctly when used inside other commands.\footnote{For example, \mintinline{latex}{\mintinline} works in footnotes!  The main exception is when the code contains the percent \texttt{\%} and hash \texttt{\#} characters.}
+% The command has been carefully crafted so that in most cases it will function correctly when used inside other commands.\footnote{For example, \mintinline{latex}{\mintinline} works in footnotes!  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.}
 %
 % \DescribeMacro{\inputminted}
 % Finally, there's the |\inputminted| command to read and format whole files.
@@ -561,12 +561,12 @@
 %
 %
 % Creating your own styles is also easy. Just follow the instructions provided on the
-% \href{http://pygments.org/docs/styles/#creating-own-styles}{website}.
+% \href{http://pygments.org/docs/styles/#creating-own-styles}{\pkg{Pygments} website}.
 %
 %
 % \subsection{Supported languages}
 %
-% \app{Pygments} supports over 150 different programming languages, template languages, and other markup languages.  To see an exhaustive list of the currently supported languages, use the command
+% \app{Pygments} supports over 300 different programming languages, template languages, and other markup languages.  To see an exhaustive list of the currently supported languages, use the command
 %
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
 %   \$ pygmentize -L lexers
@@ -617,13 +617,13 @@
 % Refer to the \pkg{newfloat} and \pkg{caption} documentation for additional information.
 %
 % \DescribeMacro{\listingscaption}
-% The string ``Listing'' in a listing's caption can be changed.
+% (Only applies when package option |newfloat| is not used.) The string ``Listing'' in a listing's caption can be changed.
 % To do this, simply redefine the macro |\listingscaption|, for example:
 %
 % \mint[frame=lines]{latex}/\renewcommand{\listingscaption}{Program code}/
 %
 % \DescribeMacro{\listoflistingscaption}
-% Likewise, the caption of the listings list, ``List of Listings,'' can be changed by redefining
+% (Only applies when package option |newfloat| is not used.) Likewise, the caption of the listings list, ``List of Listings,'' can be changed by redefining
 % |\listoflistingscaption|:
 %
 % \mint[frame=lines]{latex}/\renewcommand{\listoflistingscaption}{List of Program Code}/
@@ -632,39 +632,56 @@
 % \section{Options}
 %
 %
+%
 % \subsection{Package options}
 %
-% \DescribeMacro{section}
 % \DescribeMacro{chapter}
 % To control how \LaTeX{} counts the |listing| floats, you can pass either the
 % |section| or |chapter| option when loading the \pkg{minted} package.
-% For example, the following will cause listings to be counted by section:
+% For example, the following will cause listings to be counted by chapter:
 %
-% \mint[frame=lines]{latex}/\usepackage[section]{minted}/
+% \mint[frame=lines]{latex}/\usepackage[chapter]{minted}/
 %
-% \DescribeMacro{newfloat}
-% By default, the |listing| environment is created using the \pkg{float} package.  The |newfloat| option creates the environment using \pkg{newfloat} instead.  This provides better integration with the \pkg{caption} package.
 %
-% \DescribeMacro{cache}
-% \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are many chunks of code to highlight.  To avoid this, the package provides a |cache| option.
+% \DescribeMacro{cache=\meta{boolean} (default: true)}
+% \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are several chunks of code to highlight.  To avoid this, the package provides a |cache| option.  This is on by default.
 %
-% By default, the |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory.  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
+% The |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory (this may be customized with the |cachedir| option).  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
 %
 % Cached files that are no longer in use are automatically deleted.\footnote{This depends on the main auxiliary file not being deleted or becoming corrupted.  If that happens, you could simply delete the cache directory and start over.}
 %
-% \DescribeMacro{outputdir=\meta{directory}}
 %
-% The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
-%
-% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
-%
-% \DescribeMacro{cachedir=\meta{directory}}
-%
+% \DescribeMacro{cachedir=\meta{directory} (def:~\_minted-\meta{jobname})}
 % This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
 %
 % Note that this directory is relative to the |outputdir|, if an |outputdir| is specified.
 %
-% \DescribeMacro{langlinenos}
+%
+% \DescribeMacro{draft=\meta{boolean} (default: false)}
+% This uses \pkg{fancyvrb} alone for all typesetting; \app{Pygments} is not used.  This trades syntax highlighting and some other \app{minted} features for faster compiling.  Performance should be essentially the same as using \pkg{fancyvrb} directly; no external temporary files are used.  Note that if you are not changing much code between compiles, the difference in performance between caching and draft mode may be minimal.  Also note that |draft| settings are typically inherited from the document class.
+%
+% Draft mode does not support |autogobble|.  Regular |gobble|, |linenos|, and most other options not related to syntax highlighting will still function in draft mode.
+%
+% Documents can usually be compiled without shell escape in draft mode.  The \pkg{ifplatform} package may issue a warning about limited functionality due to shell escape being disabled, but this may be ignored in almost all cases.  (Shell escape is only really required if you have an unusual system configuration such that the |\ifwindows| macro must fall back to using shell escape to determine the system.  See the \pkg{ifplatform} documentation for more details:  \url{http://www.ctan.org/pkg/ifplatform}.)
+%
+% If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
+%
+%
+% \DescribeMacro{final=\meta{boolean} (default: true)}
+% This is the opposite of |draft|; it is equivalent to |draft=false|.  Again, note that |draft| and |final| settings are typically inherited from the document class.
+%
+%
+% \DescribeMacro{kpsewhich=\meta{boolean} (default: false)}
+% This option uses |kpsewhich| to locate files that are to be highlighted.  Some build tools such as |texi2pdf| function by modifying |TEXINPUTS|; in some cases, users may customize |TEXINPUTS| as well.  The |kpsewhich| option allows \pkg{minted} to work with such configurations.
+%
+% This option may add a noticeable amount of overhead on some systems, or with some system configurations.
+%
+% This option does \emph{not} make \pkg{minted} work with the |-output-directory| and |-aux-directory| command-line options for \LaTeX.  For those, see the |outputdir| package option.
+%
+% Under Windows, this option currently requires that PowerShell be installed.  It may need to be installed in versions of Windows prior to Windows 7.
+%
+%
+% \DescribeMacro{langlinenos=\meta{boolean} (default: false)}
 % \pkg{minted} uses the \pkg{fancyvrb} package behind the scenes for the code typesetting.  \pkg{fancyvrb} provides an option |firstnumber| that allows the starting line number of an environment to be specified.  For convenience, there is an option |firstnumber=last| that allows line numbering to pick up where it left off.  The |langlinenos| option makes |firstnumber| work for each language individually with all |minted| and |\mint| usages.  For example, consider the code and output below.
 %
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
@@ -691,30 +708,23 @@
 % \end{minipage}}
 % \hfill\hfill
 %
-% Without the |langlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.
+% Without the |langlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.  Rather, it would pick up with the Ruby line numbering.
 %
 %
-% \DescribeMacro{kpsewhich}
-% This option uses |kpsewhich| to locate files that are to be highlighted.  Some build tools such as |texi2pdf| function by modifying |TEXINPUTS|; in some cases, users may customize |TEXINPUTS| as well.  The |kpsewhich| option allows \pkg{minted} to work with such configurations.
-%
-% This option may add a noticeable amount of overhead on some systems, or with some system configurations.
-%
-% This option does \emph{not} make \pkg{minted} work with the |-output-directory| and |-aux-directory| command-line options for \LaTeX.  For those, see the |outputdir| package option.
-%
-% Under Windows, this option currently requires that PowerShell be installed.  It may need to be installed in versions of Windows prior to Windows 7.
+% \DescribeMacro{newfloat=\meta{boolean} (default: false)}
+% By default, the |listing| environment is created using the \pkg{float} package.  The |newfloat| option creates the environment using \pkg{newfloat} instead.  This provides better integration with the \pkg{caption} package.
 %
 %
-% \DescribeMacro{draft}
-% This uses \pkg{fancyvrb} alone for all typesetting; \app{Pygments} is not used.  This trades syntax highlighting and some other \app{minted} features for faster compiling.  Performance should be essentially the same as using \pkg{fancyvrb} directly; no external temporary files are used.  Note that if you are not changing much code between compiles, the difference in performance between caching and draft mode may be minimal.
+% \DescribeMacro{outputdir=\meta{directory} (default: \meta{none})}
+% The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
 %
-% Draft mode does not support |autogobble|.  Regular |gobble|, |linenos|, and most other options not related to syntax highlighting will still function in draft mode.
+% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
 %
-% Documents can usually be compiled without shell escape in draft mode.  The \pkg{ifplatform} package may issue a warning about limited functionality due to shell escape being disabled, but this may be ignored in almost all cases.  (Shell escape is only really required if you have an unusual system configuration such that the |\ifwindows| macro must fall back to using shell escape to determine the system.  See the \pkg{ifplatform} documentation for more details:  \url{http://www.ctan.org/pkg/ifplatform}.)
 %
-% If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
+% \DescribeMacro{section}
+% To control how \LaTeX{} counts the |listing| floats, you can pass either the
+% |section| or |chapter| option when loading the \pkg{minted} package.
 %
-% \DescribeMacro{final}
-% This is the opposite of |draft|; it is equivalent to |draft=false|.
 %
 % \subsection{Macro option usage}
 %
@@ -756,7 +766,7 @@
 %
 % To make your \LaTeX{} code more readable you might want to indent the code inside a |minted|
 % environment.
-% The option |gobble| removes these unnecessary whitespace characters from the output:
+% The option |gobble| removes these unnecessary whitespace characters from the output.  There is also an |autogobble| option that detects the length of this whitespace automatically.
 %
 % \begin{example}
 %   \begin{minted}[gobble=2,
@@ -774,8 +784,7 @@
 % \end{example}
 %
 % \DescribeMacro{\setminted}
-% You may wish to set options for the document as a whole, or for an entire language.  This is possible via \cmd\setminted.  The syntax is
-% \cmd\setminted\oarg{language}\marg{key=value,...}.  Language-specific options override document-wide options.  Individual command and environment options override language-specific options.
+% You may wish to set options for the document as a whole, or for an entire language.  This is possible via \cmd\setminted\oarg{language}\marg{key=value,...}.  Language-specific options override document-wide options.  Individual command and environment options override language-specific options.
 %
 % \DescribeMacro{\setmintedinline}
 % You may wish to set separate options for \cmd\mintinline, either for the document as a whole or for a specific language.  This is possible via \cmd\setmintedinline.  The syntax is
@@ -1123,7 +1132,7 @@
 % In some cases, \pkg{minted} may not give the desired result due to other document settings that it cannot control.  Common issues are described below, with workarounds or solutions.  You may also wish to search \href{http://tex.stackexchange.com/}{tex.stackexchange.com} or ask a question there, if you are working with \pkg{minted} in a non-typical context.
 %
 % \begin{itemize}
-% \item \textbf{When I use \pkg{minted} with KOMA-Script document classes, I get warnings about \texttt{\string\float@addtolists}.}  \pkg{minted} uses the \pkg{float} package to produce floated listings, but this conflicts with the way KOMA-Script does floats.  Load the package \pkg{scrhack} to resolve the conflict.
+% \item \textbf{When I use \pkg{minted} with KOMA-Script document classes, I get warnings about \texttt{\string\float@addtolists}.}  \pkg{minted} uses the \pkg{float} package to produce floated listings, but this conflicts with the way KOMA-Script does floats.  Load the package \pkg{scrhack} to resolve the conflict.  Or use \pkg{minted}'s |newfloat| package option.
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
 %
@@ -1174,14 +1183,14 @@
 % This happens when you use XeLaTeX.  You need to use the |-8bit| command-line option so that tabs may be written correctly to temporary files.  See \url{http://tex.stackexchange.com/questions/58732/how-to-output-a-tabulation-into-a-file} for more on XeLaTeX's handling of tab characters. \end{sloppypar}
 %
 % \item \textbf{The \pkg{caption} package produces an error when \texttt{\string\captionof} and other commands are used in combination with \pkg{minted}.}
-% Load the \pkg{caption} package with the option |compatibility=false|.
+% Load the \pkg{caption} package with the option |compatibility=false|.  Or better yet, use \pkg{minted}'s |newfloat| package option, which provides better \pkg{caption} compatibility.
 %
 % \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example, 
 %\begin{verbatim}
 %\usepackage{caption}
 %\newenvironment{longlisting}{\captionsetup{type=listing}}{}
 %\end{verbatim}
-% See \url{http://tex.stackexchange.com/a/53540/10742} for more.
+% With the \pkg{caption} package, it is best to use \pkg{minted}'s |newfloat| package option.  See \url{http://tex.stackexchange.com/a/53540/10742} for more on |listing| environments with page breaks.
 %
 % \item \textbf{I want to use a custom script/executable to access Pygments, rather than |pygmentize|.}  Redefine |\MintedPygmentize|:
 %\begin{verbatim}
@@ -1256,27 +1265,20 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@newfloat}
+% \begin{macro}{newfloat}
 %
 % Define an option to use \pkg{newfloat} rather than \pkg{float} to create a floated |listing| environment.
 %
 %    \begin{macrocode}
-\newboolean{minted@newfloat}
-\DeclareVoidOption{newfloat}{%
-  \RequirePackage{newfloat}%
-  \minted@newfloattrue}
+\DeclareBoolOption{newfloat}
 %    \end{macrocode}
 % \end{macro}
 %
 %
-% \begin{macro}{minted@cache}
+% \begin{macro}{cache}
 % Define an option that determines whether highlighted content is cached.  We use a boolean to keep track of its state.
 %    \begin{macrocode}
-\newboolean{minted@cache}
-\DeclareVoidOption{cache}{%
-  \minted@cachetrue
-  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}%
-}
+\DeclareBoolOption[true]{cache}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1320,8 +1322,7 @@
 % \begin{macro}{langlinenos}
 % Define an option that makes all |minted| environments and |\mint| commands for a given language share cumulative line numbering (if |firstnumber=last|).
 %    \begin{macrocode}
-\newboolean{minted@langlinenos}
-\DeclareVoidOption{langlinenos}{\minted@langlinenostrue}
+\DeclareBoolOption{langlinenos}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1341,10 +1342,13 @@
 % \end{macro}
 %
 %
-% Process package options.
+% Process package options.  Proceed with everything that immediately relies upon them.
 %
 %    \begin{macrocode}
 \ProcessKeyvalOptions*
+\ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
+\ifthenelse{\boolean{minted@cache}}{%
+  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
 %    \end{macrocode}
 %
 %
@@ -1524,8 +1528,8 @@
 %    \begin{macrocode}
     \DeleteFile{\jobname.aex}
     \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set >\jobname.aex <nul: /p 
-      x=\string^\@percentchar \string~$PATH:i>>\jobname.aex}
+      do set >"\jobname.aex" <nul: /p 
+      x=\string^\@percentchar \string~$PATH:i>>"\jobname.aex"}
     %$ <- balance syntax highlighting
     \immediate\openin\minted@appexistsfile\jobname.aex
     \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
@@ -1545,7 +1549,7 @@
 % \changes{1.7}{2010/02/16}{Removed unportable flag from Unix shell command}
 %
 %    \begin{macrocode}
-    \immediate\write18{which #1 && touch \jobname.aex}
+    \immediate\write18{which "#1" && touch "\jobname.aex"}
     \IfFileExists{\jobname.aex}
       {\AppExiststrue
         \DeleteFile{\jobname.aex}}
