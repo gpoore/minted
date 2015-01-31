@@ -4,7 +4,7 @@ minted is a package that facilitates expressive syntax highlighting in LaTeX
 using the Pygments library.  The package also provides options to customize 
 the highlighted source code output using fancyvrb.
 
-See the documentation (minted.pdf) for examples and instructions of 
+See the documentation (minted.pdf) for examples and instructions for 
 installation and usage.
 
 This work may be distributed and/or modified under the conditions of the 

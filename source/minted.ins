@@ -27,7 +27,10 @@ and the derived file minted.sty.
 
 \usedir{tex/latex/minted}
 
-\generate{\file{minted.sty}{\from{minted.dtx}{package}}}
+\generate{%
+    \file{minted.sty}{\from{minted.dtx}{package}}%
+    \file{minted1.sty}{\from{minted.dtx}{packageone}}%
+}
 
 \endbatchfile
 % vim: ft=tex

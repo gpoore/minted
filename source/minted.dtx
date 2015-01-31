@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/30 20150130dev2 ]
+    [2015/01/31 v2.0 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -60,8 +60,6 @@
 \usepackage{dingbat}
 \usepackage{multicol}
 \usepackage{hyperref}
-
-
 
 
 \makeatletter
@@ -172,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2301}
+% \CheckSum{2686}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -191,18 +189,23 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+% \begin{changelog}{v2.0}{2015/01/31}
+% \item Added the compatibility package \texttt{minted1}, which provides the \pkg{minted} 1.7 code.  This may be loaded when 1.7 compatibility is required.  This package works with other packages that \texttt{\string\RequirePackage\{minted\}}, so long as it is loaded first.
+% \item Moved all old \texttt{\string\changes} into \texttt{changelog}.
+% \end{changelog}
 %
-% \begin{changelog}{Development releases for 2.0}{2014--2015}
+%
+% \begin{changelog}{Development releases for 2.0}{2014--January 2015}
 % \item Caching is now on by default.
 % \item Fixed a bug that prevented compiling under Windows when file names contained commas.
 % \item Added \texttt{breaksymbolleft}, \texttt{breaksymbolsepleft}, \texttt{breaksymbolindentleft}, \texttt{breaksymbolright}, \texttt{breaksymbolsepright}, and \texttt{breaksymbolindentright} options.  \texttt{breaksymbol}, \texttt{breaksymbolsep}, and \texttt{breaksymbolindent} are now aliases for the correspondent \texttt{*left} options.
-% \item Added \texttt{kpsewhich} package option. This uses |kpsewhich| to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
+% \item Added \texttt{kpsewhich} package option. This uses \texttt{kpsewhich} to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
 % \item Fixed a bug that prevented \texttt{\string\inputminted} from working with \texttt{outputdir}.
 % \item Added informative error messages when Pygments output is missing.
 % \item Added \texttt{final} package option (opposite of \texttt{draft}).
 % \item Renamed the default cache directory to \texttt{\_minted-<jobname>} (replaced leading period with underscore).  The leading period caused the cache directory to be hidden on many systems, which was a potential source of confusion.
 % \item \texttt{breaklines} and \texttt{breakbytoken} now work with \texttt{\string\mintinline} (\#31).
-% \item \texttt{bgcolor} may now be set throught \texttt{\string\setminted} and \texttt{\string\setmintedinline}.
+% \item \texttt{bgcolor} may now be set through \texttt{\string\setminted} and \texttt{\string\setmintedinline}.
 % \item When math is enabled via \texttt{texcomments}, \texttt{mathescape}, or \texttt{escapeinside}, space characters now behave as in normal math by vanishing, instead of appearing as literal spaces.  Math need no longer be specially formatted to avoid undesired spaces.
 % \item In default value of \texttt{\string\listoflistingscaption}, capitalized ``Listings'' so that capitalization is consistent with default values for other lists (figures, tables, algorithms, etc.).
 % \item Added \texttt{newfloat} package option that creates the \texttt{listing} environment using \texttt{newfloat} rather than \texttt{float}, thus providing better compatibility with the \texttt{caption} package (\#12).
@@ -259,16 +262,48 @@
 % \item \texttt{xcolor} is only loaded if \texttt{color} isn't, preventing potential package clashes.
 % \end{changelog}
 %
-% \hide{
-% % Need to reformat all this, encorporate \change macros
-% \begin{changelog}{1.6}{2010/01/22}
-% \item Simpler versioning scheme
+%
+% \begin{changelog}{1.7}{2011/09/17}
+% \item Options for float placement added [2011/09/12]
+% \item Fixed \texttt{tabsize} option [2011/08/30]
+% \item More robust detection of the \texttt{-shell-escape} option [2011/01/21]
+% \item Added the \texttt{label} option [2011/01/04]
+% \item Installation instructions added [2010/03/16]
+% \item Minimal working example added [2010/03/16]
+% \item Added PHP-specific options [2010/03/14]
+% \item Removed unportable flag from Unix shell command [2010/02/16]
 % \end{changelog}
 %
-% \begin{changelog}{0.0.4}{2010/01/08}
-% \item Initial version
+%
+% \begin{changelog}{1.6}{2010/01/31}
+% \item Added font-related options [2010/01/27]
+% \item Windows support added [2010/01/27]
+% \item Added command shortcuts [2010/01/22]
+% \item Simpler versioning scheme [2010/01/22]
 % \end{changelog}
-% }
+%
+%
+% \begin{changelog}{0.1.5}{2010/01/13}
+% \item Added \texttt{fillcolor} option [2010/01/10]
+% \item Added float support [2010/01/10]
+% \item Fixed \texttt{firstnumber} option [2010/01/10]
+% \item Removed \texttt{caption} option [2010/01/10]
+% \end{changelog}
+%
+%
+% \begin{changelog}{0.0.4}{2010/01/08}
+% \item Initial version [2010/01/08]
+% \end{changelog}
+%
+%
+% %\DoNotIndex{\newcommand,\newenvironment}
+% %\DoNotIndex{\#,\$,\%,\&,\@,\\,\{,\},\^,\_,\~,\ }
+% %\DoNotIndex{\@ne}
+% %\DoNotIndex{\advance,\begingroup,\catcode,\closein}
+% %\DoNotIndex{\closeout,\day,\def,\edef,\else,\empty,\endgroup}
+% %\DoNotIndex{\begin,\end,\bgroup,\egroup}
+% %\DoNotIndex{\@namedef,\@nameuse,=,\csname,\endcsname}
+%
 %
 % \GetFileInfo{minted.sty}
 %
@@ -405,7 +440,6 @@
 %
 %
 % \subsection{Installing \pkg{minted}}
-% \changes{1.7}{2010/03/16}{Installation instructions added}
 %
 % You can probably install \pkg{minted} with your \TeX\ distribution's package manager.  Otherwise, or if you want the absolute latest version, you can install it manually by following the directions below.
 %
@@ -419,6 +453,8 @@
 % \section{Transitioning to version 2}
 %
 % Transitioning from \pkg{minted} 1.7 to 2.0+ should require no changes in almost all cases.  Version 2 provides the same interface and all of the same features.
+%
+% In cases when custom code was used to hook into the \pkg{minted} internals, it may still be desirable to use the old \pkg{minted} 1.7.  For those cases, the new package \pkg{minted1} is provided.  Simply load this before any other package attempts to load \pkg{minted}, and you will have the code from 1.7.
 %
 % A brief summary of new features in version 2.0 is provided below.  More detail is available in the \hyperref[sec:version-history]{Version History}.
 % \begin{itemize}
@@ -459,7 +495,6 @@
 %
 %
 % \subsection{A minimal complete example}
-% \changes{1.7}{2010/03/16}{Minimal working example added}
 %
 % The following file |minimal.tex| shows the basic usage of \pkg{minted}.
 %
@@ -1213,7 +1248,7 @@
 %
 % \PrintChangelog
 %
-% \StopEventually{}
+% \StopEventually{} %\StopEventually{\PrintIndex}
 %
 %
 % \section{Implementation}
@@ -1250,9 +1285,6 @@
 %
 %
 % \subsection{Package options}
-%
-%
-% \changes{1.7}{2011/09/12}{Options for float placement added}
 %
 % \begin{macro}{\minted@float@within}
 %
@@ -1457,12 +1489,9 @@
 %
 % \subsection{OS interaction}
 %
-% \changes{1.6}{2010/01/27}{Windows support added}
-%
 % We need system-dependent macros for communicating with the ``outside world.''
 %
 % \begin{macro}{\DeleteFile}
-% \changes{2.0}{2013/07/27}{Added quotation marks to support file names with spaces.}
 %
 % Delete a file.  Define conditionally in case an equivalent macro has already been defined.
 %
@@ -1546,8 +1575,6 @@
 %
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success, whose existence we can then check.
 %
-% \changes{1.7}{2010/02/16}{Removed unportable flag from Unix shell command}
-%
 %    \begin{macrocode}
     \immediate\write18{which "#1" && touch "\jobname.aex"}
     \IfFileExists{\jobname.aex}
@@ -1561,7 +1588,6 @@
 %
 %
 % \subsection{Option processing}
-% \changes{2.0}{2013/07/27}{Redid options at global, language, and command levels}
 %
 % Option processing is somewhat involved, because we want to be able to define options at various levels of hierarchy:  individual command/environment, language, global (document).  And once those options are defined, we need to go through the hierarchy in a defined order of precedence to determine which option to apply.  As if that wasn't complicated enough, some options need to be sent to Pygments, some need to be sent to \pkg{fancyvrb}, and some need to be processed within \pkg{minted} itself.
 %
@@ -2585,7 +2611,6 @@
 %
 %
 % \begin{macro}{\minted@savecode}
-% \changes{2.0}{2013/07/27}{Added Unicode support}
 %
 % Save code to be pygmentized to a file.
 %    \begin{macrocode}
@@ -3028,7 +3053,6 @@
 %
 %
 % \begin{environment}{minted}
-% \changes{1.7}{2011/08/30}{Fixed \texttt{tabsize} option}
 %
 % Highlight a longer piece of code inside a verbatim environment.
 %    \begin{macrocode}
@@ -3081,8 +3105,6 @@
 %
 %
 % \subsection{Command shortcuts}
-%
-% \changes{1.6}{2010/01/22}{Added command shortcuts}
 %
 % We allow the user to define shortcuts for the highlighting commands.
 %
@@ -3188,8 +3210,6 @@
 %
 % \subsection{Float support}
 %
-% \changes{0.1.5}{2010/01/10}{Added float support}
-%
 % \begin{environment}{listing}
 %
 % Define a new floating environment to use for floated listings.  This is defined conditionally based on the |newfloat| package option.
@@ -3257,7 +3277,6 @@
 %
 % Check whether LaTeX was invoked with |-shell-escape| option, make sure |pygmentize| exists, and set the default style.
 %
-% \changes{1.7}{2011/01/21}{More robust detection of the \texttt{-shell-escape} option}
 %    \begin{macrocode}
 \AtEndOfPackage{%
   \ifthenelse{\boolean{minted@draft}}{}{%
@@ -3301,6 +3320,261 @@
 % \iffalse
 %</package>
 % \fi
-%% \Finale
+%
+%
+%
+% \section{Implementation of compatibility package}
+% \setcounter{CodelineNo}{0}
+%
+% \iffalse
+%<*packageone>
+% \fi
+%
+% \pkg{minted} version 2 is designed to be completely compatible with version 1.7.  All of the same options and commands still exist.  As far as most users are concerned, the only difference should be the new commands and options.
+%
+% However, \pkg{minted} 2 does require some additional packages compared to \pkg{minted} 1.7.  More importantly, since \pkg{minted} 2 has almost completely new internal code, user code that accessed the internals of 1.7 will generally not work with 2.0, at least not without some modification.  For these reasons, a copy of \pkg{minted} 1.7 is supplied as the package \pkg{minted1}.  This is intended \emph{only} for compatibility cases when using the current version is too inconvenient.
+%
+% The code in \pkg{minted1} is an exact copy of \pkg{minted} version 1.7, except for two things:  (1) the package has been renamed, and (2) code has been added that allows \pkg{minted1} to act as (impersonate) \pkg{minted}, so that it can cooperate with other packages that require \pkg{minted} to be loaded.\footnote{The approach used for doing this is described at \url{http://tex.stackexchange.com/a/39418/10742}.}  When \pkg{minted1} is used, it must be loaded \emph{before} any other packages that would require \pkg{minted}.
+%
+% All modifications to the original \pkg{minted} 1.7 source are indicated with comments.  All original code that has been replaced has been commented out rather than deleted.  Any future modifications of \pkg{minted1} should \emph{only} be for the purpose of allowing it to serve better as a drop-in compatibility substitute for the current release of \pkg{minted}.
+%
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+%%%% Begin minted1 modification
+%%\ProvidesPackage{minted}[2011/09/17 v1.7 Yet another Pygments shim for LaTeX]
+\ProvidesPackage{minted1}[2015/01/31 v1.0 minted 1.7 compatibility package]
+%%%% End minted1 modification
+\RequirePackage{keyval}
+\RequirePackage{fancyvrb}
+\RequirePackage{xcolor}
+\RequirePackage{float}
+\RequirePackage{ifthen}
+%%%% Begin minted1 modification
+\newboolean{mintedone@mintedloaded}
+\@ifpackageloaded{minted}%
+ {\setboolean{mintedone@mintedloaded}{true}%
+  \PackageError{minted1}{The package "minted1" may not be loaded after
+      ^^J"minted" has already been loaded--load "minted1" only for "minted"
+      ^^Jversion 1.7 compatibility}%
+   {Load "minted1" only when "minted" version 1.7 compatibility is required}}%
+ {}
+\ifmintedone@mintedloaded\else
+\@namedef{ver@minted.sty}{2011/09/17 v1.7 Yet another Pygments shim for LaTeX}
+\expandafter\let\expandafter\minted@tmp\csname opt@minted1.sty\endcsname
+\expandafter\let\csname opt@minted.sty\endcsname\minted@tmp
+\let\minted@tmp\relax
+%%%% End minted1 modification
+\RequirePackage{calc}
+\RequirePackage{ifplatform}
+\DeclareOption{chapter}{\def\minted@float@within{chapter}}
+\DeclareOption{section}{\def\minted@float@within{section}}
+\ProcessOptions\relax
+\ifwindows
+  \providecommand\DeleteFile[1]{\immediate\write18{del #1}}
+\else
+  \providecommand\DeleteFile[1]{\immediate\write18{rm #1}}
+\fi
+\newboolean{AppExists}
+\newcommand\TestAppExists[1]{
+  \ifwindows
+    \DeleteFile{\jobname.aex}
+    \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
+      do set >\jobname.aex <nul: /p x=\string^\@percentchar \string~$PATH:i>>\jobname.aex} %$
+    \newread\@appexistsfile
+    \immediate\openin\@appexistsfile\jobname.aex
+    \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
+    \endlinechar=-1\relax
+    \readline\@appexistsfile to \@apppathifexists
+    \endlinechar=\@tmp@cr
+    \ifthenelse{\equal{\@apppathifexists}{}}
+     {\AppExistsfalse}
+     {\AppExiststrue}
+    \immediate\closein\@appexistsfile
+    \DeleteFile{\jobname.aex}
+\immediate\typeout{file deleted}
+  \else
+    \immediate\write18{which #1 && touch \jobname.aex}
+    \IfFileExists{\jobname.aex}
+     {\AppExiststrue
+      \DeleteFile{\jobname.aex}}
+     {\AppExistsfalse}
+  \fi}
+\newcommand\minted@resetoptions{}
+\newcommand\minted@defopt[1]{
+  \expandafter\def\expandafter\minted@resetoptions\expandafter{%
+    \minted@resetoptions
+    \@namedef{minted@opt@#1}{}}}
+\newcommand\minted@opt[1]{
+  \expandafter\detokenize%
+    \expandafter\expandafter\expandafter{\csname minted@opt@#1\endcsname}}
+\newcommand\minted@define@opt[3][]{
+  \minted@defopt{#2}
+  \ifthenelse{\equal{#1}{}}{
+    \define@key{minted@opt}{#2}{\@namedef{minted@opt@#2}{#3}}}
+   {\define@key{minted@opt}{#2}[#1]{\@namedef{minted@opt@#2}{#3}}}}
+\newcommand\minted@define@switch[3][]{
+  \minted@defopt{#2}
+  \define@booleankey{minted@opt}{#2}
+   {\@namedef{minted@opt@#2}{#3}}
+   {\@namedef{minted@opt@#2}{#1}}}
+\minted@defopt{extra}
+\newcommand\minted@define@extra[1]{
+  \define@key{minted@opt}{#1}{
+    \expandafter\def\expandafter\minted@opt@extra\expandafter{%
+      \minted@opt@extra,#1=##1}}}
+\newcommand\minted@define@extra@switch[1]{
+  \define@booleankey{minted@opt}{#1}
+   {\expandafter\def\expandafter\minted@opt@extra\expandafter{%
+      \minted@opt@extra,#1}}
+   {\expandafter\def\expandafter\minted@opt@extra\expandafter{%
+      \minted@opt@extra,#1=false}}}
+\minted@define@switch{texcl}{-P texcomments}
+\minted@define@switch{mathescape}{-P mathescape}
+\minted@define@switch{linenos}{-P linenos}
+\minted@define@switch{startinline}{-P startinline}
+\minted@define@switch[-P funcnamehighlighting=False]%
+  {funcnamehighlighting}{-P funcnamehighlighting}
+\minted@define@opt{gobble}{-F gobble:n=#1}
+\minted@define@opt{bgcolor}{#1}
+\minted@define@extra{frame}
+\minted@define@extra{framesep}
+\minted@define@extra{framerule}
+\minted@define@extra{rulecolor}
+\minted@define@extra{numbersep}
+\minted@define@extra{firstnumber}
+\minted@define@extra{stepnumber}
+\minted@define@extra{firstline}
+\minted@define@extra{lastline}
+\minted@define@extra{baselinestretch}
+\minted@define@extra{xleftmargin}
+\minted@define@extra{xrightmargin}
+\minted@define@extra{fillcolor}
+\minted@define@extra{tabsize}
+\minted@define@extra{fontfamily}
+\minted@define@extra{fontsize}
+\minted@define@extra{fontshape}
+\minted@define@extra{fontseries}
+\minted@define@extra{formatcom}
+\minted@define@extra{label}
+\minted@define@extra@switch{numberblanklines}
+\minted@define@extra@switch{showspaces}
+\minted@define@extra@switch{resetmargins}
+\minted@define@extra@switch{samepage}
+\minted@define@extra@switch{showtabs}
+\minted@define@extra@switch{obeytabs}
+\newsavebox{\minted@bgbox}
+\newenvironment{minted@colorbg}[1]{
+  \def\minted@bgcol{#1}
+  \noindent
+  \begin{lrbox}{\minted@bgbox}
+  \begin{minipage}{\linewidth-2\fboxsep}}
+ {\end{minipage}
+  \end{lrbox}%
+  \colorbox{\minted@bgcol}{\usebox{\minted@bgbox}}}
+\newwrite\minted@code
+\newcommand\minted@savecode[1]{
+  \immediate\openout\minted@code\jobname.pyg
+  \immediate\write\minted@code{#1}
+  \immediate\closeout\minted@code}
+\newcommand\minted@pygmentize[2][\jobname.pyg]{
+  \def\minted@cmd{pygmentize -l #2 -f latex -F tokenmerge
+    \minted@opt{gobble} \minted@opt{texcl} \minted@opt{mathescape}
+    \minted@opt{startinline} \minted@opt{funcnamehighlighting}
+    \minted@opt{linenos} -P "verboptions=\minted@opt{extra}"
+    -o \jobname.out.pyg #1}
+  \immediate\write18{\minted@cmd}
+  % For debugging, uncomment:
+  %\immediate\typeout{\minted@cmd}
+  \ifthenelse{\equal{\minted@opt@bgcolor}{}}
+   {}
+   {\begin{minted@colorbg}{\minted@opt@bgcolor}}
+  \input{\jobname.out.pyg}
+  \ifthenelse{\equal{\minted@opt@bgcolor}{}}
+   {}
+   {\end{minted@colorbg}}
+  \DeleteFile{\jobname.out.pyg}}
+\newcommand\minted@usedefaultstyle{\usemintedstyle{default}}
+\newcommand\usemintedstyle[1]{
+  \renewcommand\minted@usedefaultstyle{}
+  \immediate\write18{pygmentize -S #1 -f latex > \jobname.pyg}
+  \input{\jobname.pyg}}
+\newcommand\mint[3][]{
+  \DefineShortVerb{#3}
+  \minted@resetoptions
+  \setkeys{minted@opt}{#1}
+  \SaveVerb[aftersave={
+    \UndefineShortVerb{#3}
+    \minted@savecode{\FV@SV@minted@verb}
+    \minted@pygmentize{#2}
+    \DeleteFile{\jobname.pyg}}]{minted@verb}#3}
+\newcommand\minted@proglang[1]{}
+\newenvironment{minted}[2][]
+ {\VerbatimEnvironment
+  \renewcommand{\minted@proglang}[1]{#2}
+  \minted@resetoptions
+  \setkeys{minted@opt}{#1}
+  \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
+ {\end{VerbatimOut}
+  \minted@pygmentize{\minted@proglang{}}
+  \DeleteFile{\jobname.pyg}}
+\newcommand\inputminted[3][]{
+  \minted@resetoptions
+  \setkeys{minted@opt}{#1}
+  \minted@pygmentize[#3]{#2}}
+\newcommand\newminted[3][]{
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@envname{#2code}}
+   {\def\minted@envname{#1}}
+  \newenvironment{\minted@envname}
+   {\VerbatimEnvironment\begin{minted}[#3]{#2}}
+   {\end{minted}}
+  \newenvironment{\minted@envname *}[1]
+   {\VerbatimEnvironment\begin{minted}[#3,##1]{#2}}
+   {\end{minted}}}
+\newcommand\newmint[3][]{
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@shortname{#2}}
+   {\def\minted@shortname{#1}}
+  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
+    \mint[#3,##1]{#2}##2}}
+\newcommand\newmintedfile[3][]{
+  \ifthenelse{\equal{#1}{}}
+   {\def\minted@shortname{#2file}}
+   {\def\minted@shortname{#1}}
+  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
+    \inputminted[#3,##1]{#2}{##2}}}
+\@ifundefined{minted@float@within}
+ {\newfloat{listing}{h}{lol}}
+ {\newfloat{listing}{h}{lol}[\minted@float@within]}
+\newcommand\listingscaption{Listing}
+\floatname{listing}{\listingscaption}
+\newcommand\listoflistingscaption{List of listings}
+\providecommand\listoflistings{\listof{listing}{\listoflistingscaption}}
+\AtBeginDocument{
+  \minted@usedefaultstyle}
+\AtEndOfPackage{
+  \ifnum\pdf@shellescape=1\relax\else
+    \PackageError{minted}
+     {You must invoke LaTeX with the
+      -shell-escape flag}
+     {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
+      documentation for more information.}\fi
+  \TestAppExists{pygmentize}
+  \ifAppExists\else
+    \PackageError{minted}
+     {You must have `pygmentize' installed
+      to use this package}
+     {Refer to the installation instructions in the minted
+      documentation for more information.}
+  \fi}
+%%%% Begin minted1 modification
+\fi
+%%%% End minted1 modification
+%    \end{macrocode}
+% \iffalse
+%</packageone>
+% \fi
+%
+% \Finale
 \endinput
 

@@ -1,5 +1,16 @@
 # Changes
 
+
+## v2.0 (2015/01/31)
+
+*  Added the compatibility package `minted1`, which provides the `minted` 1.7 code.
+   This may be loaded when 1.7 compatibility is required.  This package works with 
+   other packages that `\RequirePackage{minted}`, so long as it is loaded first.
+
+*  Moved all old `\changes` into `changelog`.
+
+
+
 ## Development releases for 2.0 (2014-January 2015)
 
 *  Caching is now on by default.

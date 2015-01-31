@@ -3,22 +3,6 @@
 # minted — highlighted source code for LaTeX
 
 
-## Current status
-
-`minted` was created in [2009](http://stackoverflow.com/questions/1966425/source-code-highlighting-in-latex/1985330#1985330)
-by Konrad Rudolph.  [Geoffrey Poore](https://github.com/gpoore) agreed to 
-take over `minted` maintenance in March of 2013, since his
-[PythonTeX](https://github.com/gpoore/pythontex) package also provides an 
-interface to Pygments.
-
-`minted` is currently in final development for v2.0.  If no bugs are found in
-the current alpha release, it will become v2.0 with only very minor changes.
-All planned features are present in the current alpha release.  The alpha 
-release should be quite stable, but users who need maximum stability are 
-encouraged to use `minted` 1.7 or PythonTeX.  The release on CTAN will only 
-be updated once v2.0 is finalized.
-
-
 ## Overview
 
 `minted` is a LaTeX package that facilitates expressive syntax highlighting 
@@ -50,6 +34,50 @@ will produce the following rendering:
 
 See the [documentation](https://github.com/gpoore/minted/blob/master/source/minted.pdf)
 for examples and installation instructions.
+
+
+## Current status
+
+The 2.0 release is finally finished! Here is a brief overview for transitioning 
+from 1.7 to 2.0.
+
+Transitioning from `minted` 1.7 to 2.0+ should require no changes in almost all 
+cases.  Version 2 provides the same interface and all of the same features.
+
+In cases when custom code was used to hook into the `minted` internals, it may 
+still be desirable to use the old `minted` 1.7.  For those cases, the new package
+`minted1` is provided.  Simply load this before any other package attempts to load
+`minted`, and you will have the code from 1.7.
+
+A brief summary of new features in version 2.0 is provided below.  More detail is available in `CHANGES.md`, or the Version History in `minted.pdf`.
+
+*  New inline command `\mintinline`.
+
+*  Support for caching highlighted code with new package option `cache`.  This 
+   drastically reduces package overhead.  Caching is on by default.  A cache 
+   directory called `_minted-<document name>` will be created in the document root
+   directory.  This may be modified with the `cachedir` package option.
+
+*  Automatic line breaking for all commands and environments with new option
+   `breaklines`.  Many additional options for customizing line breaking.
+
+*  Support for Unicode under the pdfTeX engine.
+
+*  Set document-wide options using `\setminted{<opts>}`.  Set language-specific
+   options using `\setminted[<lang>}{<opts>}`.  Similarly, set inline-specific 
+   options using `\setmintedinline`.
+
+*  Package option `langlinenos`:  do line numbering by language.
+
+*  Many new options, including `encoding`, `autogobble`, and `escapeinside`
+   (requires Pygments 2.0+).
+
+*  New package option `outputdir` provides compatibility with command-line 
+   options `-output-directory` and `-aux-directory`.
+
+*  New package option `draft` disables Python use to give maximum performance.
+
+*  `\mint` can now take code delimited by matched curly braces `{}`.
 
 
 ## Availability
