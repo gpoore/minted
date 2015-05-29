@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/01/31 v2.0 Yet another Pygments shim for LaTeX]
+    [2015/05/28 v2.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2686}
+% \CheckSum{2702}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -187,6 +187,12 @@
 %   Right bracket \]     Circumflex    \^     Underscore    \_
 %   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %   Right brace   \}     Tilde         \~}
+%
+%
+%
+% \begin{changelog}{v2.1}{2015/??/??}
+% \item Improved treatment of \texttt{breakbytoken} for \texttt{\string\mintinline} (\#77).
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.0}{2015/01/31}
@@ -2797,6 +2803,8 @@
      \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
       {\expandafter\let\expandafter\minted@orig@PYG%
        \csname PYG\minted@get@opt{style}{default}\endcsname
+       \let\minted@orig@allowbreak\allowbreak
+       \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
          \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
        \minted@inputpyg@inline}%
@@ -2806,6 +2814,8 @@
      {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
        {\expandafter\let\expandafter\minted@orig@PYG%
         \csname PYG\minted@get@opt{style}{default}\endcsname
+        \let\minted@orig@allowbreak\allowbreak
+        \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
         \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
         \minted@inputpyg@block}%

@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/01/31 v2.0 Yet another Pygments shim for LaTeX]
+    [2015/05/28 v2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -933,6 +933,8 @@
      \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
       {\expandafter\let\expandafter\minted@orig@PYG%
        \csname PYG\minted@get@opt{style}{default}\endcsname
+       \let\minted@orig@allowbreak\allowbreak
+       \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
          \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
        \minted@inputpyg@inline}%
@@ -942,6 +944,8 @@
      {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
        {\expandafter\let\expandafter\minted@orig@PYG%
         \csname PYG\minted@get@opt{style}{default}\endcsname
+        \let\minted@orig@allowbreak\allowbreak
+        \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
         \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
         \minted@inputpyg@block}%
