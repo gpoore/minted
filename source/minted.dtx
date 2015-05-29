@@ -191,7 +191,7 @@
 %
 %
 % \begin{changelog}{v2.1}{2015/??/??}
-% \item Improved treatment of \texttt{breakbytoken} for \texttt{\string\mintinline} (\#77).
+% \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
 % \end{changelog}
 %
@@ -855,11 +855,16 @@
 %   \item[breakautoindent (boolean) (+true+)]
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breakbytoken (boolean) (+false+)]
-%   Only break lines at spaces that are not within tokens; prevent tokens from being split by line breaks.  By default, line breaking occurs at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if the break occurs in the middle of a string or similar token.  This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.
+%   Only break lines at spaces that are not within tokens; prevent tokens from being split by line breaks.  By default, \texttt{breaklines} causes line breaking at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if the break occurs in the middle of a string or similar token.
+%
+%   This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.  If the breaks provided by \texttt{breakbytoken} occur in unexpected locations, it may indicate a bug or shortcoming in the Pygments lexer for the language.
+%
+%   \item[breakbytokenanywhere (boolean) (+false+)] 
+%   Like \texttt{breakbytoken}, but allows line breaks between immediately adjacent tokens, not just between tokens that are separated by spaces.
 %   \item[breakindent (dimension) (+0pt+)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaklines (boolean) (+false+)] 
-%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  Currently, automatic breaks \emph{only} occur at space characters.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as a break location with the option \texttt{breakbytoken} (this is not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  Currently, automatic breaks \emph{only} occur at space characters, unless you use the \texttt{breakbytokenanywhere} option.  By default, the break will be at the space character closest to the margin.  You can prevent space characters within tokens (for example, within strings) from being used as break locations with the options \texttt{breakbytoken} and \texttt{breakbytokenanywhere} (these are not compatible with \texttt{draft} mode).  If you need breaks at another location, you may use \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 % \begin{example}
 %   ...text.
@@ -2279,6 +2284,7 @@
 % An option to force |breaklines| to work at the Pygments token level, rather than at the character level.  This is useful in keeping things like strings from being split between lines.
 %    \begin{macrocode}
 \minted@def@opt@switch{breakbytoken}
+\minted@def@opt@switch{breakbytokenanywhere}
 %    \end{macrocode}
 %
 % |bgcolor|:  The old |bgcolor| is retained for compatibility.  A dedicated framing package will often be preferable.
@@ -2791,42 +2797,46 @@
 % \end{macro}
 %
 % \begin{macro}{\minted@inputpyg}
-% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  Also, if we are not inline, then the |breakbytoken| option may apply.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.
+% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.  To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
 %    \begin{macrocode}
 \def\FV@SpaceMMode{ }
 \newcommand{\minted@inputpyg}{%
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
+  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
+    {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
     {\let\FV@BeginVBox\relax
      \let\FV@EndVBox\relax
      \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
      \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-      {\expandafter\let\expandafter\minted@orig@PYG%
-       \csname PYG\minted@get@opt{style}{default}\endcsname
-       \let\minted@orig@allowbreak\allowbreak
-       \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
-       \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+      {\minted@inputpyg@breakbytoken
        \minted@inputpyg@inline}%
       {\minted@inputpyg@inline}}%
     {\minted@inputpyg@inline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
      {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-       {\expandafter\let\expandafter\minted@orig@PYG%
-        \csname PYG\minted@get@opt{style}{default}\endcsname
-        \let\minted@orig@allowbreak\allowbreak
-        \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
-        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-        \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+       {\minted@inputpyg@breakbytoken
         \minted@inputpyg@block}%
        {\minted@inputpyg@block}}%
      {\minted@inputpyg@block}}%
 }
+\def\minted@inputpyg@breakbytoken{%
+  \expandafter\let\expandafter\minted@orig@PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
+  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
+   {\let\minted@orig@allowbreak\allowbreak
+    \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
+    \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+      \allowbreak{}\leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+   {\expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+      \leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+}
 \def\minted@inputpyg@inline{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
-   {\colorbox{\minted@get@opt{bgcolor}{}}{\minted@input{\minted@outputdir\minted@infile}}}%
+   {\colorbox{\minted@get@opt{bgcolor}{}}{%
+      \minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%

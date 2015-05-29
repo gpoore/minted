@@ -643,6 +643,7 @@
 \minted@def@optfv{breaksymbolsepright}
 \minted@def@optfv{breaksymbolindentright}
 \minted@def@opt@switch{breakbytoken}
+\minted@def@opt@switch{breakbytokenanywhere}
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
@@ -925,37 +926,41 @@
 \def\FV@SpaceMMode{ }
 \newcommand{\minted@inputpyg}{%
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
+  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
+    {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
     {\let\FV@BeginVBox\relax
      \let\FV@EndVBox\relax
      \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
      \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-      {\expandafter\let\expandafter\minted@orig@PYG%
-       \csname PYG\minted@get@opt{style}{default}\endcsname
-       \let\minted@orig@allowbreak\allowbreak
-       \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
-       \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-         \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+      {\minted@inputpyg@breakbytoken
        \minted@inputpyg@inline}%
       {\minted@inputpyg@inline}}%
     {\minted@inputpyg@inline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
      {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-       {\expandafter\let\expandafter\minted@orig@PYG%
-        \csname PYG\minted@get@opt{style}{default}\endcsname
-        \let\minted@orig@allowbreak\allowbreak
-        \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
-        \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-        \allowbreak{}\hbox{\minted@orig@PYG{##1}{##2}}}%
+       {\minted@inputpyg@breakbytoken
         \minted@inputpyg@block}%
        {\minted@inputpyg@block}}%
      {\minted@inputpyg@block}}%
 }
+\def\minted@inputpyg@breakbytoken{%
+  \expandafter\let\expandafter\minted@orig@PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
+  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
+   {\let\minted@orig@allowbreak\allowbreak
+    \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
+    \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+      \allowbreak{}\leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+   {\expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+      \leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+}
 \def\minted@inputpyg@inline{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
-   {\colorbox{\minted@get@opt{bgcolor}{}}{\minted@input{\minted@outputdir\minted@infile}}}%
+   {\colorbox{\minted@get@opt{bgcolor}{}}{%
+      \minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
