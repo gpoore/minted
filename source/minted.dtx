@@ -192,6 +192,7 @@
 %
 % \begin{changelog}{v2.1}{2015/??/??}
 % \item Improved treatment of \texttt{breakbytoken} for \texttt{\string\mintinline} (\#77).
+% \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
 % \end{changelog}
 %
 %
@@ -3099,7 +3100,7 @@
   {\newcommand{\inputminted}[3][]{%
     \begingroup
     \minted@configlang{#2}%
-    \setkeys{minted@optcmd}{#1}%
+    \setkeys{minted@opt@cmd}{#1}%
     \minted@fvset
     \VerbatimInput{#3}%
     \endgroup}}%
