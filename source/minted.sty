@@ -67,6 +67,11 @@
 \DeclareComplementaryOption{final}{draft}
 \ProcessKeyvalOptions*
 \ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
+\ifcsname tikzexternalrealjob\endcsname
+  \minted@drafttrue
+  \minted@cachefalse
+\else
+\fi
 \ifthenelse{\boolean{minted@cache}}{%
   \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
 \newcommand{\minted@input}[1]{%
@@ -1210,7 +1215,7 @@
     \setminted{style=default}%
   }%
 }
-\AtEndOfPreamble{%
+\AtEndPreamble{%
   \ifthenelse{\boolean{minted@draft}}{}{%
     \TestAppExists{pygmentize}%
     \ifAppExists\else

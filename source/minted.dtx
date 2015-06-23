@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2707}
+% \CheckSum{2713}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -196,6 +196,7 @@
 % \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).
 % \item Added note to docs on caching large numbers of code blocks under OS~X (\#78).
 % \item Added discussion of current limitations of \texttt{texcomments} (\#66) and \texttt{escapeinside} (\#70).
+% \item PGF/Ti\textit{k}Z externalization is automatically detected and supported (\#73).
 % \end{changelog}
 %
 %
@@ -1405,11 +1406,16 @@
 % \end{macro}
 %
 %
-% Process package options.  Proceed with everything that immediately relies upon them.
+% Process package options.  Proceed with everything that immediately relies upon them.  If PGF/Ti\textit{k}Z externalization is in use, switch on |draft| mode and turn off |cache|.  Externalization involves compiling the \emph{entire} document; all parts not related to the current image are ``silently thrown away.'' \pkg{minted} needs to cooperate with that by not writing any temp files or creating any directories.
 %
 %    \begin{macrocode}
 \ProcessKeyvalOptions*
 \ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
+\ifcsname tikzexternalrealjob\endcsname
+  \minted@drafttrue
+  \minted@cachefalse
+\else
+\fi
 \ifthenelse{\boolean{minted@cache}}{%
   \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
 %    \end{macrocode}
@@ -3332,7 +3338,7 @@
     \setminted{style=default}%
   }%
 }
-\AtEndOfPreamble{%
+\AtEndPreamble{%
   \ifthenelse{\boolean{minted@draft}}{}{%
     \TestAppExists{pygmentize}%
     \ifAppExists\else
