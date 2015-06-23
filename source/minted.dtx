@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/05/28 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/06/23 v2.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -447,6 +447,7 @@
 %
 %
 % \subsection{Installing \pkg{minted}}
+% \label{sec:installing:installing}
 %
 % You can probably install \pkg{minted} with your \TeX\ distribution's package manager.  Otherwise, or if you want the absolute latest version, you can install it manually by following the directions below.
 %
@@ -481,6 +482,7 @@
 % \section{Basic usage}
 %
 % \subsection{Preliminary}
+% \label{sec:basic:preliminary}
 %
 % Since \pkg{minted} makes calls to the outside world (that is, \app{Pygments}), you need to tell the
 % \LaTeX{} processor about this by passing it the |-shell-escape| option or it won't allow such calls.
@@ -498,6 +500,15 @@
 % The same holds for other processors, such as |pdflatex| or |xelatex|.
 %
 % You should be aware that using |-shell-escape| allows \LaTeX\ to run potentially arbitrary commands on your system.  It is probably best to use |-shell-escape| only when you need it, and to use it only with documents from trusted sources.
+%
+%
+% \subsubsection*{Working with OS X}
+%
+% If you are using \pkg{minted} with some versions/configurations of OS X, and are using caching with a large number of code blocks ($>256$), you may receive an error like
+%\begin{Verbatim}
+%OSError: [Errno 24] Too many open files:
+%\end{Verbatim}
+% This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use the OS X commands |launchctl limit maxfiles| or |ulimit -n| to increase the number of files that may be used.
 %
 %
 %
@@ -1179,6 +1190,7 @@
 % In some cases, \pkg{minted} may not give the desired result due to other document settings that it cannot control.  Common issues are described below, with workarounds or solutions.  You may also wish to search \href{http://tex.stackexchange.com/}{tex.stackexchange.com} or ask a question there, if you are working with \pkg{minted} in a non-typical context.
 %
 % \begin{itemize}
+% \item \textbf{I receive a ``Too many open files'' error under OS X when using caching.}  See the note on OS X under Section~\ref{sec:basic:preliminary}.
 % \item \textbf{When I use \pkg{minted} with KOMA-Script document classes, I get warnings about \texttt{\string\float@addtolists}.}  \pkg{minted} uses the \pkg{float} package to produce floated listings, but this conflicts with the way KOMA-Script does floats.  Load the package \pkg{scrhack} to resolve the conflict.  Or use \pkg{minted}'s |newfloat| package option.
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
