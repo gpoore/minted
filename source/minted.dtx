@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2702}
+% \CheckSum{2707}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -193,6 +193,8 @@
 % \begin{changelog}{v2.1}{2015/??/??}
 % \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
+% \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).
+% \item Added note to docs on caching large numbers of code blocks under OS X (\#78).
 % \end{changelog}
 %
 %
@@ -2687,9 +2689,11 @@
 %
 %
 % \begin{macro}{\MintedPygmentize}
-% We need a way to customize the executable/script that is called to perform highlighting.  Typically, we will want |pygmentize|.  But advanced users might wish to use a custom Python script instead.
+% We need a way to customize the executable/script that is called to perform highlighting.  Typically, we will want |pygmentize|.  But advanced users might wish to use a custom Python script instead.  The command is only defined if it does not exist.  In general, the command should be |\renewcommand|ed after the package is loaded, but this way, it will work if defined before \pkg{minted} is loaded.
 %    \begin{macrocode}
-\newcommand{\MintedPygmentize}{pygmentize}
+\ifcsname MintedPygmentize\endcsname\else
+  \newcommand{\MintedPygmentize}{pygmentize}
+\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3308,7 +3312,7 @@
 %
 % \subsection{Epilogue}
 %
-% Check whether LaTeX was invoked with |-shell-escape| option, make sure |pygmentize| exists, and set the default style.
+% Check whether LaTeX was invoked with |-shell-escape| option, set the default style, and make sure |pygmentize| exists.  Checking for |pygmentize| must wait until the end of the preamble, in case it is specified via |\MintedPygmentize| (which would typically be after the package is loaded).
 %
 %    \begin{macrocode}
 \AtEndOfPackage{%
@@ -3320,7 +3324,12 @@
        {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
         documentation for more information.}%
     \fi
-    \TestAppExists{pygmentize}
+    \setminted{style=default}%
+  }%
+}
+\AtEndOfPreamble{%
+  \ifthenelse{\boolean{minted@draft}}{}{%
+    \TestAppExists{pygmentize}%
     \ifAppExists\else
       \PackageError{minted}%
        {You must have `pygmentize' installed
@@ -3328,7 +3337,6 @@
        {Refer to the installation instructions in the minted
         documentation for more information.}%
     \fi
-    \setminted{style=default}%
   }%
 }
 %    \end{macrocode}

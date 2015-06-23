@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/05/28 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/06/23 v2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -824,7 +824,9 @@
 \newcommand{\minted@FVE@VerbatimOut}{%
   \immediate\closeout\FV@OutFile\endgroup\@esphack
   \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}}%
-\newcommand{\MintedPygmentize}{pygmentize}
+\ifcsname MintedPygmentize\endcsname\else
+  \newcommand{\MintedPygmentize}{pygmentize}
+\fi
 \newcommand{\minted@pygmentize}[2][\minted@outputdir\jobname.pyg]{%
   \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
     {\def\minted@codefile{\minted@outputdir\jobname.pyg}}%
@@ -1205,7 +1207,12 @@
        {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
         documentation for more information.}%
     \fi
-    \TestAppExists{pygmentize}
+    \setminted{style=default}%
+  }%
+}
+\AtEndOfPreamble{%
+  \ifthenelse{\boolean{minted@draft}}{}{%
+    \TestAppExists{pygmentize}%
     \ifAppExists\else
       \PackageError{minted}%
        {You must have `pygmentize' installed
@@ -1213,7 +1220,6 @@
        {Refer to the installation instructions in the minted
         documentation for more information.}%
     \fi
-    \setminted{style=default}%
   }%
 }
 \AtEndDocument{
