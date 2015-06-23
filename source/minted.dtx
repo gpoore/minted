@@ -194,7 +194,8 @@
 % \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
 % \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).
-% \item Added note to docs on caching large numbers of code blocks under OS X (\#78).
+% \item Added note to docs on caching large numbers of code blocks under OS~X (\#78).
+% \item Added discussion of current limitations of \texttt{texcomments} (\#66) and \texttt{escapeinside} (\#70).
 % \end{changelog}
 %
 %
@@ -991,7 +992,9 @@
 %   \item[encoding (string) (system-specific)]
 %     Sets the file encoding that \app{Pygments} expects.  See also +outencoding+.
 %   \item[escapeinside (string) (\meta{none})]
-%   Escape to \LaTeX\ between the two characters specified in \texttt{\string(string\string)}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  Escaping does not work inside strings and comments (for comments, there is \texttt{texcomments}).  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).  Requires \app{Pygments} 2.0\string+.
+%   Escape to \LaTeX\ between the two characters specified in \texttt{\string(string\string)}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).  Requires \app{Pygments} 2.0\string+.
+%
+% \textbf{Escaping does not work inside strings and comments (for comments, there is \texttt{texcomments}).  As of Pygments 2.0.2, this means that escaping is ``fragile'' with some lexers.}  Due to the way that Pygments implements \texttt{escapeinside}, any ``escaped'' \LaTeX\ code that resembles a string or comment for the current lexer may break \texttt{escapeinside}.  There is a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/1118}{Pygments issue} for this case.  Additional details and a limited workaround for some scenarios are available on the \href{https://github.com/gpoore/minted/issues/70#issuecomment-111729930}{\pkg{minted} GitHub site}.
 %
 % \begin{example}
 %   \begin{minted}[escapeinside=||]{py}
@@ -1103,6 +1106,8 @@
 %     Usage as in package \pkg{listings}.  See the note under \texttt{escapeinside} regarding math and ligatures.
 %   \item[texcomments (boolean) (+false+)]
 %     Enables \LaTeX{} code inside comments.  The newer name for +texcl+.  See the note under \texttt{escapeinside} regarding math and ligatures.
+%
+%     As of Pygments 2.0.2, \texttt{texcomments} fails with multiline C/C\detokenize{++} preprocessor directives, and may fail in some other circumstances.  This is because preprocessor directives are \href{http://pygments.org/docs/tokens/}{tokenized as \texttt{Comment.Preproc}}, so \texttt{texcomments} causes preprocessor directives to be treated as literal \LaTeX\ code.  \href{https://bitbucket.org/birkenfeld/pygments-main/issue/1086/wrong-processing-of-in-c-c-macros-if-is}{An issue has been opened} at the Pygments site; additional details are also available on the \href{https://github.com/gpoore/minted/issues/66}{\pkg{minted} GitHub site}.
 %   \item[xleftmargin (dimension) (+0+)]
 %     Indentation to add before the listing.
 %   \item[xrightmargin (dimension) (+0+)]
