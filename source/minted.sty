@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/06/23 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/06/28 v2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -647,6 +647,11 @@
 \minted@def@optfv{breaksymbolright}
 \minted@def@optfv{breaksymbolsepright}
 \minted@def@optfv{breaksymbolindentright}
+\minted@def@optfv@switch{breakanywhere}
+\minted@def@optfv{breakanywheresymbolpre}
+\minted@def@optfv{breakanywheresymbolpost}
+\minted@def@optfv{breakanywhereafter}
+\minted@def@optfv@switch{breakanywhereaftergroup}
 \minted@def@opt@switch{breakbytoken}
 \minted@def@opt@switch{breakbytokenanywhere}
 \minted@def@opt{bgcolor}
@@ -693,6 +698,86 @@
   \setcounter{FancyVerbLineBreakLast}{\value{linenumber}}}
 \newcommand{\FancyVerbFormatBreakSymbolRight}[1]{%
   \ifnum\value{linenumber}=\value{FancyVerbLineBreakLast}\relax\else{#1}\fi}
+\newboolean{FV@BreakAnywhere}
+\define@booleankey{FV}{breakanywhere}%
+  {\FV@BreakAnywheretrue
+    \let\FancyVerbBreakAnywhereStart\FV@BreakAnywhere
+    \let\FancyVerbBreakAnywhereStop\FV@EndBreakAnywhere
+    \let\FV@BreakAnywhere@Token\FV@BreakAnywhere@AnyToken}%
+  {\FV@BreakAnywherefalse
+    \let\FancyVerbBreakAnywhereStart\relax
+    \let\FancyVerbBreakAnywhereStop\relax}
+\fvset{breakanywhere=false}
+\let\FancyVerbBreakAnywhereStart\relax
+\let\FancyVerbBreakAnywhereStop\relax
+\edef\FV@hashchar{\string#}
+\edef\FV@dollarchar{\string$}
+\edef\FV@ampchar{\string&}
+\edef\FV@underscorechar{\string_}
+\edef\FV@tildechar{\string~}
+\newcommand{\FV@EscChars}{%
+  \let\#\FV@hashchar
+  \let\%\@percentchar
+  \let\{\@charlb
+  \let\}\@charrb
+  \let\$\FV@dollarchar
+  \let\&\FV@ampchar
+  \let\_\FV@underscorechar
+  \let\\\@backslashchar
+  \let~\FV@tildechar
+  \let\~\FV@tildechar
+} %$ <- highlighting
+\define@key{FV}{breakanywhereafter}{%
+  \ifstrempty{#1}%
+   {\fvset{breakanywhere=false}%
+    \let\FV@BreakAnywhereAfter\@empty}%
+   {\fvset{breakanywhere=true}%
+    \let\FV@BreakAnywhere@Token\FV@BreakAnywhere@AfterToken
+    \def\FV@BreakAnywhereAfter{#1}}%
+}
+\fvset{breakanywhereafter={}}
+\newboolean{FV@BreakAnywhereAfterGroup}
+\define@booleankey{FV}{breakanywhereaftergroup}%
+ {\FV@BreakAnywhereAfterGrouptrue}%
+ {\FV@BreakAnywhereAfterGroupfalse}%
+\fvset{breakanywhereaftergroup=true}
+\def\FV@BreakAnywhereAfterPrep{%
+  \ifx\FV@BreakAnywhereAfter\@empty\relax
+  \else
+    \gdef\FV@BreakAnywhereAfter@Def{}%
+    \begingroup
+    \def\FV@BreakAnywhereAfter@Process##1##2\FV@Undefined{%
+      \expandafter\FV@BreakAnywhereAfter@Process@i\expandafter{##1}%
+      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
+      \else
+        \FV@BreakAnywhereAfter@Process##2\FV@Undefined
+      \fi
+    }%
+    \def\FV@BreakAnywhereAfter@Process@i##1{%
+      \g@addto@macro\FV@BreakAnywhereAfter@Def{%
+        \@namedef{FV@BreakAnywhereAfter@Char\detokenize{##1}}{}}%
+    }%
+    \FV@EscChars
+    \expandafter\FV@BreakAnywhereAfter@Process\FV@BreakAnywhereAfter\FV@Undefined
+    \endgroup
+    \FV@BreakAnywhereAfter@Def
+  \fi
+}
+\expandafter\def\expandafter\FV@FormattingPrep\expandafter{%
+  \expandafter\FV@BreakAnywhereAfterPrep\FV@FormattingPrep}
+\define@key{FV}{breakanywheresymbolpre}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakAnywhereSymbolPre{}}%
+    {\def\FancyVerbBreakAnywhereSymbolPre{\hbox{#1}}}}
+\fvset{breakanywheresymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
+\define@key{FV}{breakanywheresymbolpost}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakAnywhereSymbolPost{}}%
+    {\def\FancyVerbBreakAnywhereSymbolPost{\hbox{#1}}}}
+\fvset{breakanywheresymbolpost={}}
+\newcommand{\FancyVerbBreakAnywhereBreak}{%
+  \discretionary{\FancyVerbBreakAnywhereSymbolPre}%
+   {\FancyVerbBreakAnywhereSymbolPost}{}}
 \newsavebox{\FV@LineBox}
 \newsavebox{\FV@LineIndentBox}
 \let\FV@LineIndentChars\@empty
@@ -716,6 +801,63 @@
     \fi
   \fi
   \FV@Next
+}
+\def\FV@BreakAnywhere{%
+  \def\FV@Tmp{}%
+  \FV@BreakAnywhere@Scan
+}
+\def\FV@EndBreakAnywhere{\FV@Tmp}
+\begingroup
+\catcode`\$=3%
+\gdef\FV@BreakAnywhere@Scan{%
+  \@ifnextchar\FV@EndBreakAnywhere%
+   {}%
+   {\ifx\@let@token$\relax
+      \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Math
+    \else
+      \ifx\@let@token\bgroup\relax
+        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Group
+      \else
+        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Token
+      \fi
+    \fi
+    \FV@BreakAnywhere@Next}%
+}
+\endgroup
+\begingroup
+\catcode`\$=3%
+\gdef\FV@BreakAnywhere@Math$#1${%
+  \g@addto@macro{\FV@Tmp}{$#1$}%
+  \FV@BreakAnywhere@Scan}
+\endgroup
+\def\FV@BreakAnywhere@Group#1{%
+  \g@addto@macro{\FV@Tmp}{{#1}}%
+  \FV@BreakAnywhere@Scan}
+\def\FV@BreakAnywhere@AnyToken#1{%
+  \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
+  \FV@BreakAnywhere@Scan}
+\def\FV@BreakAnywhere@AfterToken#1{%
+  \ifcsname FV@BreakAnywhereAfter@Char\detokenize{#1}\endcsname
+    \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak
+  \else
+    \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenNoBreak
+  \fi
+  \FV@BreakAnywhere@Next{#1}%
+}
+\def\FV@BreakAnywhere@AfterTokenNoBreak#1{%
+  \g@addto@macro{\FV@Tmp}{#1}%
+  \FV@BreakAnywhere@Scan}
+\def\FV@BreakAnywhere@AfterTokenBreak#1{%
+  \@ifnextchar\FV@Space%
+   {\g@addto@macro{\FV@Tmp}{#1}\FV@BreakAnywhere@Scan}%
+   {\ifthenelse{\boolean{FV@BreakAnywhereAfterGroup}}%
+     {\ifx\@let@token#1\relax
+        \g@addto@macro{\FV@Tmp}{#1}%
+      \else
+        \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
+      \fi}%
+     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}}%
+    \FV@BreakAnywhere@Scan}%
 }
 \def\FV@makeLineNumber{%
   \hss
@@ -754,13 +896,14 @@
       \ifthenelse{\boolean{FV@BreakAutoIndent}}%
        {\hspace*{-\wd\FV@LineIndentBox}}%
        {}%
-      \strut#1\strut
+      \strut#1\nobreak\strut
       \end{internallinenumbers*}
     }%
     \ifdefempty{\FancyVerbBreakSymbolRight}{}%
      {\hbox to \FV@BreakSymbolIndentRight{\hfill}}%
   }%
 }
+\def\FancyVerbFormatText#1{#1}
 \def\FV@ListProcessLine@Break#1{%
   \hbox to \hsize{%
   \kern\leftmargin
@@ -773,13 +916,15 @@
     \advance\linewidth by -\FV@FrameSep
     \advance\linewidth by -\FV@FrameRule
   \fi
-  \sbox{\FV@LineBox}{\FancyVerbFormatLine{#1}}%
+  \sbox{\FV@LineBox}{\FancyVerbFormatLine{\FancyVerbFormatText{#1}}}%
   \ifdim\wd\FV@LineBox>\linewidth
     \setcounter{FancyVerbLineBreakLast}{0}%
-    \FV@SaveLineBox{#1}%
+    \FV@SaveLineBox{\FancyVerbFormatText{%
+      \FancyVerbBreakAnywhereStart#1\FancyVerbBreakAnywhereStop}}%
     \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
       \let\FV@SetLineBreakLast\relax
-      \FV@SaveLineBox{#1}}%
+      \FV@SaveLineBox{\FancyVerbFormatText{%
+        \FancyVerbBreakAnywhereStart#1\FancyVerbBreakAnywhereStop}}}%
     \FV@LeftListNumber
     \FV@LeftListFrame
     \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
@@ -789,7 +934,7 @@
     \FV@LeftListNumber
     \FV@LeftListFrame
     \FancyVerbFormatLine{%
-      \parbox[t]{\linewidth}{\noindent\strut#1\strut}}%
+      \parbox[t]{\linewidth}{\noindent\strut\FancyVerbFormatText{#1}\strut}}%
     \FV@RightListFrame
     \FV@RightListNumber
   \fi}%
@@ -935,6 +1080,12 @@
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
     {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
+  \ifthenelse{\boolean{FV@BreakAnywhere}}%
+    {\expandafter\let\expandafter\minted@orig@PYG@breakanywhere%
+       \csname PYG\minted@get@opt{style}{default}\endcsname
+     \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+       \minted@orig@PYG@breakanywhere{##1}%
+         {\FancyVerbBreakAnywhereStart##2\FancyVerbBreakAnywhereStop}}}{}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
     {\let\FV@BeginVBox\relax
@@ -953,15 +1104,15 @@
      {\minted@inputpyg@block}}%
 }
 \def\minted@inputpyg@breakbytoken{%
-  \expandafter\let\expandafter\minted@orig@PYG%
+  \expandafter\let\expandafter\minted@orig@PYG@breakbytoken%
     \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
    {\let\minted@orig@allowbreak\allowbreak
     \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
     \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \allowbreak{}\leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+      \allowbreak{}\leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
    {\expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \leavevmode\hbox{\minted@orig@PYG{##1}{##2}}}}%
+      \leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
 }
 \def\minted@inputpyg@inline{%
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
