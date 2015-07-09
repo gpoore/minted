@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/06/28 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/07/08 v2.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3009}
+% \CheckSum{3024}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -192,6 +192,7 @@
 %
 %
 % \begin{changelog}{v2.1}{2015/??/??}
+% \item Changing the highlighting style now no longer involves re-highlighing code.  Style may be changed with almost no overhead.
 % \item New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).
 % \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
@@ -1897,108 +1898,6 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@def@optcl@style}
-%
-% Define an option for styles.  These are defined independently because styles need slightly different syntax.  Also, it is conventient to create style macros when styles are set.  Otherwise, it would be necessary to check for the existence of style macros at the beginning of every command or environment.
-%    \begin{macrocode}
-\newcommand{\minted@def@optcl@style}{%
-  \define@key{minted@opt@g}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@g}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g:style}{##1}}%
-  \define@key{minted@opt@g@i}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@g@i}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g@i:style}{##1}}%
-  \define@key{minted@opt@lang}{style}{%
-    \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
-  \define@key{minted@opt@lang@i}{style}{%
-    \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
-  \define@key{minted@opt@cmd}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@cmd}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@cmd:style}{##1}}%
-}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{\minted@checkstyle}
-% Make sure that style macros exist.
-%
-% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  And we patch the single quote macro from Pygments 1.6+ if the \pkg{upquote} package is in use.  The conditionals for the patch definition are borrowed from \pkg{upquote}.  If we are in the preamble, we check for patching twice, once immediately and once at the beginning of the document, so that \pkg{upquote} will be detected even if it is loaded after \pkg{minted}.
-%    \begin{macrocode}
-\newcommand{\minted@patch@Zsq}[1]{%
-  \ifx\upquote@cmtt\minted@undefined\else
-    \ifx\encodingdefault\upquote@OTone
-      \ifx\ttdefault\upquote@cmtt
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\char13 }}{}%
-      \else
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-      \fi
-    \else
-      \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-      {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-    \fi
-  \fi
-}
-\newcommand{\minted@checkstyle}[1]{%
-  \ifcsname minted@styleloaded@#1\endcsname\else
-    \expandafter\gdef\csname minted@styleloaded@#1\endcsname{}%
-    \ifthenelse{\boolean{minted@cache}}%
-      {\IfFileExists{\minted@outputdir\minted@cachedir/#1.pygstyle}{}{%
-        \ifwindows
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
-            -P commandprefix=PYG#1
-            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar#1.pygstyle"}%
-        \else
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex 
-            -P commandprefix=PYG#1
-            > "\minted@outputdir\minted@cachedir/#1.pygstyle"}%
-        \fi
-        }%
-        \begingroup
-        \let\def\gdef
-        \endlinechar=-1\relax
-        \minted@input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-        \endgroup
-        \minted@addcachefile{#1.pygstyle}}%
-      {\ifwindows
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
-        \else
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
-        \fi
-        \begingroup
-        \let\def\gdef
-        \endlinechar=-1\relax
-        \minted@input{\minted@outputdir\jobname.out.pyg}%
-        \endgroup}%
-    \ifx\@onlypreamble\@notprerr
-      \minted@patch@Zsq{#1}%
-    \else
-      \minted@patch@Zsq{#1}%
-      \AtBeginDocument{\minted@patch@Zsq{#1}}%
-    \fi
-  \fi
-}
-\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
-%    \end{macrocode}
-% \end{macro}
-%
-%
 % \begin{macro}{\minted@def@optcl@switch}
 %
 % Define a switch or boolean option that is passed to Pygments, which is |true| when no value is specified.
@@ -2165,6 +2064,169 @@
 %
 % Before actually creating the option-definition macro, we need a few helper macros.
 %
+%
+% \begin{macro}{\minted@def@opt}
+% Finally, on to the actual option definitions for \pkg{minted}-specific options.
+%
+% Usage:  |\minted@def@opt[|\meta{initial global value}|]{|\meta{key name}|}|
+%    \begin{macrocode}
+\newcommand{\minted@def@opt}[2][]{%
+  \define@key{minted@opt@g}{#2}{%
+    \@namedef{minted@opt@g:#2}{##1}}
+  \define@key{minted@opt@g@i}{#2}{%
+    \@namedef{minted@opt@g@i:#2}{##1}}
+  \define@key{minted@opt@lang}{#2}{%
+    \@namedef{minted@opt@lang\minted@lang:#2}{##1}}
+  \define@key{minted@opt@lang@i}{#2}{%
+    \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
+  \define@key{minted@opt@cmd}{#2}{%
+    \@namedef{minted@opt@cmd:#2}{##1}}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\minted@def@opt@style}
+% Define an option for styles.  These are defined independently because styles need slightly different handling.  It is conventient to create style macros when styles are set.  Otherwise, it would be necessary to check for the existence of style macros at the beginning of every command or environment.
+%    \begin{macrocode}
+\newcommand{\minted@def@opt@style}{%
+  \define@key{minted@opt@g}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@g:style}{##1}}%
+  \define@key{minted@opt@g@i}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@g@i:style}{##1}}%
+  \define@key{minted@opt@lang}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
+  \define@key{minted@opt@lang@i}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
+  \define@key{minted@opt@cmd}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@cmd:style}{##1}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@checkstyle}
+% Make sure that style macros exist.
+%
+% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.
+%
+% If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default-pyg-prefix.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
+%
+% The typical style macros created by |\minted@checkstyle|, which are of the form |\PYG<style>|, are used indirectly.  All code is highlighted with |commandprefix=PYG|, so that it uses |\PYG|.  Then |\PYG| is |\let| to |\PYG<style>| as appropriate.  This way, code need not be highlighted again when the style is changed.  This has the disadvantage that none of the |\PYG<symbol>| macros will be defined; rather, only |\PYG<style><symbol>| macros will be defined.  It would be possible to |\let| |\PYG<symbol>| to |\PYG<style><symbol>|, but it is simpler to define a complete set of symbol macros using the |PYG| prefix, so that all symbol macros will be defined by default.\footnote{It would be possible to hard-code the symbol macros in \pkg{minted} itself, but that would have the disadvantage of tying \pkg{minted} more closely to a particular version of \pkg{Pygments}.  Similarly, \texttt{\string\let}ing symbol macros assumes a complete, fixed list of symbol macros.  The current approach is harder to break than these alternatives; the worst-case scenario should be needing to purge the cache, rather than dealing with an undefined macro.}
+%    \begin{macrocode}
+\newcommand{\minted@checkstyle}[1]{%
+  \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
+    \expandafter\gdef%
+      \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
+    \ifthenelse{\boolean{minted@cache}}%
+      {\IfFileExists
+       {\minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+       {}%
+       {%
+        \ifwindows
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+            -P commandprefix=PYG#1
+            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
+                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+        \else
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+            -P commandprefix=PYG#1
+            > "\minted@outputdir\minted@cachedir/
+                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+        \fi
+        }%
+        \begingroup
+        \let\def\gdef
+        \endlinechar=-1\relax
+        \minted@input{%
+          \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+        \endgroup
+        \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
+      {\ifwindows
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
+        \else
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
+        \fi
+        \begingroup
+        \let\def\gdef
+        \endlinechar=-1\relax
+        \minted@input{\minted@outputdir\jobname.out.pyg}%
+        \endgroup}%
+  \fi
+}
+\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
+%    \end{macrocode}
+% \end{macro}
+%
+% At the beginning of the document, create the symbol macros with |PYG| prefix.  This must wait until |\AtBeginDocument|, because the existence of |pygmentize| isn't tested and may not be final until |\AtEndPreamble|.  
+%    \begin{macrocode}
+\AtBeginDocument{\minted@checkstyle{}}
+%    \end{macrocode}
+%
+%
+% \begin{macro}{\minted@patch@PYGZsq}
+% Patch the \pkg{Pygments} single quote macro for \pkg{upquote}.  The single quote macro from Pygments 1.6+ needs to be patched if the \pkg{upquote} package is in use.  The conditionals for the patch definition are borrowed from \pkg{upquote}.  Patching is done |\AtBeginDocument|, after the macros will have been created.  Patching is only attempted if the macro exists, so that there is a graceful fallback in the event of a custom \pkg{Pygments} stylesheet.
+%    \begin{macrocode}
+\newcommand{\minted@patch@PYGZsq}{%
+  \ifcsname PYGZsq\endcsname
+    \ifx\upquote@cmtt\minted@undefined\else
+      \ifx\encodingdefault\upquote@OTone
+        \ifx\ttdefault\upquote@cmtt
+          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYGZsq\endcsname{\char13 }}{}%
+        \else
+          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
+        \fi
+      \else
+        \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+        {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
+      \fi
+    \fi
+  \fi
+}
+\ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@def@opt@switch}
+% And we need a switch version.
+%
+% It would be possible to create a special version of |\minted@get@opt| to work with these, but that would be redundant.  During the key processing, any values other than |true| and |false| are filtered out.  So when using |\minted@get@opt| later, we know that that part has already been taken care of, and we can just use something like |\ifthenelse{\equal{\minted@get@opt{<opt>}{<default>}}{true}}{...}{...}|.  Of course, there is the possibility that a default value has not been set, but  |\minted@def@opt@switch| sets a global default of |false| to avoid this.  And as usual, Pygments values shouldn't be used without considering whether |\minted@get@opt| needs a fallback value.
+%    \begin{macrocode}
+\newcommand{\minted@def@opt@switch}[2][false]{%
+  \define@booleankey{minted@opt@g}{#2}%
+    {\@namedef{minted@opt@g:#2}{true}}%
+    {\@namedef{minted@opt@g:#2}{false}}
+  \define@booleankey{minted@opt@g@i}{#2}%
+    {\@namedef{minted@opt@g@i:#2}{true}}%
+    {\@namedef{minted@opt@g@i:#2}{false}}
+  \define@booleankey{minted@opt@lang}{#2}%
+    {\@namedef{minted@opt@lang\minted@lang:#2}{true}}%
+    {\@namedef{minted@opt@lang\minted@lang:#2}{false}}
+  \define@booleankey{minted@opt@lang@i}{#2}%
+    {\@namedef{minted@opt@lang\minted@lang @i:#2}{true}}%
+    {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
+  \define@booleankey{minted@opt@cmd}{#2}%
+    {\@namedef{minted@opt@cmd:#2}{true}}%
+    {\@namedef{minted@opt@cmd:#2}{false}}%
+  \@namedef{minted@opt@g:#2}{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@get@opt}
 % We need a way to traverse the hierarchy of values for a given key and return the current value that has precedence.  In doing this, we need to specify a default value to use if no value is found.  When working with \pkg{minted}-specific values, there should generally be a default value; in those cases, an empty default may be supplied.  But the macro should also work with Pygments settings, which are stored in macros of the same form and will sometimes need to be accessed (for example, |encoding|).  In the Pygments case, there may very well be no default values on the \LaTeX\ side, because we are falling back on Pygments' own built-in defaults.  There is no need to duplicate those when very few Pygments values are ever needed; it is simpler to specify the default fallback when accessing the macro value.
 %
@@ -2208,53 +2270,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\minted@def@opt}
-% Finally, on to the actual option definitions for \pkg{minted}-specific options.
 %
-% Usage:  |\minted@def@opt[|\meta{initial global value}|]{|\meta{key name}|}|
-%    \begin{macrocode}
-\newcommand{\minted@def@opt}[2][]{%
-  \define@key{minted@opt@g}{#2}{%
-    \@namedef{minted@opt@g:#2}{##1}}
-  \define@key{minted@opt@g@i}{#2}{%
-    \@namedef{minted@opt@g@i:#2}{##1}}
-  \define@key{minted@opt@lang}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang:#2}{##1}}
-  \define@key{minted@opt@lang@i}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
-  \define@key{minted@opt@cmd}{#2}{%
-    \@namedef{minted@opt@cmd:#2}{##1}}
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\minted@def@opt@switch}
-% And we need a switch version.
-%
-% It would be possible to create a special version of |\minted@get@opt| to work with these, but that would be redundant.  During the key processing, any values other than |true| and |false| are filtered out.  So when using |\minted@get@opt| later, we know that that part has already been taken care of, and we can just use something like |\ifthenelse{\equal{\minted@get@opt{<opt>}{<default>}}{true}}{...}{...}|.  Of course, there is the possibility that a default value has not been set, but  |\minted@def@opt@switch| sets a global default of |false| to avoid this.  And as usual, Pygments values shouldn't be used without considering whether |\minted@get@opt| needs a fallback value.
-%    \begin{macrocode}
-\newcommand{\minted@def@opt@switch}[2][false]{%
-  \define@booleankey{minted@opt@g}{#2}%
-    {\@namedef{minted@opt@g:#2}{true}}%
-    {\@namedef{minted@opt@g:#2}{false}}
-  \define@booleankey{minted@opt@g@i}{#2}%
-    {\@namedef{minted@opt@g@i:#2}{true}}%
-    {\@namedef{minted@opt@g@i:#2}{false}}
-  \define@booleankey{minted@opt@lang}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{false}}
-  \define@booleankey{minted@opt@lang@i}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
-  \define@booleankey{minted@opt@cmd}{#2}%
-    {\@namedef{minted@opt@cmd:#2}{true}}%
-    {\@namedef{minted@opt@cmd:#2}{false}}%
-  \@namedef{minted@opt@g:#2}{#1}%
-}
-%    \end{macrocode}
-% \end{macro}
-
-
 % \noindent Actual option definitions.  Some of these must be defined conditionally depending on whether we are in |draft| mode; in |draft| mode, we need to emulate Pygments functionality with \LaTeX, particularly with \pkg{fancyvrb}, when possible.  For example, gobbling must be performed by Pygments when |draft| is off, but when |draft| is on, \pkg{fancyvrb} can perform gobbling.
 %
 % Lexers.
@@ -2280,17 +2296,13 @@
 \minted@def@optcl{keywordcase}{-F keywordcase:case}{#1}
 %    \end{macrocode}
 %
-% \LaTeX\ formatter.  Since \pkg{fancyvrb} currently doesn't have a |linenos| key, we create one (but only after checking to make sure that another package hasn't already patched this).
+% \LaTeX\ formatter.
 %    \begin{macrocode}
 \minted@def@optcl@switch{texcl}{-P texcomments}
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
-\ifcsname KV@FV@linenos\endcsname\else
-\define@booleankey{FV}{linenos}%
-  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
-\fi
 \minted@def@optfv@switch{linenos}
-\minted@def@optcl@style
+\minted@def@opt@style
 %    \end{macrocode}
 %
 % \pkg{fancyvrb} options.
@@ -2916,6 +2928,16 @@
 % \end{macro}
 %
 %
+% \subsection{\texttt{linenos}}
+% Since \pkg{fancyvrb} currently doesn't have a |linenos| key, we create one that mimics |numbers=left| (but only after checking to make sure that another package hasn't already patched this).
+%    \begin{macrocode}
+\ifcsname KV@FV@linenos\endcsname\else
+\define@booleankey{FV}{linenos}%
+  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
+\fi
+%    \end{macrocode}
+%
+%
 % \subsection{Cleanup}
 %
 % Finally, end the conditional creation of \pkg{fancyvrb} extensions.
@@ -3046,7 +3068,7 @@
   \def\minted@cmd{%
     \ifminted@kpsewhich\ifwindows powershell\space\fi\fi
     \MintedPygmentize\space -l #2
-    -f latex -F tokenmerge
+    -f latex -P commandprefix=PYG -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
     \minted@optlistcl@inlines
     \minted@optlistcl@cmd -o "\minted@outputdir\minted@infile"
@@ -3137,6 +3159,8 @@
 %
 % \begin{macro}{\minted@inputpyg}
 % For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.  To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
+%
+% At the last possible moment, |\PYG| is |\let| to |\PYG<style>|.  All modifications to the style macro for breaking are made to |\PYG<style>| rather than |\PYG|, so that the |\let|ing that must ultimately take place will indeed do what is intended.
 %    \begin{macrocode}
 \def\FV@SpaceMMode{ }
 \newcommand{\minted@inputpyg}{%
@@ -3178,12 +3202,16 @@
       \leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
 }
 \def\minted@inputpyg@inline{%
+  \expandafter\let\expandafter\PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\colorbox{\minted@get@opt{bgcolor}{}}{%
       \minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
+  \expandafter\let\expandafter\PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%

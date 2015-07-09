@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/06/28 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/07/08 v2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -311,91 +311,6 @@
         \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3=#4}%
         \@namedef{minted@opt@cmd:#2}{#4}}}%
 }
-\newcommand{\minted@def@optcl@style}{%
-  \define@key{minted@opt@g}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@g}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g:style}{##1}}%
-  \define@key{minted@opt@g@i}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@g@i}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g@i:style}{##1}}%
-  \define@key{minted@opt@lang}{style}{%
-    \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
-  \define@key{minted@opt@lang@i}{style}{%
-    \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
-  \define@key{minted@opt@cmd}{style}{%
-    \minted@addto@optlistcl{\minted@optlistcl@cmd}%
-      {-P style=##1 -P commandprefix=PYG##1}%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@cmd:style}{##1}}%
-}
-\newcommand{\minted@patch@Zsq}[1]{%
-  \ifx\upquote@cmtt\minted@undefined\else
-    \ifx\encodingdefault\upquote@OTone
-      \ifx\ttdefault\upquote@cmtt
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\char13 }}{}%
-      \else
-        \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-      \fi
-    \else
-      \expandafter\ifdefstring\expandafter{\csname PYG#1Zsq\endcsname}{\char`\'}%
-      {\expandafter\gdef\csname PYG#1Zsq\endcsname{\textquotesingle}}{}%
-    \fi
-  \fi
-}
-\newcommand{\minted@checkstyle}[1]{%
-  \ifcsname minted@styleloaded@#1\endcsname\else
-    \expandafter\gdef\csname minted@styleloaded@#1\endcsname{}%
-    \ifthenelse{\boolean{minted@cache}}%
-      {\IfFileExists{\minted@outputdir\minted@cachedir/#1.pygstyle}{}{%
-        \ifwindows
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1
-            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar#1.pygstyle"}%
-        \else
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1
-            > "\minted@outputdir\minted@cachedir/#1.pygstyle"}%
-        \fi
-        }%
-        \begingroup
-        \let\def\gdef
-        \endlinechar=-1\relax
-        \minted@input{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-        \endgroup
-        \minted@addcachefile{#1.pygstyle}}%
-      {\ifwindows
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
-        \else
-          \immediate\write18{\MintedPygmentize\space -S #1 -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
-        \fi
-        \begingroup
-        \let\def\gdef
-        \endlinechar=-1\relax
-        \minted@input{\minted@outputdir\jobname.out.pyg}%
-        \endgroup}%
-    \ifx\@onlypreamble\@notprerr
-      \minted@patch@Zsq{#1}%
-    \else
-      \minted@patch@Zsq{#1}%
-      \AtBeginDocument{\minted@patch@Zsq{#1}}%
-    \fi
-  \fi
-}
-\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
 \newcommand{\minted@def@optcl@switch}[2]{%
   \define@booleankey{minted@opt@g}{#1}%
     {\minted@addto@optlistcl{\minted@optlistcl@g}{#2=True}%
@@ -520,6 +435,120 @@
    {}%
   \expandafter\fvset\expandafter{\minted@optlistfv@cmd}%
 }
+\newcommand{\minted@def@opt}[2][]{%
+  \define@key{minted@opt@g}{#2}{%
+    \@namedef{minted@opt@g:#2}{##1}}
+  \define@key{minted@opt@g@i}{#2}{%
+    \@namedef{minted@opt@g@i:#2}{##1}}
+  \define@key{minted@opt@lang}{#2}{%
+    \@namedef{minted@opt@lang\minted@lang:#2}{##1}}
+  \define@key{minted@opt@lang@i}{#2}{%
+    \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
+  \define@key{minted@opt@cmd}{#2}{%
+    \@namedef{minted@opt@cmd:#2}{##1}}
+}
+\newcommand{\minted@def@opt@style}{%
+  \define@key{minted@opt@g}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@g:style}{##1}}%
+  \define@key{minted@opt@g@i}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@g@i:style}{##1}}%
+  \define@key{minted@opt@lang}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
+  \define@key{minted@opt@lang@i}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
+  \define@key{minted@opt@cmd}{style}{%
+    \minted@checkstyle{##1}%
+    \@namedef{minted@opt@cmd:style}{##1}}%
+}
+\newcommand{\minted@checkstyle}[1]{%
+  \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
+    \expandafter\gdef%
+      \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
+    \ifthenelse{\boolean{minted@cache}}%
+      {\IfFileExists
+       {\minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+       {}%
+       {%
+        \ifwindows
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1
+            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
+                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+        \else
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1
+            > "\minted@outputdir\minted@cachedir/
+                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+        \fi
+        }%
+        \begingroup
+        \let\def\gdef
+        \endlinechar=-1\relax
+        \minted@input{%
+          \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+        \endgroup
+        \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
+      {\ifwindows
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
+        \else
+          \immediate\write18{%
+            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
+        \fi
+        \begingroup
+        \let\def\gdef
+        \endlinechar=-1\relax
+        \minted@input{\minted@outputdir\jobname.out.pyg}%
+        \endgroup}%
+  \fi
+}
+\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
+\AtBeginDocument{\minted@checkstyle{}}
+\newcommand{\minted@patch@PYGZsq}{%
+  \ifcsname PYGZsq\endcsname
+    \ifx\upquote@cmtt\minted@undefined\else
+      \ifx\encodingdefault\upquote@OTone
+        \ifx\ttdefault\upquote@cmtt
+          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYGZsq\endcsname{\char13 }}{}%
+        \else
+          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+          {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
+        \fi
+      \else
+        \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+        {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
+      \fi
+    \fi
+  \fi
+}
+\ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
+\newcommand{\minted@def@opt@switch}[2][false]{%
+  \define@booleankey{minted@opt@g}{#2}%
+    {\@namedef{minted@opt@g:#2}{true}}%
+    {\@namedef{minted@opt@g:#2}{false}}
+  \define@booleankey{minted@opt@g@i}{#2}%
+    {\@namedef{minted@opt@g@i:#2}{true}}%
+    {\@namedef{minted@opt@g@i:#2}{false}}
+  \define@booleankey{minted@opt@lang}{#2}%
+    {\@namedef{minted@opt@lang\minted@lang:#2}{true}}%
+    {\@namedef{minted@opt@lang\minted@lang:#2}{false}}
+  \define@booleankey{minted@opt@lang@i}{#2}%
+    {\@namedef{minted@opt@lang\minted@lang @i:#2}{true}}%
+    {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
+  \define@booleankey{minted@opt@cmd}{#2}%
+    {\@namedef{minted@opt@cmd:#2}{true}}%
+    {\@namedef{minted@opt@cmd:#2}{false}}%
+  \@namedef{minted@opt@g:#2}{#1}%
+}
 \def\minted@get@opt#1#2{%
   \ifcsname minted@opt@cmd:#1\endcsname
     \csname minted@opt@cmd:#1\endcsname
@@ -555,37 +584,6 @@
     \fi
   \fi
 }%
-\newcommand{\minted@def@opt}[2][]{%
-  \define@key{minted@opt@g}{#2}{%
-    \@namedef{minted@opt@g:#2}{##1}}
-  \define@key{minted@opt@g@i}{#2}{%
-    \@namedef{minted@opt@g@i:#2}{##1}}
-  \define@key{minted@opt@lang}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang:#2}{##1}}
-  \define@key{minted@opt@lang@i}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
-  \define@key{minted@opt@cmd}{#2}{%
-    \@namedef{minted@opt@cmd:#2}{##1}}
-}
-\newcommand{\minted@def@opt@switch}[2][false]{%
-  \define@booleankey{minted@opt@g}{#2}%
-    {\@namedef{minted@opt@g:#2}{true}}%
-    {\@namedef{minted@opt@g:#2}{false}}
-  \define@booleankey{minted@opt@g@i}{#2}%
-    {\@namedef{minted@opt@g@i:#2}{true}}%
-    {\@namedef{minted@opt@g@i:#2}{false}}
-  \define@booleankey{minted@opt@lang}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{false}}
-  \define@booleankey{minted@opt@lang@i}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
-  \define@booleankey{minted@opt@cmd}{#2}%
-    {\@namedef{minted@opt@cmd:#2}{true}}%
-    {\@namedef{minted@opt@cmd:#2}{false}}%
-  \@namedef{minted@opt@g:#2}{#1}%
-}
-
 \minted@def@optcl{encoding}{-P encoding}{#1}
 \minted@def@optcl{outencoding}{-P outencoding}{#1}
 \minted@def@optcl@e{escapeinside}{-P "escapeinside}{#1"}
@@ -602,12 +600,8 @@
 \minted@def@optcl@switch{texcl}{-P texcomments}
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
-\ifcsname KV@FV@linenos\endcsname\else
-\define@booleankey{FV}{linenos}%
-  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
-\fi
 \minted@def@optfv@switch{linenos}
-\minted@def@optcl@style
+\minted@def@opt@style
 \minted@def@optfv{frame}
 \minted@def@optfv{framesep}
 \minted@def@optfv{framerule}
@@ -939,6 +933,10 @@
     \FV@RightListNumber
   \fi}%
   \hss}\baselineskip\z@\lineskip\z@}
+\ifcsname KV@FV@linenos\endcsname\else
+\define@booleankey{FV}{linenos}%
+  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
+\fi
 \fi
 \newsavebox{\minted@bgbox}
 \newenvironment{minted@colorbg}[1]{
@@ -989,7 +987,7 @@
   \def\minted@cmd{%
     \ifminted@kpsewhich\ifwindows powershell\space\fi\fi
     \MintedPygmentize\space -l #2
-    -f latex -F tokenmerge
+    -f latex -P commandprefix=PYG -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
     \minted@optlistcl@inlines
     \minted@optlistcl@cmd -o "\minted@outputdir\minted@infile"
@@ -1115,12 +1113,16 @@
       \leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
 }
 \def\minted@inputpyg@inline{%
+  \expandafter\let\expandafter\PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\colorbox{\minted@get@opt{bgcolor}{}}{%
       \minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
+  \expandafter\let\expandafter\PYG%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%
