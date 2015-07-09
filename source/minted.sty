@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/07/08 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/07/09 v2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -246,6 +246,8 @@
 \edef\minted@ampchar{\string&}
 \edef\minted@underscorechar{\string_}
 \edef\minted@tildechar{\string~}
+\edef\minted@leftsquarebracket{\string[}
+\edef\minted@rightsquarebracket{\string]}
 \newcommand{\minted@escchars}{%
   \let\#\minted@hashchar
   \let\%\@percentchar
@@ -257,6 +259,8 @@
   \let\\\@backslashchar
   \let~\minted@tildechar
   \let\~\minted@tildechar
+  \let\[\minted@leftsquarebracket
+  \let\]\minted@rightsquarebracket
 } %$ <- highlighting
 \newcommand{\minted@addto@optlistcl@e}[2]{%
   \begingroup
@@ -709,6 +713,8 @@
 \edef\FV@ampchar{\string&}
 \edef\FV@underscorechar{\string_}
 \edef\FV@tildechar{\string~}
+\edef\FV@leftsquarebracket{\string[}
+\edef\FV@rightsquarebracket{\string]}
 \newcommand{\FV@EscChars}{%
   \let\#\FV@hashchar
   \let\%\@percentchar
@@ -720,6 +726,8 @@
   \let\\\@backslashchar
   \let~\FV@tildechar
   \let\~\FV@tildechar
+  \let\[\FV@leftsquarebracket
+  \let\]\FV@rightsquarebracket
 } %$ <- highlighting
 \define@key{FV}{breakanywhereafter}{%
   \ifstrempty{#1}%
@@ -749,7 +757,7 @@
     }%
     \def\FV@BreakAnywhereAfter@Process@i##1{%
       \g@addto@macro\FV@BreakAnywhereAfter@Def{%
-        \@namedef{FV@BreakAnywhereAfter@Char\detokenize{##1}}{}}%
+        \@namedef{FV@BreakAnywhereAfter@Token\detokenize{##1}}{}}%
     }%
     \FV@EscChars
     \expandafter\FV@BreakAnywhereAfter@Process\FV@BreakAnywhereAfter\FV@Undefined
@@ -831,7 +839,7 @@
   \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
   \FV@BreakAnywhere@Scan}
 \def\FV@BreakAnywhere@AfterToken#1{%
-  \ifcsname FV@BreakAnywhereAfter@Char\detokenize{#1}\endcsname
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{#1}\endcsname
     \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak
   \else
     \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenNoBreak
@@ -847,12 +855,32 @@
    {\ifthenelse{\boolean{FV@BreakAnywhereAfterGroup}}%
      {\ifx\@let@token#1\relax
         \g@addto@macro{\FV@Tmp}{#1}%
+        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan
       \else
-        \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
+        \ifx\@let@token\bgroup\relax
+          \g@addto@macro{\FV@Tmp}{#1}%
+          \let\FV@TmpToken#1%
+          \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak@Group
+        \else
+          \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
+          \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan
+        \fi
       \fi}%
-     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}}%
-    \FV@BreakAnywhere@Scan}%
+     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
+      \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan}%
+    \FV@BreakAnywhere@Next}%
 }
+\def\FV@BreakAnywhere@AfterTokenBreak@Group#1{%
+  \g@addto@macro{\FV@Tmp}{{#1}}%
+  \ifstrempty{#1}%
+   {\let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak@Group@i}%
+   {\let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan}%
+  \FV@BreakAnywhere@Next}
+\def\FV@BreakAnywhere@AfterTokenBreak@Group@i{%
+  \@ifnextchar\FV@TmpToken%
+   {\FV@BreakAnywhere@Scan}%
+   {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak}%
+    \FV@BreakAnywhere@Scan}}
 \def\FV@makeLineNumber{%
   \hss
   \FancyVerbFormatBreakSymbolLeft{\FancyVerbBreakSymbolLeft}%
@@ -1074,7 +1102,66 @@
       \minted@inputpyg}%
 }
 \def\FV@SpaceMMode{ }
+\def\minted@BreakAnywhereAfterPrep@extension{%
+  \ifcsname FV@BreakAnywhereAfter@Token\@backslashchar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZbs}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\FV@underscorechar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZus}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\@charlb\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZob}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\@charrb\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZcb}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{^}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZca}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\FV@ampchar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZam}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{<}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZlt}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{>}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZgt}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\FV@hashchar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZsh}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\@percentchar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZpc}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\FV@dollarchar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZdl}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{-}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZhy}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{'}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZsq}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{"}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZdq}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\FV@tildechar\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZti}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{@}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZat}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{[}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZlb}}{}%
+  \fi
+  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{]}\endcsname
+    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZrb}}{}%
+  \fi
+}
 \newcommand{\minted@inputpyg}{%
+  \let\FV@BreakAnywhereAfterPrep@orig\FV@BreakAnywhereAfterPrep
+  \def\FV@BreakAnywhereAfterPrep{%
+    \FV@BreakAnywhereAfterPrep@orig\minted@BreakAnywhereAfterPrep@extension}%
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
     {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
