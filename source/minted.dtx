@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/07/09 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/09/08 v2.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3226}
+% \CheckSum{3283}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -191,9 +191,9 @@
 %
 %
 %
-% \begin{changelog}{v2.1}{2015/??/??}
+% \begin{changelog}{v2.1}{2015/09/??}
 % \item Changing the highlighting style now no longer involves re-highlighing code.  Style may be changed with almost no overhead.
-% \item New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).  New option \texttt{breakanywhereafter} allows specifying characters after which line breaks are allowed.  Breaks between adjacent, identical characters may be prevented with \texttt{breakanywhereaftergroup}.
+% \item New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).  New option \texttt{breakafter} allows specifying characters after which line breaks are allowed.  Breaks between adjacent, identical characters may be controlled with \texttt{breakaftergroup}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakaftersymbolpre} and \texttt{breakaftersymbolpost}
 % \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
 % \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).
@@ -870,6 +870,25 @@
 %
 %   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
 %     Value to use as for baselinestretch inside the listing.
+%
+%   \item[breakafter (string) (+\meta{none}+)]
+%     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.  For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
+%
+% \begin{longexample}
+%   \begin{minted}[breaklines, breakafter=d]{python}
+%   some_string = 'SomeTextThatGoesOnAndOnForSoLongThatItCouldNeverFitOnOneLine'
+%   \end{minted}
+% \end{longexample}
+%
+%   \item[breakaftergroup] (boolean) (+true+)
+%     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.
+%
+%   \item[breakaftersymbolpre (string) (+\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor}+)]
+%     The symbol inserted pre-break for breaks inserted by \texttt{breakafter}.
+%
+%   \item[breakaftersymbolpost (string) (+\meta{none}+)]
+%     The symbol inserted post-break for breaks inserted by \texttt{breakafter}.
+%
 %   \item[breakanywhere (boolean) (+false+)]
 %     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.
 %
@@ -878,18 +897,6 @@
 %   some_string = 'SomeTextThatGoesOnAndOnForSoLongThatItCouldNeverFitOnOneLine'
 %   \end{minted}
 % \end{longexample}
-%
-%   \item[breakanywhereafter (string) (+\meta{none}+)]
-%     \texttt{breakanywhere} may introduce breaks in undesirable locations.  This works like \texttt{breakanywhere}, except that breaks \emph{only} occur after the specified character(s).  Breaks are allowed \emph{anywhere} the character(s) appear.  For example, \texttt{breakanywhere=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakanywhereafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
-%
-% \begin{longexample}
-%   \begin{minted}[breaklines, breakanywhereafter=d]{python}
-%   some_string = 'SomeTextThatGoesOnAndOnForSoLongThatItCouldNeverFitOnOneLine'
-%   \end{minted}
-% \end{longexample}
-%
-%   \item[breakanywhereaftergroup] (boolean) (+true+)
-%     When \texttt{breakanywhereafter} is used, group all adjacent identical characters together, and only allow a break after the last character.
 %
 %   \item[breakanywheresymbolpre (string) (+\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor}+)]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakanywhere}.
@@ -909,7 +916,7 @@
 %   \item[breakindent (dimension) (+0pt+)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaklines (boolean) (+false+)] 
-%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, and \texttt{breakanywhereafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 % \begin{example}
 %   ...text.
@@ -1297,6 +1304,7 @@
 % \item \textbf{I want to use the command-line option \texttt{-output-directory}, or MiKTeX's \texttt{-aux-directory}, but am getting errors.}  Use the package option |outputdir| to specify the location of the output directory.  Unfortunately, there is no way for \pkg{minted} to detect the output directory automatically.
 %
 % \item \textbf{I want extended characters in frame labels, but am getting errors.}  This can happen with \pkg{minted} <2.0 and Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with any version of Python with \pkg{minted} 2.0+, which processes labels internally and does not send them to Python.
+% \item \textbf{\texttt{minted} environments have extra vertical space inside \texttt{tabular}.}  It is possible to \href{https://github.com/gpoore/minted/issues/82}{create a custom environment} that eliminates the extra space.  However, a general solution that behaves as expected in the presence of adjacent text remains to be found.
 % \end{itemize}
 %
 %
@@ -2347,11 +2355,13 @@
 \minted@def@optfv{breaksymbolright}
 \minted@def@optfv{breaksymbolsepright}
 \minted@def@optfv{breaksymbolindentright}
+\minted@def@optfv{breakafter}
+\minted@def@optfv@switch{breakaftergroup}
+\minted@def@optfv{breakaftersymbolpre}
+\minted@def@optfv{breakaftersymbolpost}
 \minted@def@optfv@switch{breakanywhere}
 \minted@def@optfv{breakanywheresymbolpre}
 \minted@def@optfv{breakanywheresymbolpost}
-\minted@def@optfv{breakanywhereafter}
-\minted@def@optfv@switch{breakanywhereaftergroup}
 %    \end{macrocode}
 %
 % Finally, options specific to \pkg{minted}.
@@ -2517,25 +2527,25 @@
 \newboolean{FV@BreakAnywhere}
 \define@booleankey{FV}{breakanywhere}%
   {\FV@BreakAnywheretrue
-    \let\FancyVerbBreakAnywhereStart\FV@BreakAnywhere
-    \let\FancyVerbBreakAnywhereStop\FV@EndBreakAnywhere
-    \let\FV@BreakAnywhere@Token\FV@BreakAnywhere@AnyToken}%
+    \let\FancyVerbBreakStart\FV@Break
+    \let\FancyVerbBreakStop\FV@EndBreak
+    \let\FV@Break@Token\FV@Break@AnyToken}%
   {\FV@BreakAnywherefalse
-    \let\FancyVerbBreakAnywhereStart\relax
-    \let\FancyVerbBreakAnywhereStop\relax}
+    \let\FancyVerbBreakStart\relax
+    \let\FancyVerbBreakStop\relax}
 \fvset{breakanywhere=false}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FancyVerbBreakAnywhereStart}
+% \begin{macro}{\FancyVerbBreakStart}
 %    \begin{macrocode}
-\let\FancyVerbBreakAnywhereStart\relax
+\let\FancyVerbBreakStart\relax
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FancyVerbBreakAnywhereStop}
+% \begin{macro}{\FancyVerbBreakStop}
 %    \begin{macrocode}
-\let\FancyVerbBreakAnywhereStop\relax
+\let\FancyVerbBreakStop\relax
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2566,59 +2576,63 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhereAfter}
+% \begin{macro}{\FV@BreakAfter}
 % Allow line breaking (almost) anywhere, but only after specified characters.
 %    \begin{macrocode}
-\define@key{FV}{breakanywhereafter}{%
+\define@key{FV}{breakafter}{%
   \ifstrempty{#1}%
-   {\fvset{breakanywhere=false}%
-    \let\FV@BreakAnywhereAfter\@empty}%
-   {\fvset{breakanywhere=true}%
-    \let\FV@BreakAnywhere@Token\FV@BreakAnywhere@AfterToken
-    \def\FV@BreakAnywhereAfter{#1}}%
+   {\let\FV@BreakAfter\@empty
+    \let\FancyVerbBreakStart\relax
+    \let\FancyVerbBreakStop\relax}%
+   {\def\FV@BreakAfter{#1}%
+    \let\FancyVerbBreakStart\FV@Break
+    \let\FancyVerbBreakStop\FV@EndBreak
+    \let\FV@Break@Token\FV@Break@AfterToken}%
 }
-\fvset{breakanywhereafter={}}
+\fvset{breakafter={}}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{FV@BreakAnywhereAfterGroup}
+% \begin{macro}{FV@BreakAfterGroup}
 % Determine whether breaking after specified characters is always allowed after each individual character, or is only allowed after groups of identical characters.
 %    \begin{macrocode}
-\newboolean{FV@BreakAnywhereAfterGroup}
-\define@booleankey{FV}{breakanywhereaftergroup}%
- {\FV@BreakAnywhereAfterGrouptrue}%
- {\FV@BreakAnywhereAfterGroupfalse}%
-\fvset{breakanywhereaftergroup=true}
+\newboolean{FV@BreakAfterGroup}
+\define@booleankey{FV}{breakaftergroup}%
+ {\FV@BreakAfterGrouptrue}%
+ {\FV@BreakAfterGroupfalse}%
+\fvset{breakaftergroup=true}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhereAfterPrep}
+% \begin{macro}{\FV@BreakAfterPrep}
 % We need a way to break after characters if they have been specified as breaking characters.  It would be possible to do that via a nested conditional, but that would be messy.  It is much simpler to create an empty macro whose name contains the character, and test for the existence of this macro.  This needs to be done inside a |\begingroup...\endgroup| so that the macros do not have to be cleaned up manually.  A good place to do this is in |\FV@FormattingPrep|, which is inside a group and before processing starts.
+%
+% The procedure here is a bit roundabout.  We need to use |\FV@EscChars| to handle character escapes, but the character redefinitions need to be kept local, requiring that we work within a |\begingroup...\endgroup|.  So we loop through the breaking tokens and assemble a macro that will itself define character macros.  Only this defining macro is declared global, and it contains \emph{expanded} characters so that there is no longer any dependence on |\FV@EscChars|.
 %    \begin{macrocode}
-\def\FV@BreakAnywhereAfterPrep{%
-  \ifx\FV@BreakAnywhereAfter\@empty\relax
+\def\FV@BreakAfterPrep{%
+  \ifx\FV@BreakAfter\@empty\relax
   \else
-    \gdef\FV@BreakAnywhereAfter@Def{}%
+    \gdef\FV@BreakAfter@Def{}%
     \begingroup
-    \def\FV@BreakAnywhereAfter@Process##1##2\FV@Undefined{%
-      \expandafter\FV@BreakAnywhereAfter@Process@i\expandafter{##1}%
+    \def\FV@BreakAfter@Process##1##2\FV@Undefined{%
+      \expandafter\FV@BreakAfter@Process@i\expandafter{##1}%
       \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
       \else
-        \FV@BreakAnywhereAfter@Process##2\FV@Undefined
+        \FV@BreakAfter@Process##2\FV@Undefined
       \fi
     }%
-    \def\FV@BreakAnywhereAfter@Process@i##1{%
-      \g@addto@macro\FV@BreakAnywhereAfter@Def{%
-        \@namedef{FV@BreakAnywhereAfter@Token\detokenize{##1}}{}}%
+    \def\FV@BreakAfter@Process@i##1{%
+      \g@addto@macro\FV@BreakAfter@Def{%
+        \@namedef{FV@BreakAfter@Token\detokenize{##1}}{}}%
     }%
     \FV@EscChars
-    \expandafter\FV@BreakAnywhereAfter@Process\FV@BreakAnywhereAfter\FV@Undefined
+    \expandafter\FV@BreakAfter@Process\FV@BreakAfter\FV@Undefined
     \endgroup
-    \FV@BreakAnywhereAfter@Def
+    \FV@BreakAfter@Def
   \fi
 }
 \expandafter\def\expandafter\FV@FormattingPrep\expandafter{%
-  \expandafter\FV@BreakAnywhereAfterPrep\FV@FormattingPrep}
+  \expandafter\FV@BreakAfterPrep\FV@FormattingPrep}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2644,6 +2658,28 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\FancyVerbBreakAfterSymbolPre}
+% The pre-break symbol for breaks introduced by |breakafter|.
+%    \begin{macrocode}
+\define@key{FV}{breakaftersymbolpre}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakAfterSymbolPre{}}%
+    {\def\FancyVerbBreakAfterSymbolPre{\hbox{#1}}}}
+\fvset{breakaftersymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\FancyVerbBreakAfterSymbolPost}
+% The post-break symbol for breaks introduced by |breakafter|.
+%    \begin{macrocode}
+\define@key{FV}{breakaftersymbolpost}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakAfterSymbolPost{}}%
+    {\def\FancyVerbBreakAfterSymbolPost{\hbox{#1}}}}
+\fvset{breakaftersymbolpost={}}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\FancyVerbBreakAnywhereBreak}
 % When |breakanywhere=true|, line breaks may occur at almost any location.  This is the macro that governs the breaking in those cases.  By default, |\discretionary| is used.  |\discretionary| takes three arguments:  a character to insert before the break, a character to insert after the break, and a character to insert if there is no break.
 %
@@ -2652,6 +2688,16 @@
 \newcommand{\FancyVerbBreakAnywhereBreak}{%
   \discretionary{\FancyVerbBreakAnywhereSymbolPre}%
    {\FancyVerbBreakAnywhereSymbolPost}{}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\FancyVerbBreakAfterBreak}
+% The macro governing breaking for |breakafter=true|.
+%    \begin{macrocode}
+\newcommand{\FancyVerbBreakAfterBreak}{%
+  \discretionary{\FancyVerbBreakAfterSymbolPre}%
+   {\FancyVerbBreakAfterSymbolPost}{}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2707,69 +2753,73 @@
 %
 % Define the macros that actually perform |breakanywhere|.
 %
-% \begin{macro}{\FV@BreakAnywhere}
-% The entry macro for breaking lines anywhere.  The current line (or argument) will be scanned token by token/group by group, and accumulated (with added potential breaks) in |\FV@Tmp|.  After scanning is complete, |\FV@Tmp| will be inserted.  It would be possible to insert each token/group into the document immediately after it is scanned, instead of accumulating them in a ``buffer.''  But that would interfere with macros.  Even in the current approach, macros that take optional arguments are problematic.\footnote{Through a suitable definition that tracks the current state and looks for square brackets, this might be circumvented.  Then again, in verbatim contexts, macro use should be minimal, so the restriction to macros without optional arguments should generally not be an issue.}
+% \begin{macro}{\FV@Break}
+% The entry macro for breaking lines, either anywhere or after specified characters.  The current line (or argument) will be scanned token by token/group by group, and accumulated (with added potential breaks) in |\FV@Tmp|.  After scanning is complete, |\FV@Tmp| will be inserted.  It would be possible to insert each token/group into the document immediately after it is scanned, instead of accumulating them in a ``buffer.''  But that would interfere with macros.  Even in the current approach, macros that take optional arguments are problematic.\footnote{Through a suitable definition that tracks the current state and looks for square brackets, this might be circumvented.  Then again, in verbatim contexts, macro use should be minimal, so the restriction to macros without optional arguments should generally not be an issue.}
 %    \begin{macrocode}
-\def\FV@BreakAnywhere{%
+\def\FV@Break{%
   \def\FV@Tmp{}%
-  \FV@BreakAnywhere@Scan
+  \FV@Break@Scan
 }
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@EndBreakAnywhere}
+% \begin{macro}{\FV@EndBreak}
 %    \begin{macrocode}
-\def\FV@EndBreakAnywhere{\FV@Tmp}
+\def\FV@EndBreak{\FV@Tmp}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhere@Scan}
+% \begin{macro}{\FV@Break@Scan}
 % Look ahead via |\@ifnextchar|.  Don't do anything if we're at the end of the region to be scanned.  Otherwise, invoke a macro to deal with what's next based on whether it is math, or a group, or something else.
 %
 % This and some following macros are defined inside of groups, to ensure proper catcodes.
 %    \begin{macrocode}
 \begingroup
 \catcode`\$=3%
-\gdef\FV@BreakAnywhere@Scan{%
-  \@ifnextchar\FV@EndBreakAnywhere%
+\gdef\FV@Break@Scan{%
+  \@ifnextchar\FV@EndBreak%
    {}%
    {\ifx\@let@token$\relax
-      \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Math
+      \let\FV@Break@Next\FV@Break@Math
     \else
       \ifx\@let@token\bgroup\relax
-        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Group
+        \let\FV@Break@Next\FV@Break@Group
       \else
-        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Token
+        \let\FV@Break@Next\FV@Break@Token
       \fi
     \fi
-    \FV@BreakAnywhere@Next}%
+    \FV@Break@Next}%
 }
 \endgroup
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhere@Math}
+% \begin{macro}{\FV@Break@Math}
 % Grab an entire math span, and insert it into |\FV@Tmp|.  Due to grouping, this works even when math contains things like |\text{$x$}|.  After dealing with the math span, continue scanning.
 %    \begin{macrocode}
 \begingroup
 \catcode`\$=3%
-\gdef\FV@BreakAnywhere@Math$#1${%
+\gdef\FV@Break@Math$#1${%
   \g@addto@macro{\FV@Tmp}{$#1$}%
-  \FV@BreakAnywhere@Scan}
+  \FV@Break@Scan}
 \endgroup
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhere@Group}
+% \begin{macro}{\FV@Break@Group}
 % Grab the group, and insert it into |\FV@Tmp| (as a group) before continuing scanning.
 %    \begin{macrocode}
-\def\FV@BreakAnywhere@Group#1{%
+\def\FV@Break@Group#1{%
   \g@addto@macro{\FV@Tmp}{{#1}}%
-  \FV@BreakAnywhere@Scan}
+  \FV@Break@Scan}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhere@AnyToken}
+% \begin{macro}{\FV@Break@Token}
+% This macro is |\let| to |\FV@Break@AnyToken| or |\FV@Break@AfterToken| by the |breakanywhere| and |breakafter| options, so it is not explicitly defined.
+% \end{macro}
+%
+% \begin{macro}{\FV@Break@AnyToken}
 % Deal with breaking around any token.
 %
 % If it is ever necessary, it would be possible to create a more sophisticated version involving catcode checks via |\ifcat|.  Something like this:
@@ -2777,66 +2827,70 @@
 %\begingroup
 %\catcode`\a=11%
 %\catcode`\+=12%
-%\gdef\FV@BreakAnywhere...
+%\gdef\FV@Break...
 %  \ifcat\noexpand#1a%
 %    \g@addto@macro{\FV@Tmp}...
 %  \else
 %...
 %\endgroup
 %\end{Verbatim}
+%
+% This doesn't break macros with \emph{mandatory} arguments, because |\FancyVerbBreakAnywhereBreak| is inserted \emph{before} the token.  Groups themselves are added without any special handling.  So a macro would end up right next to its original arguments, without anything being inserted.  Optional arguments will cause this approach to fail; there is currently no attempt to identify them, since that is a much harder problem.
 %    \begin{macrocode}
-\def\FV@BreakAnywhere@AnyToken#1{%
+\def\FV@Break@AnyToken#1{%
   \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
-  \FV@BreakAnywhere@Scan}
+  \FV@Break@Scan}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\FV@BreakAnywhere@AfterToken}
+% \begin{macro}{\FV@Break@AfterToken}
 % Deal with breaking around only specified tokens.  This is a bit trickier.  We only break if a macro corresponding to the token exists.  We also need to check whether the specified token should be grouped, that is, whether breaks are allowed between identical characters.  All of this has to be written carefully so that nothing is accidentally inserted into the stream for future scanning.
+%
+% Dealing with tokens followed by empty groups (for example, |\x{}|) is particularly challenging when we want to avoid breaks between identical characters.  When a token is followed by a group, we need to save the current token for later reference (|\x| in the example), then capture and save the following group, and then---only if the group was empty---see if the following token is identical to the old saved token.
 %    \begin{macrocode}
-\def\FV@BreakAnywhere@AfterToken#1{%
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{#1}\endcsname
-    \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak
+\def\FV@Break@AfterToken#1{%
+  \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
+    \let\FV@Break@Next\FV@Break@AfterTokenBreak
   \else
-    \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenNoBreak
+    \let\FV@Break@Next\FV@Break@AfterTokenNoBreak
   \fi
-  \FV@BreakAnywhere@Next{#1}%
+  \FV@Break@Next{#1}%
 }
-\def\FV@BreakAnywhere@AfterTokenNoBreak#1{%
+\def\FV@Break@AfterTokenNoBreak#1{%
   \g@addto@macro{\FV@Tmp}{#1}%
-  \FV@BreakAnywhere@Scan}
-\def\FV@BreakAnywhere@AfterTokenBreak#1{%
+  \FV@Break@Scan}
+\def\FV@Break@AfterTokenBreak#1{%
   \@ifnextchar\FV@Space%
-   {\g@addto@macro{\FV@Tmp}{#1}\FV@BreakAnywhere@Scan}%
-   {\ifthenelse{\boolean{FV@BreakAnywhereAfterGroup}}%
+   {\g@addto@macro{\FV@Tmp}{#1}\FV@Break@Scan}%
+   {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
      {\ifx\@let@token#1\relax
         \g@addto@macro{\FV@Tmp}{#1}%
-        \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan
+        \let\FV@Break@Next\FV@Break@Scan
       \else
         \ifx\@let@token\bgroup\relax
           \g@addto@macro{\FV@Tmp}{#1}%
           \let\FV@TmpToken#1%
-          \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak@Group
+          \let\FV@Break@Next\FV@Break@AfterTokenBreak@Group
         \else
-          \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
-          \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan
+          \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
+          \let\FV@Break@Next\FV@Break@Scan
         \fi
       \fi}%
-     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAnywhereBreak}%
-      \let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan}%
-    \FV@BreakAnywhere@Next}%
+     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
+      \let\FV@Break@Next\FV@Break@Scan}%
+    \FV@Break@Next}%
 }
-\def\FV@BreakAnywhere@AfterTokenBreak@Group#1{%
+\def\FV@Break@AfterTokenBreak@Group#1{%
   \g@addto@macro{\FV@Tmp}{{#1}}%
   \ifstrempty{#1}%
-   {\let\FV@BreakAnywhere@Next\FV@BreakAnywhere@AfterTokenBreak@Group@i}%
-   {\let\FV@BreakAnywhere@Next\FV@BreakAnywhere@Scan}%
-  \FV@BreakAnywhere@Next}
-\def\FV@BreakAnywhere@AfterTokenBreak@Group@i{%
+   {\let\FV@Break@Next\FV@Break@AfterTokenBreak@Group@i}%
+   {\let\FV@Break@Next\FV@Break@Scan}%
+  \FV@Break@Next}
+\def\FV@Break@AfterTokenBreak@Group@i{%
   \@ifnextchar\FV@TmpToken%
-   {\FV@BreakAnywhere@Scan}%
-   {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak}%
-    \FV@BreakAnywhere@Scan}}
+   {\FV@Break@Scan}%
+   {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAfterBreak}%
+    \FV@Break@Scan}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2929,11 +2983,11 @@
   \ifdim\wd\FV@LineBox>\linewidth
     \setcounter{FancyVerbLineBreakLast}{0}%
     \FV@SaveLineBox{\FancyVerbFormatText{%
-      \FancyVerbBreakAnywhereStart#1\FancyVerbBreakAnywhereStop}}%
+      \FancyVerbBreakStart#1\FancyVerbBreakStop}}%
     \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
       \let\FV@SetLineBreakLast\relax
       \FV@SaveLineBox{\FancyVerbFormatText{%
-        \FancyVerbBreakAnywhereStart#1\FancyVerbBreakAnywhereStop}}}%
+        \FancyVerbBreakStart#1\FancyVerbBreakStop}}}%
     \FV@LeftListNumber
     \FV@LeftListFrame
     \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
@@ -3187,66 +3241,66 @@
 % At the last possible moment, |\PYG| is |\let| to |\PYG<style>|.  All modifications to the style macro for breaking are made to |\PYG<style>| rather than |\PYG|, so that the |\let|ing that must ultimately take place will indeed do what is intended.
 %    \begin{macrocode}
 \def\FV@SpaceMMode{ }
-\def\minted@BreakAnywhereAfterPrep@extension{%
-  \ifcsname FV@BreakAnywhereAfter@Token\@backslashchar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZbs}}{}%
+\def\minted@BreakAfterPrep@extension{%
+  \ifcsname FV@BreakAfter@Token\@backslashchar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZbs}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\FV@underscorechar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZus}}{}%
+  \ifcsname FV@BreakAfter@Token\FV@underscorechar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZus}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\@charlb\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZob}}{}%
+  \ifcsname FV@BreakAfter@Token\@charlb\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZob}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\@charrb\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZcb}}{}%
+  \ifcsname FV@BreakAfter@Token\@charrb\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZcb}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{^}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZca}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{^}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZca}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\FV@ampchar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZam}}{}%
+  \ifcsname FV@BreakAfter@Token\FV@ampchar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZam}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{<}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZlt}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{<}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZlt}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{>}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZgt}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{>}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZgt}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\FV@hashchar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZsh}}{}%
+  \ifcsname FV@BreakAfter@Token\FV@hashchar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZsh}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\@percentchar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZpc}}{}%
+  \ifcsname FV@BreakAfter@Token\@percentchar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZpc}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\FV@dollarchar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZdl}}{}%
+  \ifcsname FV@BreakAfter@Token\FV@dollarchar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZdl}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{-}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZhy}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{-}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZhy}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{'}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZsq}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{'}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZsq}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{"}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZdq}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{"}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZdq}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\FV@tildechar\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZti}}{}%
+  \ifcsname FV@BreakAfter@Token\FV@tildechar\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZti}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{@}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZat}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{@}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZat}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{[}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZlb}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{[}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZlb}}{}%
   \fi
-  \ifcsname FV@BreakAnywhereAfter@Token\detokenize{]}\endcsname
-    \@namedef{FV@BreakAnywhereAfter@Token\detokenize{\PYGZrb}}{}%
+  \ifcsname FV@BreakAfter@Token\detokenize{]}\endcsname
+    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZrb}}{}%
   \fi
 }
 \newcommand{\minted@inputpyg}{%
-  \let\FV@BreakAnywhereAfterPrep@orig\FV@BreakAnywhereAfterPrep
-  \def\FV@BreakAnywhereAfterPrep{%
-    \FV@BreakAnywhereAfterPrep@orig\minted@BreakAnywhereAfterPrep@extension}%
+  \let\FV@BreakAfterPrep@orig\FV@BreakAfterPrep
+  \def\FV@BreakAfterPrep{%
+    \FV@BreakAfterPrep@orig\minted@BreakAfterPrep@extension}%
   \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
     {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
@@ -3255,7 +3309,15 @@
        \csname PYG\minted@get@opt{style}{default}\endcsname
      \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
        \minted@orig@PYG@breakanywhere{##1}%
-         {\FancyVerbBreakAnywhereStart##2\FancyVerbBreakAnywhereStop}}}{}%
+         {\FancyVerbBreakStart##2\FancyVerbBreakStop}}}{}%
+  \ifx\FV@BreakAfter\@empty
+  \else
+    \expandafter\let\expandafter\minted@orig@PYG@breakafter%
+      \csname PYG\minted@get@opt{style}{default}\endcsname
+    \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+      \minted@orig@PYG@breakafter{##1}%
+       {\FancyVerbBreakStart##2\FancyVerbBreakStop}}%
+  \fi
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
     {\let\FV@BeginVBox\relax
