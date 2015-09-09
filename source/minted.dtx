@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/09/08 v2.1dev Yet another Pygments shim for LaTeX]
+    [2015/09/09 v2.1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -191,9 +191,9 @@
 %
 %
 %
-% \begin{changelog}{v2.1}{2015/09/??}
+% \begin{changelog}{v2.1}{2015/09/09}
 % \item Changing the highlighting style now no longer involves re-highlighing code.  Style may be changed with almost no overhead.
-% \item New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).  New option \texttt{breakafter} allows specifying characters after which line breaks are allowed.  Breaks between adjacent, identical characters may be controlled with \texttt{breakaftergroup}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakaftersymbolpre} and \texttt{breakaftersymbolpost}
+% \item Improved control of automatic line breaks.  New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).  New option \texttt{breakafter} allows specifying characters after which line breaks are allowed.  Breaks between adjacent, identical characters may be controlled with \texttt{breakaftergroup}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakaftersymbolpre} and \texttt{breakaftersymbolpost}.
 % \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
 % \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
 % \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).

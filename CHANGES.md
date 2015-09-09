@@ -1,11 +1,51 @@
 # Changes
 
 
+## v2.1 (2015/09/09)
+
+*  Changing the highlighting style now no longer involves re-highlighing 
+   code.  Style may be changed with almost no overhead.
+   
+*  Improved control of automatic line breaks.  New option `breakanywhere` 
+   allows line breaks anywhere when `breaklines=true`.  The pre-break and 
+   post-break symbols for these types of breaks may be set with 
+   `breakanywheresymbolpre` and `breakanywheresymbolpost` (#79).  New option 
+   `breakafter` allows specifying characters after which line breaks are 
+   allowed.  Breaks between adjacent, identical characters may be controlled 
+   with `breakaftergroup`.  The pre-break and post-break symbols for these 
+   types of breaks may be set with `breakaftersymbolpre` and 
+   `breakaftersymbolpost`.
+   
+*  `breakbytoken` now only breaks lines between tokens that are separated by 
+   spaces, matching the documentation.  The new option `breakbytokenanywhere` 
+   allows for breaking between tokens that are immediately adjacent.  Fixed a 
+   bug in `\mintinline` that produced a following linebreak when 
+   `\mintinline` was the first thing in a paragraph and `breakbytoken` was 
+   true (#77).
+   
+*  Fixed a bug in draft mode option handling for `\inputminted` (#75).
+   
+*  Fixed a bug with `\MintedPygmentize` when a custom `pygmentize` was 
+   specified and there was no `pygmentize` on the default path (#62).
+   
+*  Added note to docs on caching large numbers of code blocks under OS X (#78).
+   
+*  Added discussion of current limitations of `texcomments` (#66) and 
+   `escapeinside` (#70).
+   
+*  PGF/Ti*k*Z externalization is automatically detected and supported 
+   (#73).
+   
+*  The package is now compatible with LaTeX files whose names contain spaces (#85).
+
+
+
 ## v2.0 (2015/01/31)
 
-*  Added the compatibility package `minted1`, which provides the `minted` 1.7 code.
-   This may be loaded when 1.7 compatibility is required.  This package works with 
-   other packages that `\RequirePackage{minted}`, so long as it is loaded first.
+*  Added the compatibility package `minted1`, which provides the `minted` 1.7 
+   code.  This may be loaded when 1.7 compatibility is required.  This package 
+   works with other packages that `\RequirePackage{minted}`, so long as it is 
+   loaded first.
 
 *  Moved all old `\changes` into `changelog`.
 
