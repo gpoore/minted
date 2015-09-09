@@ -200,6 +200,7 @@
 % \item Added note to docs on caching large numbers of code blocks under OS~X (\#78).
 % \item Added discussion of current limitations of \texttt{texcomments} (\#66) and \texttt{escapeinside} (\#70).
 % \item PGF/Ti\textit{k}Z externalization is automatically detected and supported (\#73).
+% \item The package is now compatible with \LaTeX\ files whose names contain spaces (\#85).
 % \end{changelog}
 %
 %
@@ -706,13 +707,13 @@
 % \DescribeMacro{cache=\meta{boolean} (default: true)}
 % \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are several chunks of code to highlight.  To avoid this, the package provides a |cache| option.  This is on by default.
 %
-% The |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory (this may be customized with the |cachedir| option).  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
+% The |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory (this may be customized with the |cachedir| option).\footnote{The directory is actually named using a ``sanitized'' copy of \meta{jobname}, in which spaces and asterisks have been replaced by underscores, and double quotation marks have been stripped.  If the file name contains spaces, \texttt{\string\jobname} will contain a quote-wrapped name, except under older versions of MiKTeX which used the name with spaces replaced by asterisks.  Using a ``sanitized'' \meta{jobname} is simpler than accomodating the various escaping conventions.}  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
 %
 % Cached files that are no longer in use are automatically deleted.\footnote{This depends on the main auxiliary file not being deleted or becoming corrupted.  If that happens, you could simply delete the cache directory and start over.}
 %
 %
 % \DescribeMacro{cachedir=\meta{directory} (def:~\_minted-\meta{jobname})}
-% This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
+% This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.
 %
 % Note that this directory is relative to the |outputdir|, if an |outputdir| is specified.
 %
@@ -1385,12 +1386,19 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@cachedir}
-% Set the directory in which cached content is saved.  The default uses a |minted-| prefix followed by a sanitized |\jobname| (spaces and asterisks replaced).
+% \begin{macro}{\minted@jobname}
+% At various points, temporary files and directories will need to be named after the main |.tex| file.  The typical way to do this is to use |\jobname|.  However, if the file name contains spaces, then |\jobname| will contain the name wrapped in quotes (older versions of MiKTeX replace spaces with asterisks instead, and \texttt{XeTeX} apparently \href{http://tex.stackexchange.com/a/93829/10742}{allows double quotes within file names}, in which case names are wrapped in single quotes}).  While that is perfectly fine for working with \LaTeX\ internally, it causes problems with |\write18|, since quotes will end up in unwanted locations in shell commands.  It would be possible to strip the wrapping quotation marks when they are present, and maintain any spaces in the file name.  But it is simplest to create a ``sanitized'' version of |\jobname| in which spaces and asterisks are replaced by underscores, and double quotes are stripped.
 %    \begin{macrocode}
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{*}{-}[\minted@jobname]
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@cachedir}
+% Set the directory in which cached content is saved.  The default uses a |minted-| prefix followed by the sanitized |\minted@jobname|.
+%    \begin{macrocode}
 \newcommand{\minted@cachedir}{\detokenize{_}minted-\minted@jobname}
 \let\minted@cachedir@windows\minted@cachedir
 \define@key{minted}{cachedir}{%
@@ -1485,7 +1493,7 @@
 % \begin{macro}{\minted@infile}
 % Define a default name for files of highlighted content that are brought it.  Caching will redefine this.  We start out with the default, non-caching value.
 %    \begin{macrocode}
-\newcommand{\minted@infile}{\jobname.out.pyg}
+\newcommand{\minted@infile}{\minted@jobname.out.pyg}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1630,12 +1638,12 @@
 % otherwise, it will contain the full path of the application.
 %
 %    \begin{macrocode}
-    \DeleteFile{\jobname.aex}
+    \DeleteFile{\minted@jobname.aex}
     \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set >"\jobname.aex" <nul: /p 
-      x=\string^\@percentchar \string~$PATH:i>>"\jobname.aex"}
+      do set >"\minted@jobname.aex" <nul: /p 
+      x=\string^\@percentchar \string~$PATH:i>>"\minted@jobname.aex"}
     %$ <- balance syntax highlighting
-    \immediate\openin\minted@appexistsfile\jobname.aex
+    \immediate\openin\minted@appexistsfile\minted@jobname.aex
     \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
     \endlinechar=-1\relax
     \readline\minted@appexistsfile to \minted@apppathifexists
@@ -1644,17 +1652,17 @@
      {\AppExistsfalse}
      {\AppExiststrue}
     \immediate\closein\minted@appexistsfile
-    \DeleteFile{\jobname.aex}
+    \DeleteFile{\minted@jobname.aex}
   \else
 %    \end{macrocode}
 %
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success, whose existence we can then check.
 %
 %    \begin{macrocode}
-    \immediate\write18{which "#1" && touch "\jobname.aex"}
-    \IfFileExists{\jobname.aex}
+    \immediate\write18{which "#1" && touch "\minted@jobname.aex"}
+    \IfFileExists{\minted@jobname.aex}
       {\AppExiststrue
-        \DeleteFile{\jobname.aex}}
+        \DeleteFile{\minted@jobname.aex}}
       {\AppExistsfalse}
   \fi
 }
@@ -2159,16 +2167,16 @@
       {\ifwindows
           \immediate\write18{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir@windows\jobname.out.pyg"}%
+            -P commandprefix=PYG#1 > "\minted@outputdir@windows\minted@jobname.out.pyg"}%
         \else
           \immediate\write18{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir\jobname.out.pyg"}%
+            -P commandprefix=PYG#1 > "\minted@outputdir\minted@jobname.out.pyg"}%
         \fi
         \begingroup
         \let\def\gdef
         \endlinechar=-1\relax
-        \minted@input{\minted@outputdir\jobname.out.pyg}%
+        \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%
   \fi
 }
@@ -3065,7 +3073,7 @@
 % Save code to be pygmentized to a file.
 %    \begin{macrocode}
 \newcommand{\minted@savecode}[1]{
-  \immediate\openout\minted@code\jobname.pyg\relax
+  \immediate\openout\minted@code\minted@jobname.pyg\relax
   \immediate\write\minted@code{\expandafter\detokenize\expandafter{#1}}%
   \immediate\closeout\minted@code}
 %    \end{macrocode}
@@ -3123,7 +3131,7 @@
 %
 % \begin{macro}{\minted@pygmentize}
 %
-% Pygmentize a file (default: |\minted@outputdir\jobname.pyg|) using the options provided.
+% Pygmentize a file (default: |\minted@outputdir\minted@jobname.pyg|) using the options provided.
 %
 % Unfortunately, the logic for caching is a little complex due to operations that are OS- and engine-dependent.
 %
@@ -3134,9 +3142,9 @@
 % \textbf{This macro must always be checked carefully whenever it is modified.}  Under no circumstances should |#1| be written to or opened by Python in write mode.  When |\inputminted| is used, |#1| will be an external file that is brought in for highlighting, so it must be left intact.
 %
 %    \begin{macrocode}
-\newcommand{\minted@pygmentize}[2][\minted@outputdir\jobname.pyg]{%
+\newcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
   \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-    {\def\minted@codefile{\minted@outputdir\jobname.pyg}}%
+    {\def\minted@codefile{\minted@outputdir\minted@jobname.pyg}}%
     {\def\minted@codefile{#1}}%
   \ifthenelse{\boolean{minted@isinline}}%
     {\def\minted@optlistcl@inlines{%
@@ -3172,7 +3180,7 @@
           {\edef\minted@hash{\pdf@filemdfivesum{#1}%
             \pdf@mdfivesum{\minted@cmd}}}%
       \else
-        \immediate\openout\minted@code\jobname.mintedcmd\relax
+        \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
         \immediate\write\minted@code{\minted@cmd}%
         \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
           {\immediate\write\minted@code{autogobble}}{}%
@@ -3182,18 +3190,18 @@
         \def\minted@hashcmd{%
           \detokenize{python -c "import hashlib;
             hasher = hashlib.sha1();
-            f = open(\"}\minted@outputdir\jobname.mintedcmd\detokenize{\", \"rb\");
+            f = open(\"}\minted@outputdir\minted@jobname.mintedcmd\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
             f = open(\"}#1\detokenize{\", \"rb\");
             hasher.update(f.read());
             f.close();
-            f = open(\"}\minted@outputdir\jobname.mintedmd5\detokenize{\", \"w\");
+            f = open(\"}\minted@outputdir\minted@jobname.mintedmd5\detokenize{\", \"w\");
             macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
             f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
             f.close();"}}%
         \immediate\write18{\minted@hashcmd}%
-        \minted@input{\minted@outputdir\jobname.mintedmd5}%
+        \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
       \fi
       \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
       \IfFileExists{\minted@infile}{}{%
@@ -3206,7 +3214,7 @@
             f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
             t = f.read();
             f.close();
-            f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
+            f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
             f.write(textwrap.dedent(t));
             f.close();"}%
           }%
@@ -3224,7 +3232,7 @@
           f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
           t = f.read();
           f.close();
-          f = open(\"}\minted@outputdir\jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
+          f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
           f.write(textwrap.dedent(t));
           f.close();"}%
         }%
@@ -3455,7 +3463,7 @@
 % The |\mintinline| and |\mint| commands will need to write the code they capture to a temporary file for highlighting.  It will be convenient to be able to accomplish this via a simple macro, since that makes it simpler to deal with any expansion of what is to be written.  This isn't needed for the |minted| environment, because the (patched) |VerbatimOut| is used.
 %    \begin{macrocode}
 \newcommand{\minted@writecmdcode}[1]{%
-  \immediate\openout\minted@code\jobname.pyg\relax
+  \immediate\openout\minted@code\minted@jobname.pyg\relax
   \immediate\write\minted@code{\detokenize{#1}}%
   \immediate\closeout\minted@code}
 %    \end{macrocode}
@@ -3612,7 +3620,7 @@
       \minted@configlang{#2}%
       \setkeys{minted@opt@cmd}{#1}%
       \minted@fvset
-      \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\jobname.pyg}}%
+      \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\minted@jobname.pyg}}%
     {\end{VerbatimOut}%
         \minted@langlinenoson
         \minted@pygmentize{\minted@lang}%
@@ -3852,11 +3860,11 @@
 \AtEndDocument{
   \ifx\XeTeXinterchartoks\minted@undefined
   \else
-    \DeleteFile[\minted@outputdir]{\jobname.mintedcmd}%
-    \DeleteFile[\minted@outputdir]{\jobname.mintedmd5}%
+    \DeleteFile[\minted@outputdir]{\minted@jobname.mintedcmd}%
+    \DeleteFile[\minted@outputdir]{\minted@jobname.mintedmd5}%
   \fi
-  \DeleteFile[\minted@outputdir]{\jobname.pyg}%
-  \DeleteFile[\minted@outputdir]{\jobname.out.pyg}%
+  \DeleteFile[\minted@outputdir]{\minted@jobname.pyg}%
+  \DeleteFile[\minted@outputdir]{\minted@jobname.out.pyg}%
 }
 %    \end{macrocode}
 %
