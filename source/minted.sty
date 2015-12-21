@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/12/20 v2.2dev Yet another Pygments shim for LaTeX]
+    [2015/12/21 v2.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -67,10 +67,14 @@
 \DeclareComplementaryOption{final}{draft}
 \ProcessKeyvalOptions*
 \ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
-\ifcsname tikzexternalrealjob\endcsname
-  \minted@drafttrue
-  \minted@cachefalse
+\ifcsname tikzifexternalizing\endcsname
+  \tikzifexternalizing{\minted@drafttrue\minted@cachefalse}{}
 \else
+  \ifcsname tikzexternalrealjob\endcsname
+    \minted@drafttrue
+    \minted@cachefalse
+  \else
+  \fi
 \fi
 \ifthenelse{\boolean{minted@cache}}{%
   \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}

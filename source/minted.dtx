@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/12/20 v2.2dev Yet another Pygments shim for LaTeX]
+    [2015/12/21 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3287}
+% \CheckSum{3294}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -193,8 +193,10 @@
 %
 %
 % \begin{changelog}{v2.2}{2015/12/??}
+% \item Improved fix for TikZ externalization (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
 % \item Properly fixed \#62.
+% \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).
 % \end{changelog}
 %
 %
@@ -1463,15 +1465,19 @@
 % \end{macro}
 %
 %
-% Process package options.  Proceed with everything that immediately relies upon them.  If PGF/Ti\textit{k}Z externalization is in use, switch on |draft| mode and turn off |cache|.  Externalization involves compiling the \emph{entire} document; all parts not related to the current image are ``silently thrown away.'' \pkg{minted} needs to cooperate with that by not writing any temp files or creating any directories.
+% Process package options.  Proceed with everything that immediately relies upon them.  If PGF/Ti\textit{k}Z externalization is in use, switch on |draft| mode and turn off |cache|.  Externalization involves compiling the \emph{entire} document; all parts not related to the current image are ``silently thrown away.'' \pkg{minted} needs to cooperate with that by not writing any temp files or creating any directories.  Two checks are done for externalization.  The first, using |\tikzifexternalizing|, works if externalization is set before \pkg{minted} is loaded.  The second, using |\tikzexternalrealjob|, works if externalization is set after \pkg{minted} is loaded.
 %
 %    \begin{macrocode}
 \ProcessKeyvalOptions*
 \ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
-\ifcsname tikzexternalrealjob\endcsname
-  \minted@drafttrue
-  \minted@cachefalse
+\ifcsname tikzifexternalizing\endcsname 
+  \tikzifexternalizing{\minted@drafttrue\minted@cachefalse}{}
 \else
+  \ifcsname tikzexternalrealjob\endcsname
+    \minted@drafttrue
+    \minted@cachefalse
+  \else
+  \fi
 \fi
 \ifthenelse{\boolean{minted@cache}}{%
   \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
