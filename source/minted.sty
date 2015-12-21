@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2015/09/09 v2.1 Yet another Pygments shim for LaTeX]
+    [2015/12/20 v2.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -1482,7 +1482,7 @@
 }
 \AtEndPreamble{%
   \ifthenelse{\boolean{minted@draft}}{}{%
-    \TestAppExists{pygmentize}%
+    \TestAppExists{\MintedPygmentize}%
     \ifAppExists\else
       \PackageError{minted}%
        {You must have `pygmentize' installed

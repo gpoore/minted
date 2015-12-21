@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/09/09 v2.1 Yet another Pygments shim for LaTeX]
+    [2015/12/20 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3283}
+% \CheckSum{3284}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -189,6 +189,12 @@
 %   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %   Right brace   \}     Tilde         \~}
 %
+%
+%
+%
+% \begin{changelog}{v2.2}{2015/12/??}
+% \item Properly fixed \#62.
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.1}{2015/09/09}
@@ -3839,7 +3845,7 @@
 }
 \AtEndPreamble{%
   \ifthenelse{\boolean{minted@draft}}{}{%
-    \TestAppExists{pygmentize}%
+    \TestAppExists{\MintedPygmentize}%
     \ifAppExists\else
       \PackageError{minted}%
        {You must have `pygmentize' installed
