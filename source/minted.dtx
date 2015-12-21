@@ -197,6 +197,7 @@
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
 % \item Properly fixed \#62.
 % \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).
+% \item Added note to FAQ on \texttt{fancybox} and \texttt{fancyvrb} conflict (\#87).
 % \end{changelog}
 %
 %
@@ -1250,6 +1251,7 @@
 %
 % \begin{itemize}
 % \item \textbf{I receive a ``Too many open files'' error under OS X when using caching.}  See the note on OS X under Section~\ref{sec:basic:preliminary}.
+% \item \textbf{Weird things happen when I use the \pkg{fancybox} package.}  \pkg{fancybox} conflicts with \pkg{fancyvrb}, which \pkg{minted} uses internally.  When using \pkg{fancybox}, make sure that it is loaded before \pkg{minted} (or before \pkg{fancyvrb}, if \pkg{fancyvrb} is not loaded by \pkg{minted}).
 % \item \textbf{When I use \pkg{minted} with KOMA-Script document classes, I get warnings about \texttt{\string\float@addtolists}.}  \pkg{minted} uses the \pkg{float} package to produce floated listings, but this conflicts with the way KOMA-Script does floats.  Load the package \pkg{scrhack} to resolve the conflict.  Or use \pkg{minted}'s |newfloat| package option.
 % \item \textbf{Tilde characters \texttt{\string~} are raised, almost like superscripts.}
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
