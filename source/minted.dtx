@@ -196,7 +196,7 @@
 % \item Improved fix for TikZ externalization (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
 % \item Properly fixed \#62.
-% \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).
+% \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).  Added note on issues with \texttt{obeytabs} and multiline comments (\#88).  Due to the various \texttt{obeytabs} issues, the docs now discourage using \texttt{obeytabs}.
 % \item Added note to FAQ on \texttt{fancybox} and \texttt{fancyvrb} conflict (\#87).
 % \end{changelog}
 %
@@ -1127,7 +1127,15 @@
 %   \item[numbersep (dimension) (+12pt+)]
 %     Gap between numbers and start of line.
 %   \item[obeytabs (boolean) (+false+)]
-%     Treat tabs as tabs instead of converting them to spaces.  \textbf{This is not compatible with the option \texttt{breaklines}.}  Additional information about the incompatibility is on \href{https://github.com/gpoore/minted/issues/99}{GitHub}.
+% \textbf{\textcolor{red}{Due to the many issues with \pkg{fancyvrb}'s implementation of \texttt{obeytabs}, this option should be avoided if possible.}}
+%
+%     Treat tabs as tabs instead of converting them to spaces.
+%
+% \textbf{This is not compatible with the option \texttt{breaklines}.}
+%
+% \textbf{This will cause errors with tabbed indentation inside multiline comments.}
+%
+% There is a \href{https://github.com/gpoore/minted/issues/99}{GitHub issue} with additional technical details.
 %   \item[outencoding (string) (system-specific)]
 %     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
 %   \item[python3 (boolean) (+false+)] \appliesto{PythonConsoleLexer}
