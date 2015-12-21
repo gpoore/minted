@@ -945,6 +945,10 @@
 }
 \def\FancyVerbFormatText#1{#1}
 \def\FV@ListProcessLine@Break#1{%
+  \ifx\FV@ObeyTabsInit\relax\else
+    \PackageError{minted}%
+     {the options obeytabs and breaklines are not compatible}{}%
+  \fi
   \hbox to \hsize{%
   \kern\leftmargin
   \hbox to \linewidth{%

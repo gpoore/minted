@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3281}
+% \CheckSum{3287}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -924,7 +924,11 @@
 %   \item[breakindent (dimension) (+0pt+)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %   \item[breaklines (boolean) (+false+)] 
-%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.  By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+%     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.
+%
+% \textbf{This is not compatible with the option \texttt{obeytabs}.}  Additional information about the incompatibility is on \href{https://github.com/gpoore/minted/issues/99}{GitHub}.
+%
+% By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 % \begin{example}
 %   ...text.
@@ -1120,7 +1124,7 @@
 %   \item[numbersep (dimension) (+12pt+)]
 %     Gap between numbers and start of line.
 %   \item[obeytabs (boolean) (+false+)]
-%     Treat tabs as tabs instead of converting them to spaces.
+%     Treat tabs as tabs instead of converting them to spaces.  \textbf{This is not compatible with the option \texttt{breaklines}.}  Additional information about the incompatibility is on \href{https://github.com/gpoore/minted/issues/99}{GitHub}.
 %   \item[outencoding (string) (system-specific)]
 %     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
 %   \item[python3 (boolean) (+false+)] \appliesto{PythonConsoleLexer}
@@ -2984,6 +2988,10 @@
 % If a line is too wide, then it is passed to |\FV@SaveLineBox|.  If there is no right-hand break symbol, then the saved result in |\FV@LineBox| may be used immediately.  If there is a right-hand break symbol, then the line must be processed a second time, so that the right-hand break symbol may be removed from the final segment of the broken line (since it does not continue).  During the first use of |\FV@SaveLineBox|, the counter |FancyVerbLineBreakLast| is set to the internal line number of the last segment of the broken line.  During the second use of |\FV@SaveLineBox|, we disable this (|\let\FV@SetLineBreakLast\relax|) so that the value of |FancyVerbLineBreakLast| remains fixed and thus may be used to determine when a right-hand break symbol should be inserted.
 %    \begin{macrocode}
 \def\FV@ListProcessLine@Break#1{%
+  \ifx\FV@ObeyTabsInit\relax\else
+    \PackageError{minted}%
+     {the options obeytabs and breaklines are not compatible}{}%
+  \fi
   \hbox to \hsize{%
   \kern\leftmargin
   \hbox to \linewidth{%
