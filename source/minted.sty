@@ -935,7 +935,8 @@
       \ifthenelse{\boolean{FV@BreakAutoIndent}}%
        {\hspace*{-\wd\FV@LineIndentBox}}%
        {}%
-      \strut#1\nobreak\strut
+      \strut\FancyVerbFormatText{%
+        \FancyVerbBreakStart#1\FancyVerbBreakStop}\nobreak\strut
       \end{internallinenumbers*}
     }%
     \ifdefempty{\FancyVerbBreakSymbolRight}{}%
@@ -958,12 +959,10 @@
   \sbox{\FV@LineBox}{\FancyVerbFormatLine{\FancyVerbFormatText{#1}}}%
   \ifdim\wd\FV@LineBox>\linewidth
     \setcounter{FancyVerbLineBreakLast}{0}%
-    \FV@SaveLineBox{\FancyVerbFormatText{%
-      \FancyVerbBreakStart#1\FancyVerbBreakStop}}%
+    \FV@SaveLineBox{#1}%
     \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
       \let\FV@SetLineBreakLast\relax
-      \FV@SaveLineBox{\FancyVerbFormatText{%
-        \FancyVerbBreakStart#1\FancyVerbBreakStop}}}%
+      \FV@SaveLineBox{#1}}%
     \FV@LeftListNumber
     \FV@LeftListFrame
     \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
