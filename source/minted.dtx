@@ -193,11 +193,12 @@
 %
 %
 % \begin{changelog}{v2.2}{2015/12/??}
-% \item Improved fix for TikZ externalization (\#73).
+% \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
 % \item Properly fixed \#62.
 % \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).  Added note on issues with \texttt{obeytabs} and multiline comments (\#88).  Due to the various \texttt{obeytabs} issues, the docs now discourage using \texttt{obeytabs}.
 % \item Added note to FAQ on \texttt{fancybox} and \texttt{fancyvrb} conflict (\#87).
+% \item Added note to docs on the need for \texttt{\string\VerbatimEnvironment} in environment definitions based on \texttt{minted} environments.
 % \end{changelog}
 %
 %
@@ -1220,6 +1221,12 @@
 % If this name clashes with another environment or if you want to choose an own name for another reason, you may
 % do so by specifying it as the first argument: \cmd\newminted\oarg{environment name}\marg{language}\marg{options}.
 %
+% Like normal \pkg{minted} environments, environments created with |\newminted| may be used within other environment definitions.  Since the \pkg{minted} environments use \pkg{fancyvrb} internally, any environment based on them must include the \pkg{fancyvrb} command |\VerbatimEnvironment|.  This allows \pkg{fancyvrb} to determine the name of the environment that is being defined, and correctly find its end.  It is best to include this command at the beginning of the definition.  For example,
+%\begin{Verbatim}
+%\newminted{cpp}{gobble=2,linenos}
+%\newenvironment{env}{\VerbatimEnvironment\begin{cppcode}}{\end{cppcode}}
+%\end{Verbatim}
+%
 % \DescribeMacro{\newmint}
 % The above macro only defines shortcuts for the |minted| environment.
 % The main reason is that the short command form |\mint| often needs different options---at the very least, it
@@ -1338,7 +1345,7 @@
 %
 % Konrad Rudolph:  Special thanks to Philipp Stephani and the rest of the guys from \texttt{comp.text.tex} and \texttt{tex.stackexchange.com}.
 %
-% Geoffrey Poore:  Thanks to Marco Daniel for the code on \url{tex.stackexchange.com} that inspired automatic line breaking.
+% Geoffrey Poore:  Thanks to Marco Daniel for the code on \url{tex.stackexchange.com} that inspired automatic line breaking.  Thanks to Patrick Vogt for improving TikZ externalization compatibility.
 %
 % \PrintChangelog
 %
