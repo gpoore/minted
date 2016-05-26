@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2013-2015 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2013-2016 by Geoffrey M. Poore <gpoore@gmail.com>
 % Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 % ---------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2015/12/21 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/05/26 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3294}
+% \CheckSum{3295}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -192,7 +192,8 @@
 %
 %
 %
-% \begin{changelog}{v2.2}{2015/12/??}
+% \begin{changelog}{v2.2}{2016/05/??}
+% \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
 % \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
 % \item Properly fixed \#62.
@@ -1417,7 +1418,7 @@
 %
 %
 % \begin{macro}{\minted@jobname}
-% At various points, temporary files and directories will need to be named after the main |.tex| file.  The typical way to do this is to use |\jobname|.  However, if the file name contains spaces, then |\jobname| will contain the name wrapped in quotes (older versions of MiKTeX replace spaces with asterisks instead, and \texttt{XeTeX} apparently \href{http://tex.stackexchange.com/a/93829/10742}{allows double quotes within file names}, in which case names are wrapped in single quotes}).  While that is perfectly fine for working with \LaTeX\ internally, it causes problems with |\write18|, since quotes will end up in unwanted locations in shell commands.  It would be possible to strip the wrapping quotation marks when they are present, and maintain any spaces in the file name.  But it is simplest to create a ``sanitized'' version of |\jobname| in which spaces and asterisks are replaced by underscores, and double quotes are stripped.
+% At various points, temporary files and directories will need to be named after the main |.tex| file.  The typical way to do this is to use |\jobname|.  However, if the file name contains spaces, then |\jobname| will contain the name wrapped in quotes (older versions of MiKTeX replace spaces with asterisks instead, and \texttt{XeTeX} apparently \href{http://tex.stackexchange.com/a/93829/10742}{allows double quotes within file names}, in which case names are wrapped in single quotes).  While that is perfectly fine for working with \LaTeX\ internally, it causes problems with |\write18|, since quotes will end up in unwanted locations in shell commands.  It would be possible to strip the wrapping quotation marks when they are present, and maintain any spaces in the file name.  But it is simplest to create a ``sanitized'' version of |\jobname| in which spaces and asterisks are replaced by underscores, and double quotes are stripped.
 %    \begin{macrocode}
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
@@ -2378,6 +2379,7 @@
 \minted@def@optfv{fontseries}
 \minted@def@optfv{formatcom}
 \minted@def@optfv{label}
+\minted@def@optfv{labelposition}
 \minted@def@optfv@switch{numberblanklines}
 \minted@def@optfv@switch{showspaces}
 \minted@def@optfv@switch{resetmargins}
