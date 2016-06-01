@@ -40,6 +40,12 @@
 \RequirePackage{xstring}
 \RequirePackage{lineno}
 \RequirePackage{framed}
+\IfFileExists{shellesc.sty}
+ {\RequirePackage{shellesc}
+  \@ifpackagelater{shellesc}{2016/04/29}
+   {}
+   {\protected\def\ShellEscape{\immediate\write18 }}}
+ {\protected\def\ShellEscape{\immediate\write18 }}
 \AtBeginDocument{%
   \@ifpackageloaded{color}{}{%
     \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
@@ -132,30 +138,30 @@
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\immediate\write18{del "#2"}}{}}%
+      {\IfFileExists{#2}{\ShellEscape{del "#2"}}{}}%
       {\IfFileExists{#1/#2}{%
         \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-        \immediate\write18{del "\minted@windir\@backslashchar #2"}}{}}}
+        \ShellEscape{del "\minted@windir\@backslashchar #2"}}{}}}
 \else
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\immediate\write18{rm "#2"}}{}}%
-      {\IfFileExists{#1/#2}{\immediate\write18{rm "#1/#2"}}{}}}
+      {\IfFileExists{#2}{\ShellEscape{rm "#2"}}{}}%
+      {\IfFileExists{#1/#2}{\ShellEscape{rm "#1/#2"}}{}}}
 \fi
 \ifwindows
   \newcommand{\ProvideDirectory}[1]{%
     \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-    \immediate\write18{if not exist "\minted@windir" mkdir "\minted@windir"}}
+    \ShellEscape{if not exist "\minted@windir" mkdir "\minted@windir"}}
 \else
   \newcommand{\ProvideDirectory}[1]{%
-    \immediate\write18{mkdir -p "#1"}}
+    \ShellEscape{mkdir -p "#1"}}
 \fi
 \newboolean{AppExists}
 \newread\minted@appexistsfile
 \newcommand{\TestAppExists}[1]{
   \ifwindows
     \DeleteFile{\minted@jobname.aex}
-    \immediate\write18{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
+    \ShellEscape{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
       do set >"\minted@jobname.aex" <nul: /p
       x=\string^\@percentchar \string~$PATH:i>>"\minted@jobname.aex"}
     %$ <- balance syntax highlighting
@@ -170,7 +176,7 @@
     \immediate\closein\minted@appexistsfile
     \DeleteFile{\minted@jobname.aex}
   \else
-    \immediate\write18{which "#1" && touch "\minted@jobname.aex"}
+    \ShellEscape{which "#1" && touch "\minted@jobname.aex"}
     \IfFileExists{\minted@jobname.aex}
       {\AppExiststrue
         \DeleteFile{\minted@jobname.aex}}
@@ -483,13 +489,13 @@
        {}%
        {%
         \ifwindows
-          \immediate\write18{%
+          \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
             -P commandprefix=PYG#1
             > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
                  \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
         \else
-          \immediate\write18{%
+          \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
             -P commandprefix=PYG#1
             > "\minted@outputdir\minted@cachedir/%
@@ -504,11 +510,11 @@
         \endgroup
         \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
       {\ifwindows
-          \immediate\write18{%
+          \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
             -P commandprefix=PYG#1 > "\minted@outputdir@windows\minted@jobname.out.pyg"}%
         \else
-          \immediate\write18{%
+          \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
             -P commandprefix=PYG#1 > "\minted@outputdir\minted@jobname.out.pyg"}%
         \fi
@@ -1088,7 +1094,7 @@
             macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
             f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
             f.close();"}}%
-        \immediate\write18{\minted@hashcmd}%
+        \ShellEscape{\minted@hashcmd}%
         \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
       \fi
       \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
@@ -1106,8 +1112,8 @@
             f.write(textwrap.dedent(t));
             f.close();"}%
           }%
-          \immediate\write18{\minted@autogobblecmd}}{}%
-        \immediate\write18{\minted@cmd}}%
+          \ShellEscape{\minted@autogobblecmd}}{}%
+        \ShellEscape{\minted@cmd}}%
       \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
       \minted@inputpyg}%
     {%
@@ -1124,8 +1130,8 @@
           f.write(textwrap.dedent(t));
           f.close();"}%
         }%
-        \immediate\write18{\minted@autogobblecmd}}{}%
-      \immediate\write18{\minted@cmd}%
+        \ShellEscape{\minted@autogobblecmd}}{}%
+      \ShellEscape{\minted@cmd}%
       \minted@inputpyg}%
 }
 \def\FV@SpaceMMode{ }
