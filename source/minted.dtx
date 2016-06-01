@@ -1355,6 +1355,7 @@
 %
 % \item \textbf{I want extended characters in frame labels, but am getting errors.}  This can happen with \pkg{minted} <2.0 and Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with any version of Python with \pkg{minted} 2.0+, which processes labels internally and does not send them to Python.
 % \item \textbf{\texttt{minted} environments have extra vertical space inside \texttt{tabular}.}  It is possible to \href{https://github.com/gpoore/minted/issues/82}{create a custom environment} that eliminates the extra space.  However, a general solution that behaves as expected in the presence of adjacent text remains to be found.
+% \item \textbf{I'm receiving a warning from \texttt{lineno.sty} that ``Command \texttt{\string\@parboxrestore} has changed.''}  This can happen when \pkg{minted} is loaded after \pkg{csquotes}.  Try loading \pkg{minted} first.  If you receive this message when you are not using \pkg{csquotes}, you may want to experiment with the order of loading packages and might also open an issue.
 % \end{itemize}
 %
 %
