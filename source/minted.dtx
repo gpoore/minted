@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/05/26 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/05/31 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -171,7 +171,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3295}
+% \CheckSum{3300}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -193,6 +193,7 @@
 %
 %
 % \begin{changelog}{v2.2}{2016/05/??}
+% \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
 % \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
 % \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
@@ -461,6 +462,7 @@
 %   \item xstring
 %   \item xcolor
 %   \item lineno
+%   \item framed
 % \end{list}
 % \endgroup
 % \end{multicols}
@@ -1014,9 +1016,9 @@
 %     The separation between the \texttt{breaksymbolright} and the adjacent code.
 %
 %   \item[bgcolor (string) (\meta{none})]
-%     Background color of the listing.
-%     Notice that the value of this option must \emph{not} be a color command. Instead, it must be a color
-%     \emph{name}, given as a string, of a previously-defined color:
+%     Background color of the listing.  Be aware that this option has several limitations (described below); see ``Framing alternatives'' below for more powerful alternatives.
+%
+%     The value of this option must \emph{not} be a color command. Instead, it must be a color \emph{name}, given as a string, of a previously-defined color:
 %
 % \begin{example}
 %   \definecolor{bg}{rgb}{0.95,0.95,0.95}
@@ -1027,11 +1029,15 @@
 %   \end{minted}
 % \end{example}
 %
-% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a minipage with a colored background.  It puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
+% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a \texttt{snugshade*} environment from the \pkg{framed} package, which supports breaks across pages.  (Prior to \pkg{minted} 2.2, a \texttt{minipage} was used, which prevented page breaks and gave undesirable spacing from surrounding text.)  Be aware that if \texttt{bgcolor} is used with \texttt{breaklines=true}, and a line break occurs just before a page break, then text may extend below the colored background in some instances.  It is best to use a more advanced framing package in those cases; see ``Framing alternatives'' below.
 %
-% \textbf{This option will prevent \texttt{breaklines} from working with \texttt{\string\mintinline}.}  A \texttt{\string\colorbox} cannot break across lines.
+% This option puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}, which \textbf{does not allow line breaks}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
 %
-% \textbf{This option will prevent environments from breaking across pages.}  If you want support for page breaks and advanced options, you should consider a framing package such as \pkg{framed}, \pkg{mdframed}, or \pkg{tcolorbox}.  It is easy to add framing to \pkg{minted} commands and environments using the \pkg{etoolbox} package.  For example, using \pkg{mdframed}:
+% ~
+%
+% {\large \textbf{Framing alternatives}}
+%
+% If you want more reliable and advanced options for background colors and framing, you should consider a more advanced framing package such as \pkg{mdframed} or \pkg{tcolorbox}.  It is easy to add framing to \pkg{minted} commands and environments using the \pkg{etoolbox} package, which is automatically loaded by \pkg{minted}.  For example, using \pkg{mdframed}:
 %\begin{Verbatim}
 %\BeforeBeginEnvironment{minted}{\begin{mdframed}}
 %\AfterEndEnvironment{minted}{\end{mdframed}}
@@ -1040,7 +1046,16 @@
 %\begin{Verbatim}
 %\surroundwithmdframed{minted}
 %\end{Verbatim}
-% \pkg{tcolorbox} even provides a built-in framing environment with \pkg{minted} support.
+% \pkg{tcolorbox} even provides a built-in framing environment with \pkg{minted} support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
+%\begin{Verbatim}
+%\begin{tcblisting}{<tcb options>,
+%                   minted language=<language>,
+%                   minted style=<style>,
+%                   minted options={<option list>} }
+%<code>
+%\end{tcblisting}
+%\end{Verbatim}
+% \pkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
 %
 %   \item[codetagify (list of strings) (highlight +XXX+, +TODO+, +BUG+, and +NOTE+)]
 %     Highlight special code tags in comments and docstrings.
@@ -1374,6 +1389,7 @@
 \RequirePackage{etoolbox}
 \RequirePackage{xstring}
 \RequirePackage{lineno}
+\RequirePackage{framed}
 %    \end{macrocode}
 %
 % Make sure that either |color| or |xcolor| is loaded by the beginning of the document.
@@ -2416,7 +2432,7 @@
 \minted@def@opt@switch{breakbytokenanywhere}
 %    \end{macrocode}
 %
-% |bgcolor|:  The old |bgcolor| is retained for compatibility.  A dedicated framing package will often be preferable.
+% |bgcolor|.  The original, |minipage|- and |\colorbox|-based solution was replaced with a |framed|-based solution in version 2.2.  A dedicated framing package will often be preferable.
 %    \begin{macrocode}
 \minted@def@opt{bgcolor}
 %    \end{macrocode}
@@ -3083,18 +3099,19 @@
 \newsavebox{\minted@bgbox}
 %    \end{macrocode}
 %
-% Now we can define the environment that captures a code fragment inside a minipage and applies a background color.
+% Now we can define the environment that applies a background color.  Prior to \pkg{minted} 2.2, this involved a |minipage|.  However, that approach was problematic because it did not allow linebreaks, would be pushed into the margin by immediately preceding text, and had very different whitespace separation from preceding and following text compared to no background color.  In version 2.2, this was replaced with an approach based on \pkg{framed}.  |\FV@NumberSep| is adjusted by |\fboxsep| to ensure that line numbers remain in the same location in the margin regardless of whether |bgcolor| is used.
 %
 %    \begin{macrocode}
-\newenvironment{minted@colorbg}[1]{
-    %\setlength{\fboxsep}{-\fboxrule}
-    \def\minted@bgcol{#1}
-    \noindent
-    \begin{lrbox}{\minted@bgbox}
-    \begin{minipage}{\linewidth-2\fboxsep}}
- {\end{minipage}
-    \end{lrbox}%
-    \colorbox{\minted@bgcol}{\usebox{\minted@bgbox}}}
+\newenvironment{minted@colorbg}[1]{%
+  \setlength{\OuterFrameSep}{0pt}%
+  \colorlet{shadecolor}{#1}%
+  \let\minted@tmp\FV@NumberSep
+  \edef\FV@NumberSep{%
+    \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
+  \medskip
+  \begin{snugshade*}}
+ {\end{snugshade*}%
+  \medskip\noindent}
 %    \end{macrocode}
 % \end{environment}
 %

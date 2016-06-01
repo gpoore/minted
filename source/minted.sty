@@ -5,7 +5,7 @@
 %% The original source files were:
 %%
 %% minted.dtx  (with options: `package')
-%% Copyright 2013--2015 Geoffrey M. Poore
+%% Copyright 2013--2016 Geoffrey M. Poore
 %% Copyright 2010--2011 Konrad Rudolph
 %% 
 %% This work may be distributed and/or modified under the
@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/05/26 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/05/31 v2.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -39,6 +39,7 @@
 \RequirePackage{etoolbox}
 \RequirePackage{xstring}
 \RequirePackage{lineno}
+\RequirePackage{framed}
 \AtBeginDocument{%
   \@ifpackageloaded{color}{}{%
     \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
@@ -992,15 +993,16 @@
 \fi
 \fi
 \newsavebox{\minted@bgbox}
-\newenvironment{minted@colorbg}[1]{
-    %\setlength{\fboxsep}{-\fboxrule}
-    \def\minted@bgcol{#1}
-    \noindent
-    \begin{lrbox}{\minted@bgbox}
-    \begin{minipage}{\linewidth-2\fboxsep}}
- {\end{minipage}
-    \end{lrbox}%
-    \colorbox{\minted@bgcol}{\usebox{\minted@bgbox}}}
+\newenvironment{minted@colorbg}[1]{%
+  \setlength{\OuterFrameSep}{0pt}%
+  \colorlet{shadecolor}{#1}%
+  \let\minted@tmp\FV@NumberSep
+  \edef\FV@NumberSep{%
+    \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
+  \medskip
+  \begin{snugshade*}}
+ {\end{snugshade*}%
+  \medskip\noindent}
 \newwrite\minted@code
 \newcommand{\minted@savecode}[1]{
   \immediate\openout\minted@code\minted@jobname.pyg\relax
