@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/05/31 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/01 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3296}
+% \CheckSum{3304}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -191,7 +191,8 @@
 %
 %
 %
-% \begin{changelog}{v2.2}{2016/05/??}
+% \begin{changelog}{v2.2}{2016/06/??}
+% \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
 % \item The \texttt{shellesc} package is now loaded, when available, for compatibility with \texttt{luatex} 0.87+.  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
 % \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
 % \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
@@ -2186,7 +2187,7 @@
 % \begin{macro}{\minted@checkstyle}
 % Make sure that style macros exist.
 %
-% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.
+% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  The catcodes for |-| and |_| must be changed during macro definition to accomodate style names like |paraiso-light|, |paraiso-dark|, and |algol_nu|.
 %
 % If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default-pyg-prefix.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
 %
@@ -2217,6 +2218,8 @@
         }%
         \begingroup
         \let\def\gdef
+        \catcode`\_=11
+        \catcode`\-=11
         \endlinechar=-1\relax
         \minted@input{%
           \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
@@ -2233,6 +2236,8 @@
         \fi
         \begingroup
         \let\def\gdef
+        \catcode`\_=11
+        \catcode`\-=11
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%

@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/05/31 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/01 v2.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -504,6 +504,8 @@
         }%
         \begingroup
         \let\def\gdef
+        \catcode`\_=11
+        \catcode`\-=11
         \endlinechar=-1\relax
         \minted@input{%
           \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
@@ -520,6 +522,8 @@
         \fi
         \begingroup
         \let\def\gdef
+        \catcode`\_=11
+        \catcode`\-=11
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%
