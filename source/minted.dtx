@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/01 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/02 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3304}
+% \CheckSum{3387}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -192,6 +192,7 @@
 %
 %
 % \begin{changelog}{v2.2}{2016/06/??}
+% \item Added package options \texttt{finalizecache} and \texttt{frozencache}.  These allow the cache to be prepared for (\texttt{finalizecache}) and then used (\texttt{frozencache}) in an environment in which \texttt{-shell-escape}, Python, and/or Pygments are not available.  Note that this only works if \texttt{minted} content does not need to be modified, and if no settings that depend on Pygments or Python need to be changed (\#113).
 % \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
 % \item The \texttt{shellesc} package is now loaded, when available, for compatibility with \texttt{luatex} 0.87+.  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
 % \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
@@ -732,6 +733,25 @@
 % This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.
 %
 % Note that this directory is relative to the |outputdir|, if an |outputdir| is specified.
+%
+%
+% \DescribeMacro{finalizecache=\meta{boolean} (default: false)}
+% In some cases, it may be desirable to use \pkg{minted} in an environment in which |-shell-escape| is not allowed.  A document might be submitted to a publisher or preprint server or used with an online service that does not support |-shell-escape|.  This is possible as long as \pkg{minted} content does not need to be modified.
+%
+% Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the \texttt{XeTeX} engine since it lacks the built-in MD5 capabilities that \texttt{pdfTeX} and \texttt{LuaTeX} have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
+%
+%
+% \DescribeMacro{frozencache=\meta{boolean} (default: false)}
+% Use a frozen (static) cache created with the |finalizecache| option.  When |frozencache| is on, |-shell-escape| is not needed, and Python and Pygments are not required.  In addition, any external files accessed through |\inputminted| are no longer necessary.
+%
+% \textbf{This option must be used with care.  A document \emph{must} be in final form, as far as \pkg{minted} is concerned, \emph{before} \texttt{frozencache} is turned on, and the document \emph{must} have been compiled with \texttt{finalizecache}.   When this option is on, \pkg{minted} content cannot be modified, except by editing the cache files directly.  Changing any \pkg{minted} settings that require Pygments or Python is not possible.  If \pkg{minted} content is incorrectly modified after \texttt{frozencache} is turned on, \pkg{minted} \emph{cannot} detect the modification.}
+% 
+% If you are using |frozencache|, and want to verify that \pkg{minted} settings or content have not been modified in an invalid fashion, you can test the cache using the following procedure.
+% \begin{enumerate}
+% \item Obtain a copy of the cache used with |frozencache|.
+% \item Compile the document in an environment that supports |-shell-escape|, with |finalizecache=true| and |frozencache=false|.  This essentially regenerates the frozen (static) cache.
+% \item Compare the original cache with the newly generated cache.  Under Linux and OS X, you could use |diff|; under Windows, you probably want |fc|.  If \pkg{minted} content and settings have not been modified in an invalid fashion, all files will be identical (assuming that compatible versions of Pygments are used for both caches).
+% \end{enumerate}
 %
 %
 % \DescribeMacro{draft=\meta{boolean} (default: false)}
@@ -1465,6 +1485,22 @@
 % \end{macro}
 %
 %
+% \begin{macro}{finalizecache}
+% Define an option that switches the naming of cache files from an MD5-based system to a |listing<number>| scheme.  Compiling with this option is a prerequisite to turning on |frozencache|.
+%    \begin{macrocode}
+\DeclareBoolOption{finalizecache}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{frozencache}
+% Define an option that uses a fixed set of cache files, using |listing<number>| file naming with |\write18| disabled.  This is convenient for working with a document in an environment in which |\write18| support is disabled and \pkg{minted} content does not need to be modified.
+%    \begin{macrocode}
+\DeclareBoolOption{frozencache}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@outputdir}
 % The |-output-directory| command-line option for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in the output directory, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option.  But it is possible to allow the output directory to be specified manually as a package option.  A trailing slash is automatically appended to the |outputdir|, so that it may be directly joined to |cachedir|.  This may be redundant if the user-supplied value already ends with a slash, but doubled slashes are ignored under *nix and Windows, so it isn't a problem.
 %    \begin{macrocode}
@@ -1523,8 +1559,18 @@
   \else
   \fi
 \fi
-\ifthenelse{\boolean{minted@cache}}{%
-  \AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}{}
+\ifthenelse{\boolean{minted@finalizecache}}%
+ {\ifthenelse{\boolean{minted@frozencache}}%
+   {\PackageError{minted}%
+     {Options "finalizecache" and "frozencache" are not compatible}%
+     {Options "finalizecache" and "frozencache" are not compatible}}%
+   {}}%
+ {}
+\ifthenelse{\boolean{minted@cache}}%
+ {\ifthenelse{\boolean{minted@frozencache}}%
+   {}%
+   {\AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}}%
+ {}
 %    \end{macrocode}
 %
 %
@@ -1541,11 +1587,12 @@
      was^^Jprobably given a file that does not exist--otherwise, you may need 
      ^^Jthe outputdir package option, or may be using an incompatible build
      tool\ifwindows,^^Jor may be using the kpsewhich option without having
-     PowerShell installed\fi}%
+     PowerShell installed\fi,^^Jor may be using frozencache with a missing file}%
     {This could be caused by using -output-directory or -aux-directory
      ^^Jwithout setting minted's outputdir, or by using a build tool that
      ^^Jchanges paths in ways minted cannot detect\ifwindows, or by using the
-     ^^Jkpsewhich option without PowerShell\fi.}}%
+     ^^Jkpsewhich option without PowerShell\fi,
+     ^^Jor using frozencache with a missing file.}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1619,14 +1666,20 @@
 % At the end of the document, save the list of cache files and clean the cache.  If in draft mode, don't clean up the cache and save the old cache file list for next time.  This allows draft mode to be switched on and off without requiring that all highlighted content be regenerated.  The saving and cleaning operations may be called without conditionals, since their definitions already contain all necessary checks for their correct operation.
 %    \begin{macrocode}
 \ifthenelse{\boolean{minted@draft}}%
-  {\AtEndDocument{%
+ {\AtEndDocument{%
+    \ifcsname minted@oldcachelist\endcsname
+      \StrSubstitute{\minted@oldcachelist}{,}{,^^J }[\minted@cachelist]
+      \minted@savecachelist
+    \fi}}%
+ {\ifthenelse{\boolean{minted@frozencache}}%
+   {\AtEndDocument{%
       \ifcsname minted@oldcachelist\endcsname
-        \let\minted@cachelist\minted@oldcachelist
+        \StrSubstitute{\minted@oldcachelist}{,}{,^^J }[\minted@cachelist]
         \minted@savecachelist
       \fi}}%
-  {\AtEndDocument{%
-      \minted@savecachelist
-      \minted@cleancache}}%
+   {\AtEndDocument{%
+    \minted@savecachelist
+    \minted@cleancache}}}%
 %    \end{macrocode}
 %
 %
@@ -2200,23 +2253,27 @@
     \expandafter\gdef%
       \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
     \ifthenelse{\boolean{minted@cache}}%
-      {\IfFileExists
+     {\IfFileExists
        {\minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
        {}%
        {%
-        \ifwindows
-          \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
-            -P commandprefix=PYG#1
-            > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
-                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
-        \else
-          \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
-            -P commandprefix=PYG#1
-            > "\minted@outputdir\minted@cachedir/%
-                 \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
-        \fi
+        \ifthenelse{\boolean{minted@frozencache}}%
+         {\PackageError{minted}%
+           {Missing style definition for #1 with frozencache}%
+           {Missing style definition for #1 with frozencache}}%
+         {\ifwindows
+            \ShellEscape{%
+              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+              -P commandprefix=PYG#1
+              > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
+                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+          \else
+            \ShellEscape{%
+              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+              -P commandprefix=PYG#1
+              > "\minted@outputdir\minted@cachedir/%
+                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+          \fi}%
         }%
         \begingroup
         \let\def\gdef
@@ -2227,7 +2284,8 @@
           \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
         \endgroup
         \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
-      {\ifwindows
+     {%
+        \ifwindows
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
             -P commandprefix=PYG#1 > "\minted@outputdir@windows\minted@jobname.out.pyg"}%
@@ -2249,9 +2307,9 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% At the beginning of the document, create the symbol macros with |PYG| prefix.  This must wait until |\AtBeginDocument|, because the existence of |pygmentize| isn't tested and may not be final until |\AtEndPreamble|.  
+% At the beginning of the document, create the symbol macros with |PYG| prefix and generate the |default| style.  This must wait until |\AtBeginDocument|, because the existence of |pygmentize| isn't tested and may not be final until |\AtEndPreamble|.
 %    \begin{macrocode}
-\AtBeginDocument{\minted@checkstyle{}}
+\AtBeginDocument{\minted@checkstyle{}\setminted{style=default}}
 %    \end{macrocode}
 %
 %
@@ -3199,6 +3257,14 @@
 % \end{macro}
 %
 %
+% \begin{macro}{minted@pygmentizecounter}
+% We need a counter to keep track of how many files have been pygmentized.  This is primarily used with |finalizecache| for naming cache files sequentially in |listing<number>.pygtex| form.
+%    \begin{macrocode}
+\newcounter{minted@pygmentizecounter}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@pygmentize}
 %
 % Pygmentize a file (default: |\minted@outputdir\minted@jobname.pyg|) using the options provided.
@@ -3213,6 +3279,7 @@
 %
 %    \begin{macrocode}
 \newcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
+  \stepcounter{minted@pygmentizecounter}%
   \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
     {\def\minted@codefile{\minted@outputdir\minted@jobname.pyg}}%
     {\def\minted@codefile{#1}}%
@@ -3243,54 +3310,77 @@
   % %%%%
   \ifthenelse{\boolean{minted@cache}}%
     {%
-      \ifx\XeTeXinterchartoks\minted@undefined
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-          {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-            \pdf@mdfivesum{\minted@cmd autogobble}}}%
-          {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-            \pdf@mdfivesum{\minted@cmd}}}%
+      \ifminted@frozencache
       \else
-        \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
-        \immediate\write\minted@code{\minted@cmd}%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-          {\immediate\write\minted@code{autogobble}}{}%
-        \immediate\closeout\minted@code
-        %Cheating a little here by using ASCII codes to write `{` and `}`
-        %in the Python code
-        \def\minted@hashcmd{%
-          \detokenize{python -c "import hashlib;
-            hasher = hashlib.sha1();
-            f = open(\"}\minted@outputdir\minted@jobname.mintedcmd\detokenize{\", \"rb\");
-            hasher.update(f.read());
-            f.close();
-            f = open(\"}#1\detokenize{\", \"rb\");
-            hasher.update(f.read());
-            f.close();
-            f = open(\"}\minted@outputdir\minted@jobname.mintedmd5\detokenize{\", \"w\");
-            macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
-            f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
-            f.close();"}}%
-        \ShellEscape{\minted@hashcmd}%
-        \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
+        \ifx\XeTeXinterchartoks\minted@undefined
+          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
+            {\edef\minted@hash{\pdf@filemdfivesum{#1}%
+              \pdf@mdfivesum{\minted@cmd autogobble}}}%
+            {\edef\minted@hash{\pdf@filemdfivesum{#1}%
+              \pdf@mdfivesum{\minted@cmd}}}%
+        \else
+          \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
+          \immediate\write\minted@code{\minted@cmd}%
+          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
+            {\immediate\write\minted@code{autogobble}}{}%
+          \immediate\closeout\minted@code
+          %Cheating a little here by using ASCII codes to write `{` and `}`
+          %in the Python code
+          \def\minted@hashcmd{%
+            \detokenize{python -c "import hashlib;
+              hasher = hashlib.sha1();
+              f = open(\"}\minted@outputdir\minted@jobname.mintedcmd\detokenize{\", \"rb\");
+              hasher.update(f.read());
+              f.close();
+              f = open(\"}#1\detokenize{\", \"rb\");
+              hasher.update(f.read());
+              f.close();
+              f = open(\"}\minted@outputdir\minted@jobname.mintedmd5\detokenize{\", \"w\");
+              macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
+              f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
+              f.close();"}}%
+          \ShellEscape{\minted@hashcmd}%
+          \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
+        \fi
+        \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
+        \IfFileExists{\minted@infile}{}{%
+          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
+            %Need a version of open() that supports encoding under Python 2
+            \edef\minted@autogobblecmd{%
+              \detokenize{python -c "import sys;
+              import textwrap;
+              from io import open;
+              f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
+              t = f.read();
+              f.close();
+              f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
+              f.write(textwrap.dedent(t));
+              f.close();"}%
+            }%
+            \ShellEscape{\minted@autogobblecmd}}{}%
+          \ShellEscape{\minted@cmd}}%
       \fi
-      \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
-      \IfFileExists{\minted@infile}{}{%
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
-          %Need a version of open() that supports encoding under Python 2
-          \edef\minted@autogobblecmd{%
-            \detokenize{python -c "import sys;
-            import textwrap;
-            from io import open;
-            f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
-            t = f.read();
-            f.close();
-            f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
-            f.write(textwrap.dedent(t));
-            f.close();"}%
-          }%
-          \ShellEscape{\minted@autogobblecmd}}{}%
-        \ShellEscape{\minted@cmd}}%
-      \expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}%
+      \ifthenelse{\boolean{minted@finalizecache}}%
+       {%
+          \edef\minted@cachefilename{listing\arabic{minted@pygmentizecounter}.pygtex}%
+          \edef\minted@actualinfile{\minted@cachedir/\minted@cachefilename}%
+          \ifwindows
+            \StrSubstitute{\minted@infile}{/}{\@backslashchar}[\minted@infile@windows]
+            \StrSubstitute{\minted@actualinfile}{/}{\@backslashchar}[\minted@actualinfile@windows]
+            \ShellEscape{move /y \minted@infile@windows\space\minted@actualinfile@windows}%
+          \else
+            \ShellEscape{mv -f \minted@infile\space\minted@actualinfile}%
+          \fi
+          \let\minted@infile\minted@actualinfile
+          \expandafter\minted@addcachefile\expandafter{\minted@cachefilename}%
+       }%
+       {\ifthenelse{\boolean{minted@frozencache}}%
+         {%
+            \edef\minted@cachefilename{listing\arabic{minted@pygmentizecounter}.pygtex}%
+            \edef\minted@infile{\minted@cachedir/\minted@cachefilename}%
+            \expandafter\minted@addcachefile\expandafter{\minted@cachefilename}}%
+         {\expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}}%
+       }%
       \minted@inputpyg}%
     {%
       \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
@@ -3896,27 +3986,32 @@
 %
 %    \begin{macrocode}
 \AtEndOfPackage{%
-  \ifthenelse{\boolean{minted@draft}}{}{%
-    \ifnum\pdf@shellescape=1\relax\else
-      \PackageError{minted}%
-       {You must invoke LaTeX with the
-        -shell-escape flag}%
-       {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-        documentation for more information.}%
-    \fi
-    \setminted{style=default}%
-  }%
+  \ifthenelse{\boolean{minted@draft}}%
+   {}%
+   {%
+    \ifthenelse{\boolean{minted@frozencache}}{}{%
+      \ifnum\pdf@shellescape=1\relax\else
+        \PackageError{minted}%
+         {You must invoke LaTeX with the
+          -shell-escape flag}%
+         {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
+          documentation for more information.}%
+      \fi}%
+   }%
 }
 \AtEndPreamble{%
-  \ifthenelse{\boolean{minted@draft}}{}{%
-    \TestAppExists{\MintedPygmentize}%
-    \ifAppExists\else
-      \PackageError{minted}%
-       {You must have `pygmentize' installed
-        to use this package}%
-       {Refer to the installation instructions in the minted
-        documentation for more information.}%
-    \fi
+  \ifthenelse{\boolean{minted@draft}}%
+   {}%
+   {%
+    \ifthenelse{\boolean{minted@frozencache}}{}{%
+      \TestAppExists{\MintedPygmentize}%
+      \ifAppExists\else
+        \PackageError{minted}%
+         {You must have `pygmentize' installed
+          to use this package}%
+         {Refer to the installation instructions in the minted
+          documentation for more information.}%
+      \fi}%
   }%
 }
 %    \end{macrocode}
@@ -3927,14 +4022,20 @@
 %
 % Clean up temp files.  What actually needs to be done depends on caching and engine.
 %    \begin{macrocode}
-\AtEndDocument{
-  \ifx\XeTeXinterchartoks\minted@undefined
-  \else
-    \DeleteFile[\minted@outputdir]{\minted@jobname.mintedcmd}%
-    \DeleteFile[\minted@outputdir]{\minted@jobname.mintedmd5}%
-  \fi
-  \DeleteFile[\minted@outputdir]{\minted@jobname.pyg}%
-  \DeleteFile[\minted@outputdir]{\minted@jobname.out.pyg}%
+\AtEndDocument{%
+  \ifthenelse{\boolean{minted@draft}}%
+   {}%
+   {\ifthenelse{\boolean{minted@frozencache}}%
+     {}
+     {\ifx\XeTeXinterchartoks\minted@undefined
+      \else
+        \DeleteFile[\minted@outputdir]{\minted@jobname.mintedcmd}%
+        \DeleteFile[\minted@outputdir]{\minted@jobname.mintedmd5}%
+      \fi
+      \DeleteFile[\minted@outputdir]{\minted@jobname.pyg}%
+      \DeleteFile[\minted@outputdir]{\minted@jobname.out.pyg}%
+     }%
+   }%
 }
 %    \end{macrocode}
 %
