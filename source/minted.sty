@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/06/02 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/03 v2.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -685,6 +685,10 @@
 \minted@def@optfv{breaksymbolright}
 \minted@def@optfv{breaksymbolsepright}
 \minted@def@optfv{breaksymbolindentright}
+\minted@def@optfv{breakbefore}
+\minted@def@optfv{breakbeforesymbolpre}
+\minted@def@optfv{breakbeforesymbolpost}
+\minted@def@optfv@switch{breakbeforegroup}
 \minted@def@optfv{breakafter}
 \minted@def@optfv@switch{breakaftergroup}
 \minted@def@optfv{breakaftersymbolpre}
@@ -771,6 +775,44 @@
   \let\[\FV@leftsquarebracket
   \let\]\FV@rightsquarebracket
 } %$ <- highlighting
+\define@key{FV}{breakbefore}{%
+  \ifstrempty{#1}%
+   {\let\FV@BreakBefore\@empty
+    \let\FancyVerbBreakStart\relax
+    \let\FancyVerbBreakStop\relax}%
+   {\def\FV@BreakBefore{#1}%
+    \let\FancyVerbBreakStart\FV@Break
+    \let\FancyVerbBreakStop\FV@EndBreak
+    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
+}
+\fvset{breakbefore={}}
+\newboolean{FV@BreakBeforeGroup}
+\define@booleankey{FV}{breakbeforegroup}%
+ {\FV@BreakBeforeGrouptrue}%
+ {\FV@BreakBeforeGroupfalse}%
+\fvset{breakbeforegroup=true}
+\def\FV@BreakBeforePrep{%
+  \ifx\FV@BreakBefore\@empty\relax
+  \else
+    \gdef\FV@BreakBefore@Def{}%
+    \begingroup
+    \def\FV@BreakBefore@Process##1##2\FV@Undefined{%
+      \expandafter\FV@BreakBefore@Process@i\expandafter{##1}%
+      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
+      \else
+        \FV@BreakBefore@Process##2\FV@Undefined
+      \fi
+    }%
+    \def\FV@BreakBefore@Process@i##1{%
+      \g@addto@macro\FV@BreakBefore@Def{%
+        \@namedef{FV@BreakBefore@Token\detokenize{##1}}{}}%
+    }%
+    \FV@EscChars
+    \expandafter\FV@BreakBefore@Process\FV@BreakBefore\FV@Undefined
+    \endgroup
+    \FV@BreakBefore@Def
+  \fi
+}
 \define@key{FV}{breakafter}{%
   \ifstrempty{#1}%
    {\let\FV@BreakAfter\@empty
@@ -779,7 +821,7 @@
    {\def\FV@BreakAfter{#1}%
     \let\FancyVerbBreakStart\FV@Break
     \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@AfterToken}%
+    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
 }
 \fvset{breakafter={}}
 \newboolean{FV@BreakAfterGroup}
@@ -800,6 +842,20 @@
       \fi
     }%
     \def\FV@BreakAfter@Process@i##1{%
+      \ifcsname FV@BreakBefore@Token\detokenize{##1}\endcsname
+        \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
+         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
+           {}%
+           {\PackageError{minted}%
+            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
+            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}}%
+         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
+           {\PackageError{minted}%
+             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
+             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}%
+           {}}%
+      \else
+      \fi
       \g@addto@macro\FV@BreakAfter@Def{%
         \@namedef{FV@BreakAfter@Token\detokenize{##1}}{}}%
     }%
@@ -810,7 +866,7 @@
   \fi
 }
 \expandafter\def\expandafter\FV@FormattingPrep\expandafter{%
-  \expandafter\FV@BreakAfterPrep\FV@FormattingPrep}
+  \expandafter\FV@BreakBeforePrep\expandafter\FV@BreakAfterPrep\FV@FormattingPrep}
 \define@key{FV}{breakanywheresymbolpre}{%
   \ifstrempty{#1}%
     {\def\FancyVerbBreakAnywhereSymbolPre{}}%
@@ -821,6 +877,16 @@
     {\def\FancyVerbBreakAnywhereSymbolPost{}}%
     {\def\FancyVerbBreakAnywhereSymbolPost{\hbox{#1}}}}
 \fvset{breakanywheresymbolpost={}}
+\define@key{FV}{breakbeforesymbolpre}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakBeforeSymbolPre{}}%
+    {\def\FancyVerbBreakBeforeSymbolPre{\hbox{#1}}}}
+\fvset{breakbeforesymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
+\define@key{FV}{breakbeforesymbolpost}{%
+  \ifstrempty{#1}%
+    {\def\FancyVerbBreakBeforeSymbolPost{}}%
+    {\def\FancyVerbBreakBeforeSymbolPost{\hbox{#1}}}}
+\fvset{breakbeforesymbolpost={}}
 \define@key{FV}{breakaftersymbolpre}{%
   \ifstrempty{#1}%
     {\def\FancyVerbBreakAfterSymbolPre{}}%
@@ -834,6 +900,9 @@
 \newcommand{\FancyVerbBreakAnywhereBreak}{%
   \discretionary{\FancyVerbBreakAnywhereSymbolPre}%
    {\FancyVerbBreakAnywhereSymbolPost}{}}
+\newcommand{\FancyVerbBreakBeforeBreak}{%
+  \discretionary{\FancyVerbBreakBeforeSymbolPre}%
+   {\FancyVerbBreakBeforeSymbolPost}{}}
 \newcommand{\FancyVerbBreakAfterBreak}{%
   \discretionary{\FancyVerbBreakAfterSymbolPre}%
    {\FancyVerbBreakAfterSymbolPost}{}}
@@ -863,6 +932,7 @@
 }
 \def\FV@Break{%
   \def\FV@Tmp{}%
+  \let\FV@LastToken\minted@undefined
   \FV@Break@Scan
 }
 \def\FV@EndBreak{\FV@Tmp}
@@ -887,26 +957,68 @@
 \catcode`\$=3%
 \gdef\FV@Break@Math$#1${%
   \g@addto@macro{\FV@Tmp}{$#1$}%
+  \let\FV@LastToken\minted@undefined
   \FV@Break@Scan}
 \endgroup
 \def\FV@Break@Group#1{%
   \g@addto@macro{\FV@Tmp}{{#1}}%
+  \ifstrempty{#1}{}{\let\FV@LastToken\minted@undefined}%
   \FV@Break@Scan}
 \def\FV@Break@AnyToken#1{%
   \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
   \FV@Break@Scan}
-\def\FV@Break@AfterToken#1{%
-  \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-    \let\FV@Break@Next\FV@Break@AfterTokenBreak
+\def\FV@Break@BeforeAfterToken#1{%
+  \ifcsname FV@BreakBefore@Token\detokenize{#1}\endcsname
+    \let\FV@Break@Next\FV@Break@BeforeTokenBreak
   \else
-    \let\FV@Break@Next\FV@Break@AfterTokenNoBreak
+    \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
+      \let\FV@Break@Next\FV@Break@AfterTokenBreak
+    \else
+      \let\FV@Break@Next\FV@Break@BeforeAfterTokenNoBreak
+    \fi
   \fi
   \FV@Break@Next{#1}%
 }
-\def\FV@Break@AfterTokenNoBreak#1{%
+\def\FV@Break@BeforeAfterTokenNoBreak#1{%
   \g@addto@macro{\FV@Tmp}{#1}%
+  \let\FV@LastToken#1%
   \FV@Break@Scan}
+\def\FV@Break@BeforeTokenBreak#1{%
+  \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
+   {\ifx#1\FV@LastToken\relax
+      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
+        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
+        \def\FV@RescanToken{#1}%
+      \else
+        \g@addto@macro{\FV@Tmp}{#1}%
+        \let\FV@Break@Next\FV@Break@Scan
+        \let\FV@LastToken#1%
+      \fi
+    \else
+      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
+        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
+        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
+        \def\FV@RescanToken{#1}%
+      \else
+        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
+        \let\FV@Break@Next\FV@Break@Scan
+        \let\FV@LastToken#1%
+      \fi
+    \fi}%
+   {\ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
+      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
+      \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
+      \def\FV@RescanToken{#1}%
+    \else
+      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
+      \let\FV@Break@Next\FV@Break@Scan
+      \let\FV@LastToken#1%
+    \fi}%
+  \FV@Break@Next}
+\def\FV@Break@BeforeTokenBreak@AfterRescan{%
+  \expandafter\FV@Break@AfterTokenBreak\FV@RescanToken}
 \def\FV@Break@AfterTokenBreak#1{%
+  \let\FV@LastToken#1%
   \@ifnextchar\FV@Space%
    {\g@addto@macro{\FV@Tmp}{#1}\FV@Break@Scan}%
    {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
@@ -916,7 +1028,6 @@
       \else
         \ifx\@let@token\bgroup\relax
           \g@addto@macro{\FV@Tmp}{#1}%
-          \let\FV@TmpToken#1%
           \let\FV@Break@Next\FV@Break@AfterTokenBreak@Group
         \else
           \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
@@ -931,10 +1042,10 @@
   \g@addto@macro{\FV@Tmp}{{#1}}%
   \ifstrempty{#1}%
    {\let\FV@Break@Next\FV@Break@AfterTokenBreak@Group@i}%
-   {\let\FV@Break@Next\FV@Break@Scan}%
+   {\let\FV@Break@Next\FV@Break@Scan\let\FV@LastToken\minted@undefined}%
   \FV@Break@Next}
 \def\FV@Break@AfterTokenBreak@Group@i{%
-  \@ifnextchar\FV@TmpToken%
+  \@ifnextchar\FV@LastToken%
    {\FV@Break@Scan}%
    {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAfterBreak}%
     \FV@Break@Scan}}
@@ -1188,6 +1299,62 @@
       \minted@inputpyg}%
 }
 \def\FV@SpaceMMode{ }
+\def\minted@BreakBeforePrep@extension{%
+  \ifcsname FV@BreakBefore@Token\@backslashchar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZbs}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\FV@underscorechar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZus}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\@charlb\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZob}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\@charrb\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZcb}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{^}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZca}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\FV@ampchar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZam}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{<}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZlt}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{>}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZgt}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\FV@hashchar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZsh}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\@percentchar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZpc}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\FV@dollarchar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZdl}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{-}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZhy}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{'}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZsq}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{"}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZdq}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\FV@tildechar\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZti}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{@}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZat}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{[}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZlb}}{}%
+  \fi
+  \ifcsname FV@BreakBefore@Token\detokenize{]}\endcsname
+    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZrb}}{}%
+  \fi
+}
 \def\minted@BreakAfterPrep@extension{%
   \ifcsname FV@BreakAfter@Token\@backslashchar\endcsname
     \@namedef{FV@BreakAfter@Token\detokenize{\PYGZbs}}{}%
@@ -1245,6 +1412,9 @@
   \fi
 }
 \newcommand{\minted@inputpyg}{%
+  \let\FV@BreakBeforePrep@orig\FV@BreakBeforePrep
+  \def\FV@BreakBeforePrep{%
+    \FV@BreakBeforePrep@orig\minted@BreakBeforePrep@extension}%
   \let\FV@BreakAfterPrep@orig\FV@BreakAfterPrep
   \def\FV@BreakAfterPrep{%
     \FV@BreakAfterPrep@orig\minted@BreakAfterPrep@extension}%
@@ -1257,12 +1427,20 @@
      \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
        \minted@orig@PYG@breakanywhere{##1}%
          {\FancyVerbBreakStart##2\FancyVerbBreakStop}}}{}%
-  \ifx\FV@BreakAfter\@empty
+  \ifx\FV@BreakBefore\@empty
+    \ifx\FV@BreakAfter\@empty
+    \else
+      \expandafter\let\expandafter\minted@orig@PYG@breakbeforeafter%
+        \csname PYG\minted@get@opt{style}{default}\endcsname
+      \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
+        \minted@orig@PYG@breakbeforeafter{##1}%
+         {\FancyVerbBreakStart##2\FancyVerbBreakStop}}%
+    \fi
   \else
-    \expandafter\let\expandafter\minted@orig@PYG@breakafter%
+    \expandafter\let\expandafter\minted@orig@PYG@breakbeforeafter%
       \csname PYG\minted@get@opt{style}{default}\endcsname
     \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \minted@orig@PYG@breakafter{##1}%
+      \minted@orig@PYG@breakbeforeafter{##1}%
        {\FancyVerbBreakStart##2\FancyVerbBreakStop}}%
   \fi
   \ifthenelse{\boolean{minted@isinline}}%
