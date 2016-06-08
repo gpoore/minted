@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/03 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/07 v2.2dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3755}
+% \CheckSum{3835}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -192,6 +192,7 @@
 %
 %
 % \begin{changelog}{v2.2}{2016/06/??}
+% \item All uses of \texttt{\string\ShellEscape} (\texttt{\string\write18}) no longer wrap file names and paths with double quotes.  This allows a cache directory to be specified relative to a user's home directory, for example, \texttt{\string~/minted\_cache}.  \texttt{cachedir} and \texttt{outputdir} paths containing spaces will now require explicit quoting of the parts of the paths that contain spaces, since \texttt{minted} no longer supplies quoting.  See the updated documentation for examples (\#89).
 % \item Added \texttt{breakbefore}, \texttt{breakbeforegroup}, \texttt{breakbeforesymbolpre}, and \texttt{breakbeforesymbolpost}.  These parallel \texttt{breakafter*}.  It is possible to use \texttt{breakbefore} and \texttt{breakafter} for the same character, so long as \texttt{breakbeforegroup} and \texttt{breakaftergroup} have the same setting (\#117).
 % \item Added package options \texttt{finalizecache} and \texttt{frozencache}.  These allow the cache to be prepared for (\texttt{finalizecache}) and then used (\texttt{frozencache}) in an environment in which \texttt{-shell-escape}, Python, and/or Pygments are not available.  Note that this only works if \texttt{minted} content does not need to be modified, and if no settings that depend on Pygments or Python need to be changed (\#113).
 % \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
@@ -733,7 +734,14 @@
 % \DescribeMacro{cachedir=\meta{directory} (def:~\_minted-\meta{jobname})}
 % This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.
 %
-% Note that this directory is relative to the |outputdir|, if an |outputdir| is specified.
+% Special characters must be escaped.  For example, |cachedir=~/mintedcache| would not work because the tilde |~| would be converted into the \LaTeX\ commands for a non-breaking space, rather than being treated literally.  Instead, use |\string~/mintedcache|, |\detokenize{~/mintedcache}|, or an equivalent solution.
+%
+% Paths may contain spaces, but only if the entire \meta{directory} is wrapped in curly braces |{}|, and only if the spaces are quoted.  For example,
+%\begin{Verbatim}
+%cachedir = {\detokenize{~/"minted cache"/"with spaces"}}
+%\end{Verbatim}
+%
+% Note that the cache directory is relative to the |outputdir|, if an |outputdir| is specified.
 %
 %
 % \DescribeMacro{finalizecache=\meta{boolean} (default: false)}
@@ -814,9 +822,9 @@
 %
 %
 % \DescribeMacro{outputdir=\meta{directory} (default: \meta{none})}
-% The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ causes problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
+% The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ cause problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
 %
-% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Paths that include spaces are not allowed.
+% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Special characters must be escaped, while spaces require quoting and need the entire \meta{directory} to be wrapped in curly braces |{}|.  See |cachedir| above for examples of escaping and quoting.
 %
 %
 % \DescribeMacro{section}
@@ -1720,15 +1728,15 @@
 \ifwindows
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\ShellEscape{del "#2"}}{}}%
+      {\IfFileExists{#2}{\ShellEscape{del #2}}{}}%
       {\IfFileExists{#1/#2}{%
         \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-        \ShellEscape{del "\minted@windir\@backslashchar #2"}}{}}}
+        \ShellEscape{del \minted@windir\@backslashchar #2}}{}}}
 \else
   \providecommand{\DeleteFile}[2][]{%
     \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\ShellEscape{rm "#2"}}{}}%
-      {\IfFileExists{#1/#2}{\ShellEscape{rm "#1/#2"}}{}}}
+      {\IfFileExists{#2}{\ShellEscape{rm #2}}{}}%
+      {\IfFileExists{#1/#2}{\ShellEscape{rm #1/#2}}{}}}
 \fi
 %    \end{macrocode}
 % \end{macro}
@@ -1742,10 +1750,10 @@
 \ifwindows
   \newcommand{\ProvideDirectory}[1]{%
     \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-    \ShellEscape{if not exist "\minted@windir" mkdir "\minted@windir"}}
+    \ShellEscape{if not exist \minted@windir\space mkdir \minted@windir}}
 \else
   \newcommand{\ProvideDirectory}[1]{%
-    \ShellEscape{mkdir -p "#1"}}
+    \ShellEscape{mkdir -p #1}}
 \fi
 %    \end{macrocode}
 % \end{macro}
@@ -1778,8 +1786,8 @@
 %    \begin{macrocode}
     \DeleteFile{\minted@jobname.aex}
     \ShellEscape{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set >"\minted@jobname.aex" <nul: /p 
-      x=\string^\@percentchar \string~$PATH:i>>"\minted@jobname.aex"}
+      do set > \minted@jobname.aex <nul: /p 
+      x=\string^\@percentchar \string~$PATH:i>> \minted@jobname.aex}
     %$ <- balance syntax highlighting
     \immediate\openin\minted@appexistsfile\minted@jobname.aex
     \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
@@ -1797,7 +1805,7 @@
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success, whose existence we can then check.
 %
 %    \begin{macrocode}
-    \ShellEscape{which "#1" && touch "\minted@jobname.aex"}
+    \ShellEscape{which #1 && touch \minted@jobname.aex}
     \IfFileExists{\minted@jobname.aex}
       {\AppExiststrue
         \DeleteFile{\minted@jobname.aex}}
@@ -1962,7 +1970,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% This covers the typical options that must be passed to Pygments.  But some, particularly |escapeinside|, need more work.  Since their arguments may contain escaped characters, expansion rather than detokenization is needed.  Getting expansion to work as desired in a |\write18| context requires the redefinition of some characters
+% This covers the typical options that must be passed to Pygments.  But some, particularly |escapeinside|, need more work.  Since their arguments may contain escaped characters, expansion rather than detokenization is needed.  Getting expansion to work as desired in a |\write18| context requires the redefinition of some characters.
 %
 % \begin{macro}{\minted@escchars}
 % We need to define versions of common escaped characters that will work correctly under expansion for use in |\write18|.
@@ -2289,14 +2297,14 @@
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
               -P commandprefix=PYG#1
-              > "\minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+              > \minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
+                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
           \else
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
               -P commandprefix=PYG#1
-              > "\minted@outputdir\minted@cachedir/%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle"}%
+              > \minted@outputdir\minted@cachedir/%
+                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
           \fi}%
         }%
         \begingroup
@@ -2312,11 +2320,11 @@
         \ifwindows
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir@windows\minted@jobname.out.pyg"}%
+            -P commandprefix=PYG#1 > \minted@outputdir@windows\minted@jobname.out.pyg}%
         \else
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > "\minted@outputdir\minted@jobname.out.pyg"}%
+            -P commandprefix=PYG#1 > \minted@outputdir\minted@jobname.out.pyg}%
         \fi
         \begingroup
         \let\def\gdef
@@ -3472,16 +3480,16 @@
     -f latex -P commandprefix=PYG -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
     \minted@optlistcl@inlines
-    \minted@optlistcl@cmd -o "\minted@outputdir\minted@infile"
+    \minted@optlistcl@cmd -o \minted@outputdir\minted@infile\space
     \ifminted@kpsewhich
       \ifwindows
-        \detokenize{$}(kpsewhich "\minted@codefile")%
+        \detokenize{$}(kpsewhich \minted@codefile)%
       \else
-        \detokenize{`}kpsewhich "\minted@codefile" 
-          \detokenize{||} "\minted@codefile"\detokenize{`}%
+        \detokenize{`}kpsewhich \minted@codefile\space 
+          \detokenize{||} \minted@codefile\detokenize{`}%
       \fi
     \else
-      "\minted@codefile"
+      \minted@codefile
     \fi}%
   % For debugging, uncomment: %%%%
   % \immediate\typeout{\minted@cmd}%
@@ -3501,19 +3509,25 @@
           \immediate\write\minted@code{\minted@cmd}%
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
             {\immediate\write\minted@code{autogobble}}{}%
-          \immediate\closeout\minted@code
+          \immediate\closeout\minted@code 
+          \edef\minted@argone@esc{#1}%
+          \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
+          \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
+          \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
+          \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
+          \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
           %Cheating a little here by using ASCII codes to write `{` and `}`
           %in the Python code
           \def\minted@hashcmd{%
-            \detokenize{python -c "import hashlib;
+            \detokenize{python -c "import hashlib; import os;
               hasher = hashlib.sha1();
-              f = open(\"}\minted@outputdir\minted@jobname.mintedcmd\detokenize{\", \"rb\");
+              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedcmd\detokenize{\")), \"rb\");
               hasher.update(f.read());
               f.close();
-              f = open(\"}#1\detokenize{\", \"rb\");
+              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"rb\");
               hasher.update(f.read());
               f.close();
-              f = open(\"}\minted@outputdir\minted@jobname.mintedmd5\detokenize{\", \"w\");
+              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedmd5\detokenize{\")), \"w\");
               macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
               f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
               f.close();"}}%
@@ -3523,15 +3537,21 @@
         \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
         \IfFileExists{\minted@infile}{}{%
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
+            \edef\minted@argone@esc{#1}%
+            \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
+            \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
+            \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
+            \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
+            \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
             %Need a version of open() that supports encoding under Python 2
             \edef\minted@autogobblecmd{%
-              \detokenize{python -c "import sys;
+              \detokenize{python -c "import sys; import os;
               import textwrap;
               from io import open;
-              f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
+              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
               t = f.read();
               f.close();
-              f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
+              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
               f.write(textwrap.dedent(t));
               f.close();"}%
             }%
@@ -3562,15 +3582,21 @@
       \minted@inputpyg}%
     {%
       \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
+        \edef\minted@argone@esc{#1}%
+        \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
+        \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
+        \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
+        \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
+        \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
         %Need a version of open() that supports encoding under Python 2
         \edef\minted@autogobblecmd{%
-          \detokenize{python -c "import sys;
+          \detokenize{python -c "import sys; import os;
           import textwrap;
           from io import open;
-          f = open(\"}#1\detokenize{\", \"r\", encoding=\"}\minted@encoding\detokenize{\");
+          f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
           t = f.read();
           f.close();
-          f = open(\"}\minted@outputdir\minted@jobname.pyg\detokenize{\", \"w\", encoding=\"}\minted@encoding\detokenize{\");
+          f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
           f.write(textwrap.dedent(t));
           f.close();"}%
         }%
@@ -4267,7 +4293,7 @@
 %
 % Clean up temp files.  What actually needs to be done depends on caching and engine.
 %    \begin{macrocode}
-\AtEndDocument{%
+\AfterEndDocument{%
   \ifthenelse{\boolean{minted@draft}}%
    {}%
    {\ifthenelse{\boolean{minted@frozencache}}%
