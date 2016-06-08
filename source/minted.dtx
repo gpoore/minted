@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/07 v2.2dev Yet another Pygments shim for LaTeX]
+    [2016/06/08 v2.2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -191,17 +191,17 @@
 %
 %
 %
-% \begin{changelog}{v2.2}{2016/06/??}
+% \begin{changelog}{v2.2}{2016/06/08}
 % \item All uses of \texttt{\string\ShellEscape} (\texttt{\string\write18}) no longer wrap file names and paths with double quotes.  This allows a cache directory to be specified relative to a user's home directory, for example, \texttt{\string~/minted\_cache}.  \texttt{cachedir} and \texttt{outputdir} paths containing spaces will now require explicit quoting of the parts of the paths that contain spaces, since \texttt{minted} no longer supplies quoting.  See the updated documentation for examples (\#89).
 % \item Added \texttt{breakbefore}, \texttt{breakbeforegroup}, \texttt{breakbeforesymbolpre}, and \texttt{breakbeforesymbolpost}.  These parallel \texttt{breakafter*}.  It is possible to use \texttt{breakbefore} and \texttt{breakafter} for the same character, so long as \texttt{breakbeforegroup} and \texttt{breakaftergroup} have the same setting (\#117).
 % \item Added package options \texttt{finalizecache} and \texttt{frozencache}.  These allow the cache to be prepared for (\texttt{finalizecache}) and then used (\texttt{frozencache}) in an environment in which \texttt{-shell-escape}, Python, and/or Pygments are not available.  Note that this only works if \texttt{minted} content does not need to be modified, and if no settings that depend on Pygments or Python need to be changed (\#113).
 % \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
-% \item The \texttt{shellesc} package is now loaded, when available, for compatibility with \texttt{luatex} 0.87+.  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
+% \item The \texttt{shellesc} package is now loaded, when available, for compatibility with \texttt{luatex} 0.87+ (TeX Live 2016+, etc.).  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
 % \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
 % \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
 % \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
 % \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
-% \item Properly fixed \#62.
+% \item Properly fixed handling of \texttt{\string\MintedPygmentize} (\#62).
 % \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).  Added note on issues with \texttt{obeytabs} and multiline comments (\#88).  Due to the various \texttt{obeytabs} issues, the docs now discourage using \texttt{obeytabs}.
 % \item Added note to FAQ on \texttt{fancybox} and \texttt{fancyvrb} conflict (\#87).
 % \item Added note to docs on the need for \texttt{\string\VerbatimEnvironment} in environment definitions based on \texttt{minted} environments.
@@ -1089,7 +1089,7 @@
 %
 % ~
 %
-% {\large \textbf{Framing alternatives}}
+% \textbf{Framing alternatives}
 %
 % If you want more reliable and advanced options for background colors and framing, you should consider a more advanced framing package such as \pkg{mdframed} or \pkg{tcolorbox}.  It is easy to add framing to \pkg{minted} commands and environments using the \pkg{etoolbox} package, which is automatically loaded by \pkg{minted}.  For example, using \pkg{mdframed}:
 %\begin{Verbatim}

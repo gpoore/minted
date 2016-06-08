@@ -1,4 +1,4 @@
-minted — highlighted source code for LaTeX
+minted - highlighted source code for LaTeX
 
 minted is a package that facilitates expressive syntax highlighting in LaTeX
 using the Pygments library.  The package also provides options to customize 
