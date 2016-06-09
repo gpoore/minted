@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/06/08 v2.2 Yet another Pygments shim for LaTeX]
+    [2016/06/09 v2.3dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -1217,34 +1217,42 @@
             {\edef\minted@hash{\pdf@filemdfivesum{#1}%
               \pdf@mdfivesum{\minted@cmd}}}%
         \else
-          \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
-          \immediate\write\minted@code{\minted@cmd}%
-          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-            {\immediate\write\minted@code{autogobble}}{}%
-          \immediate\closeout\minted@code
-          \edef\minted@argone@esc{#1}%
-          \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
-          \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
-          \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
-          \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
-          \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
-          %Cheating a little here by using ASCII codes to write `{` and `}`
-          %in the Python code
-          \def\minted@hashcmd{%
-            \detokenize{python -c "import hashlib; import os;
-              hasher = hashlib.sha1();
-              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedcmd\detokenize{\")), \"rb\");
-              hasher.update(f.read());
-              f.close();
-              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"rb\");
-              hasher.update(f.read());
-              f.close();
-              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedmd5\detokenize{\")), \"w\");
-              macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
-              f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
-              f.close();"}}%
-          \ShellEscape{\minted@hashcmd}%
-          \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
+          \ifx\mdfivesum\minted@undefined
+            \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
+            \immediate\write\minted@code{\minted@cmd}%
+            \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
+              {\immediate\write\minted@code{autogobble}}{}%
+            \immediate\closeout\minted@code
+            \edef\minted@argone@esc{#1}%
+            \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
+            \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
+            \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
+            \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
+            \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
+            %Cheating a little here by using ASCII codes to write `{` and `}`
+            %in the Python code
+            \def\minted@hashcmd{%
+              \detokenize{python -c "import hashlib; import os;
+                hasher = hashlib.sha1();
+                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedcmd\detokenize{\")), \"rb\");
+                hasher.update(f.read());
+                f.close();
+                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"rb\");
+                hasher.update(f.read());
+                f.close();
+                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedmd5\detokenize{\")), \"w\");
+                macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
+                f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
+                f.close();"}}%
+            \ShellEscape{\minted@hashcmd}%
+            \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
+          \else
+            \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
+             {\edef\minted@hash{\mdfivesum file {#1}%
+                \mdfivesum{\minted@cmd autogobble}}}%
+             {\edef\minted@hash{\mdfivesum file {#1}%
+                \mdfivesum{\minted@cmd}}}%
+          \fi
         \fi
         \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
         \IfFileExists{\minted@infile}{}{%
