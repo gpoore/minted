@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/09 v2.3dev Yet another Pygments shim for LaTeX]
+    [2016/06/13 v2.2.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -191,7 +191,8 @@
 %
 %
 %
-% \begin{changelog}{v2.3}{2016/??/??}
+% \begin{changelog}{v2.2.1}{2016/06/13}
+% \item The \texttt{shellesc} package is loaded before \texttt{ifplatform} and other packages that might invoke \texttt{\string\write18} (\#112).
 % \item When caching is enabled, \texttt{XeTeX} uses the new \texttt{\string\mdfivesum} macro from TeX Live 2016 to hash cache content, rather than using \texttt{\string\ShellEscape} with Python to perform hashing.
 % \end{changelog}
 %
@@ -201,7 +202,7 @@
 % \item Added \texttt{breakbefore}, \texttt{breakbeforegroup}, \texttt{breakbeforesymbolpre}, and \texttt{breakbeforesymbolpost}.  These parallel \texttt{breakafter*}.  It is possible to use \texttt{breakbefore} and \texttt{breakafter} for the same character, so long as \texttt{breakbeforegroup} and \texttt{breakaftergroup} have the same setting (\#117).
 % \item Added package options \texttt{finalizecache} and \texttt{frozencache}.  These allow the cache to be prepared for (\texttt{finalizecache}) and then used (\texttt{frozencache}) in an environment in which \texttt{-shell-escape}, Python, and/or Pygments are not available.  Note that this only works if \texttt{minted} content does not need to be modified, and if no settings that depend on Pygments or Python need to be changed (\#113).
 % \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
-% \item The \texttt{shellesc} package is now loaded, when available, for compatibility with \texttt{luatex} 0.87+ (TeX Live 2016+, etc.).  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
+% \item The \texttt{shellesc} package is now loaded, when available, for compatibility with LuaTeX 0.87+ (TeX Live 2016+, etc.).  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
 % \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
 % \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
 % \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
@@ -752,7 +753,7 @@
 % \DescribeMacro{finalizecache=\meta{boolean} (default: false)}
 % In some cases, it may be desirable to use \pkg{minted} in an environment in which |-shell-escape| is not allowed.  A document might be submitted to a publisher or preprint server or used with an online service that does not support |-shell-escape|.  This is possible as long as \pkg{minted} content does not need to be modified.
 %
-% Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the \texttt{XeTeX} engine since it lacks the built-in MD5 capabilities that \texttt{pdfTeX} and \texttt{LuaTeX} have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
+% Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the XeTeX engine since prior to TeX Live 2016 it lacked the built-in MD5 capabilities that pdfTeX and LuaTeX have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
 %
 %
 % \DescribeMacro{frozencache=\meta{boolean} (default: false)}
@@ -1437,7 +1438,7 @@
 %
 %
 % \subsection{Required packages}
-% Load required packages.  For compatibility reasons, most old functionality should be supported with the original set of packages.  More recently added packages, such as |etoolbox| and |xstring|, should only be used for new features when possible.
+% Load required packages.  For compatibility reasons, most old functionality should be supported with the original set of packages.  More recently added packages, such as |etoolbox| and |xstring|, should only be used for new features when possible.  |shellesc| must be loaded before any packages that invoke |\write18|, since it is possible that they haven't yet been patched to work with LuaTeX 0.87+.
 %    \begin{macrocode}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
@@ -1445,18 +1446,18 @@
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
-\RequirePackage{ifplatform}
-\RequirePackage{pdftexcmds}
-\RequirePackage{etoolbox}
-\RequirePackage{xstring}
-\RequirePackage{lineno}
-\RequirePackage{framed}
 \IfFileExists{shellesc.sty}
  {\RequirePackage{shellesc}
   \@ifpackagelater{shellesc}{2016/04/29}
    {}
    {\protected\def\ShellEscape{\immediate\write18 }}}
  {\protected\def\ShellEscape{\immediate\write18 }}
+\RequirePackage{ifplatform}
+\RequirePackage{pdftexcmds}
+\RequirePackage{etoolbox}
+\RequirePackage{xstring}
+\RequirePackage{lineno}
+\RequirePackage{framed}
 %    \end{macrocode}
 %
 % Make sure that either |color| or |xcolor| is loaded by the beginning of the document.

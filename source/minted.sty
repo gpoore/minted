@@ -27,25 +27,25 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/06/09 v2.3dev Yet another Pygments shim for LaTeX]
+    [2016/06/13 v2.2.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
-\RequirePackage{ifplatform}
-\RequirePackage{pdftexcmds}
-\RequirePackage{etoolbox}
-\RequirePackage{xstring}
-\RequirePackage{lineno}
-\RequirePackage{framed}
 \IfFileExists{shellesc.sty}
  {\RequirePackage{shellesc}
   \@ifpackagelater{shellesc}{2016/04/29}
    {}
    {\protected\def\ShellEscape{\immediate\write18 }}}
  {\protected\def\ShellEscape{\immediate\write18 }}
+\RequirePackage{ifplatform}
+\RequirePackage{pdftexcmds}
+\RequirePackage{etoolbox}
+\RequirePackage{xstring}
+\RequirePackage{lineno}
+\RequirePackage{framed}
 \AtBeginDocument{%
   \@ifpackageloaded{color}{}{%
     \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
