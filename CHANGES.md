@@ -1,6 +1,17 @@
 # Changes
 
 
+## v2.2.1 (2016/06/15)
+
+*  The `shellesc` package is loaded before `ifplatform` and other packages
+   that might invoke `\write18` (#112).
+
+*  When caching is enabled, XeTeX uses the new `\mdfivesum` macro from TeX
+   Live 2016 to hash cache content, rather than using `\ShellEscape` with
+   Python to perform hashing.
+
+
+
 ## v2.2 (2016/06/08)
 
 *  All uses of `\ShellEscape` (`\write18`) no longer wrap file names and paths
@@ -26,7 +37,7 @@
    `paraiso-dark`, `algol_nu`) now work (#111).
 
 *  The `shellesc` package is now loaded, when available, for compatibility
-   with `luatex` 0.87+ (TeX Live 2016+, etc.).  `\ShellEscape` is now used
+   with LuaTeX 0.87+ (TeX Live 2016+, etc.).  `\ShellEscape` is now used
    everywhere instead of `\immediate\write18`.  If `shellesc` is not available,
    then a `\ShellEscape` macro is created.  When `shellesc` is loaded, there
    is a check for versions before v0.01c to patch a bug in v0.01b (present in
@@ -47,8 +58,8 @@
 
 *  Properly fixed handling of `\MintedPygmentize` (#62).
 
-*  Added note on incompatibility of `breaklines` and `obeytabs` options.  
-   Trying to use these together will now result in a package error (#99).  
+*  Added note on incompatibility of `breaklines` and `obeytabs` options.
+   Trying to use these together will now result in a package error (#99).
    Added note on issues with `obeytabs` and multiline comments (#88).  Due to
    the various `obeytabs` issues, the docs now discourage using `obeytabs`.
 
