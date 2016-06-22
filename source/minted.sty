@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/06/15 v2.2.1 Yet another Pygments shim for LaTeX]
+    [2016/06/21 v2.2.2 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fancyvrb}
@@ -480,26 +480,11 @@
     \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
   \define@key{minted@opt@cmd}{#2}{%
     \@namedef{minted@opt@cmd:#2}{##1}}
-}
-\newcommand{\minted@def@opt@style}{%
-  \define@key{minted@opt@g}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g:style}{##1}}%
-  \define@key{minted@opt@g@i}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g@i:style}{##1}}%
-  \define@key{minted@opt@lang}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
-  \define@key{minted@opt@lang@i}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
-  \define@key{minted@opt@cmd}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@cmd:style}{##1}}%
+  \ifstrempty{#1}{}{\@namedef{minted@opt@g:#2}{#1}}%
 }
 \newcommand{\minted@checkstyle}[1]{%
   \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
+    \ifstrempty{#1}{}{\ifcsname PYG\endcsname\else\minted@checkstyle{}\fi}%
     \expandafter\gdef%
       \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
     \ifthenelse{\boolean{minted@cache}}%
@@ -554,7 +539,6 @@
   \fi
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
-\AtBeginDocument{\minted@checkstyle{}\setminted{style=default}}
 \newcommand{\minted@patch@PYGZsq}{%
   \ifcsname PYGZsq\endcsname
     \ifx\upquote@cmtt\minted@undefined\else
@@ -644,7 +628,7 @@
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
 \minted@def@optfv@switch{linenos}
-\minted@def@opt@style
+\minted@def@opt{style}
 \minted@def@optfv{frame}
 \minted@def@optfv{framesep}
 \minted@def@optfv{framerule}
@@ -1438,6 +1422,7 @@
   \fi
 }
 \newcommand{\minted@inputpyg}{%
+  \minted@checkstyle{\minted@get@opt{style}{default}}%
   \let\FV@BreakBeforePrep@orig\FV@BreakBeforePrep
   \def\FV@BreakBeforePrep{%
     \FV@BreakBeforePrep@orig\minted@BreakBeforePrep@extension}%

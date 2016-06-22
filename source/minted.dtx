@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/15 v2.2.1 Yet another Pygments shim for LaTeX]
+    [2016/06/21 v2.2.2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -170,7 +170,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3853}
+% \CheckSum{3841}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -189,6 +189,13 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+%
+%
+%
+%
+% \begin{changelog}{v2.2.2}{2016/06/21}
+% \item Fixed a bug introduced in v2.2 that prevented setting the Pygments style in the preamble.  Style definitions are now more compatible with using \texttt{\string\MintedPygmentize} to call a custom \texttt{pygmentize}.
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.2.1}{2016/06/15}
@@ -2249,29 +2256,7 @@
     \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
   \define@key{minted@opt@cmd}{#2}{%
     \@namedef{minted@opt@cmd:#2}{##1}}
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\minted@def@opt@style}
-% Define an option for styles.  These are defined independently because styles need slightly different handling.  It is conventient to create style macros when styles are set.  Otherwise, it would be necessary to check for the existence of style macros at the beginning of every command or environment.
-%    \begin{macrocode}
-\newcommand{\minted@def@opt@style}{%
-  \define@key{minted@opt@g}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g:style}{##1}}%
-  \define@key{minted@opt@g@i}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@g@i:style}{##1}}%
-  \define@key{minted@opt@lang}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang:style}{##1}}%
-  \define@key{minted@opt@lang@i}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@lang\minted@lang @i:style}{##1}}%
-  \define@key{minted@opt@cmd}{style}{%
-    \minted@checkstyle{##1}%
-    \@namedef{minted@opt@cmd:style}{##1}}%
+  \ifstrempty{#1}{}{\@namedef{minted@opt@g:#2}{#1}}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -2285,9 +2270,14 @@
 % If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default-pyg-prefix.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
 %
 % The typical style macros created by |\minted@checkstyle|, which are of the form |\PYG<style>|, are used indirectly.  All code is highlighted with |commandprefix=PYG|, so that it uses |\PYG|.  Then |\PYG| is |\let| to |\PYG<style>| as appropriate.  This way, code need not be highlighted again when the style is changed.  This has the disadvantage that none of the |\PYG<symbol>| macros will be defined; rather, only |\PYG<style><symbol>| macros will be defined.  It would be possible to |\let| |\PYG<symbol>| to |\PYG<style><symbol>|, but it is simpler to define a complete set of symbol macros using the |PYG| prefix, so that all symbol macros will be defined by default.\footnote{It would be possible to hard-code the symbol macros in \pkg{minted} itself, but that would have the disadvantage of tying \pkg{minted} more closely to a particular version of \pkg{Pygments}.  Similarly, \texttt{\string\let}ing symbol macros assumes a complete, fixed list of symbol macros.  The current approach is harder to break than these alternatives; the worst-case scenario should be needing to purge the cache, rather than dealing with an undefined macro.}
+%
+% Whenever |\minted@checkstyle| is invoked with a named style and style macros need to be created, there is a check to see if the |PYG| prefix macros have been created, and they are generated if they do not yet exist.  This is important when |\MintedPygmentize| is used to call a custom |pygmentize|; we want to wait as late as possible to use |pygmentize|, so we don't want to generate the |\PYG| macros until the last possible moment.
+%
+% It isn't necessary to set the initial style to |default|, because the current style is always obtained via |\minted@get@opt{style}{default}|, so |default| is always the fallback value and need not be set explicitly.  |\minted@checkstyle| is used in each command/environment, so that using |pygmentize| can be delayed as long as possible.
 %    \begin{macrocode}
 \newcommand{\minted@checkstyle}[1]{%
   \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
+    \ifstrempty{#1}{}{\ifcsname PYG\endcsname\else\minted@checkstyle{}\fi}%
     \expandafter\gdef%
       \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
     \ifthenelse{\boolean{minted@cache}}%
@@ -2344,11 +2334,6 @@
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
 %    \end{macrocode}
 % \end{macro}
-%
-% At the beginning of the document, create the symbol macros with |PYG| prefix and generate the |default| style.  This must wait until |\AtBeginDocument|, because the existence of |pygmentize| isn't tested and may not be final until |\AtEndPreamble|.
-%    \begin{macrocode}
-\AtBeginDocument{\minted@checkstyle{}\setminted{style=default}}
-%    \end{macrocode}
 %
 %
 % \begin{macro}{\minted@patch@PYGZsq}
@@ -2479,7 +2464,7 @@
 \minted@def@optcl@switch{texcomments}{-P texcomments}
 \minted@def@optcl@switch{mathescape}{-P mathescape}
 \minted@def@optfv@switch{linenos}
-\minted@def@opt@style
+\minted@def@opt{style}
 %    \end{macrocode}
 %
 % \pkg{fancyvrb} options.
@@ -3622,9 +3607,11 @@
 % \end{macro}
 %
 % \begin{macro}{\minted@inputpyg}
-% For increased clarity, the actual |\input| process is separated out into its own macro.  The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.  To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
+% For increased clarity, the actual |\input| process is separated out into its own macro.
 %
-% At the last possible moment, |\PYG| is |\let| to |\PYG<style>|.  All modifications to the style macro for breaking are made to |\PYG<style>| rather than |\PYG|, so that the |\let|ing that must ultimately take place will indeed do what is intended.
+% A check is performed to make sure that style macros exist.  This is done here, rather than when a style is set, so that creating the style macros is done as late as possible in case a custom |pygmentize| is in use via |\MintedPygmentize|.  At the last possible moment, |\PYG| is |\let| to |\PYG<style>|.  All modifications to the style macro for breaking are made to |\PYG<style>| rather than |\PYG|, so that the |\let|ing that must ultimately take place will indeed do what is intended.
+%
+% The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.  To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
 %    \begin{macrocode}
 \def\FV@SpaceMMode{ }
 \def\minted@BreakBeforePrep@extension{%
@@ -3740,6 +3727,7 @@
   \fi
 }
 \newcommand{\minted@inputpyg}{%
+  \minted@checkstyle{\minted@get@opt{style}{default}}%
   \let\FV@BreakBeforePrep@orig\FV@BreakBeforePrep
   \def\FV@BreakBeforePrep{%
     \FV@BreakBeforePrep@orig\minted@BreakBeforePrep@extension}%

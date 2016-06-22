@@ -1,6 +1,14 @@
 # Changes
 
 
+## v2.2.2 (2016/06/21)
+
+*  Fixed a bug introduced in v2.2 that prevented setting the Pygments style in
+   the preamble.  Style definitions are now more compatible with using
+   `\MintedPygmentize` to call a custom `pygmentize`.
+
+
+
 ## v2.2.1 (2016/06/15)
 
 *  The `shellesc` package is loaded before `ifplatform` and other packages
