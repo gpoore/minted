@@ -27,10 +27,10 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/06/21 v2.2.2 Yet another Pygments shim for LaTeX]
+    [2016/07/13 v2.3dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
-\RequirePackage{fancyvrb}
+\RequirePackage{fvextra}
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
@@ -46,7 +46,7 @@
 \RequirePackage{xstring}
 \RequirePackage{lineno}
 \RequirePackage{framed}
-\AtBeginDocument{%
+\AtEndPreamble{%
   \@ifpackageloaded{color}{}{%
     \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
 }
@@ -375,17 +375,17 @@
 \newcommand{\minted@def@optfv}[1]{%
   \define@key{minted@opt@g}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=##1,}%
+      \minted@optlistfv@g#1={##1},}%
     \@namedef{minted@opt@g:#1}{##1}}
   \define@key{minted@opt@g@i}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=##1,}%
+      \minted@optlistfv@g@i#1={##1},}%
     \@namedef{minted@opt@g@i:#1}{##1}}
   \define@key{minted@opt@lang}{#1}{%
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1=##1,}%
+      \minted@tmp#1={##1},}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
       \minted@tmp
     \@namedef{minted@opt@lang\minted@lang:#1}{##1}}
@@ -393,13 +393,13 @@
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang @i\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1=##1,}%
+      \minted@tmp#1={##1},}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
       \minted@tmp
     \@namedef{minted@opt@lang\minted@lang @i:#1}{##1}}
   \define@key{minted@opt@cmd}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=##1,}%
+      \minted@optlistfv@cmd#1={##1},}%
     \@namedef{minted@opt@cmd:#1}{##1}}
 }
 \newcommand{\minted@def@optfv@switch}[1]{%
@@ -536,27 +536,21 @@
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%
+    \ifstrempty{#1}{\minted@patch@PYGZsq}{}%
   \fi
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
 \newcommand{\minted@patch@PYGZsq}{%
   \ifcsname PYGZsq\endcsname
-    \ifx\upquote@cmtt\minted@undefined\else
-      \ifx\encodingdefault\upquote@OTone
-        \ifx\ttdefault\upquote@cmtt
-          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYGZsq\endcsname{\char13 }}{}%
-        \else
-          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
-        \fi
-      \else
-        \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
-      \fi
-    \fi
+    \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+     {\minted@patch@PYGZsq@i}%
+     {}%
   \fi
 }
+\begingroup
+\catcode`\'=\active
+\gdef\minted@patch@PYGZsq@i{\gdef\PYGZsq{'}}
+\endgroup
 \ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
 \newcommand{\minted@def@opt@switch}[2][false]{%
   \define@booleankey{minted@opt@g}{#2}%
@@ -651,7 +645,17 @@
 \minted@def@optfv{formatcom}
 \minted@def@optfv{label}
 \minted@def@optfv{labelposition}
-\minted@def@optfv@switch{numberblanklines}
+\minted@def@optfv{highlightlines}
+\minted@def@optfv{highlightcolor}
+\minted@def@optfv{space}
+\minted@def@optfv{spacecolor}
+\minted@def@optfv{tab}
+\minted@def@optfv{tabcolor}
+\minted@def@optfv{highlightcolor}
+\minted@def@optfv@switch{curlyquotes}
+\minted@def@optfv@switch{numberfirstline}
+\minted@def@optfv@switch{stepnumberfromfirst}
+\minted@def@optfv@switch{stepnumberoffsetvalues}
 \minted@def@optfv@switch{showspaces}
 \minted@def@optfv@switch{resetmargins}
 \minted@def@optfv@switch{samepage}
@@ -685,442 +689,6 @@
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
-\ifcsname KV@FV@breaklines\endcsname\else
-\newboolean{FV@BreakLines}
-\let\FV@ListProcessLine@Orig\FV@ListProcessLine
-\define@booleankey{FV}{breaklines}%
-  {\FV@BreakLinestrue
-    \let\FV@ListProcessLine\FV@ListProcessLine@Break}%
-  {\FV@BreakLinesfalse
-    \let\FV@ListProcessLine\FV@ListProcessLine@Orig}
-\newdimen\FV@BreakIndent
-\define@key{FV}{breakindent}{\FV@BreakIndent=#1}
-\fvset{breakindent=0pt}
-\newboolean{FV@BreakAutoIndent}
-\define@booleankey{FV}{breakautoindent}%
-  {\FV@BreakAutoIndenttrue}{\FV@BreakAutoIndentfalse}
-\fvset{breakautoindent=true}
-\define@key{FV}{breaksymbolleft}{\def\FancyVerbBreakSymbolLeft{#1}}
-\define@key{FV}{breaksymbol}{\fvset{breaksymbolleft=#1}}
-\fvset{breaksymbolleft=\tiny\ensuremath{\hookrightarrow}}
-\define@key{FV}{breaksymbolright}{\def\FancyVerbBreakSymbolRight{#1}}
-\fvset{breaksymbolright={}}
-\newdimen\FV@BreakSymbolSepLeft
-\define@key{FV}{breaksymbolsepleft}{\FV@BreakSymbolSepLeft=#1}
-\define@key{FV}{breaksymbolsep}{\fvset{breaksymbolsepleft=#1}}
-\fvset{breaksymbolsepleft=1em}
-\newdimen\FV@BreakSymbolSepRight
-\define@key{FV}{breaksymbolsepright}{\FV@BreakSymbolSepRight=#1}
-\fvset{breaksymbolsepright=1em}
-\newdimen\FV@BreakSymbolIndentLeft
-\settowidth{\FV@BreakSymbolIndentLeft}{\ttfamily xxxx}
-\define@key{FV}{breaksymbolindentleft}{\FV@BreakSymbolIndentLeft=#1}
-\define@key{FV}{breaksymbolindent}{\fvset{breaksymbolindentleft=#1}}
-\newdimen\FV@BreakSymbolIndentRight
-\settowidth{\FV@BreakSymbolIndentRight}{\ttfamily xxxx}
-\define@key{FV}{breaksymbolindentright}{\FV@BreakSymbolIndentRight=#1}
-\newcommand{\FancyVerbFormatBreakSymbolLeft}[1]{%
-  \ifnum\value{linenumber}=1\relax\else{#1}\fi}
-\newcounter{FancyVerbLineBreakLast}
-\newcommand{\FV@SetLineBreakLast}{%
-  \setcounter{FancyVerbLineBreakLast}{\value{linenumber}}}
-\newcommand{\FancyVerbFormatBreakSymbolRight}[1]{%
-  \ifnum\value{linenumber}=\value{FancyVerbLineBreakLast}\relax\else{#1}\fi}
-\newboolean{FV@BreakAnywhere}
-\define@booleankey{FV}{breakanywhere}%
-  {\FV@BreakAnywheretrue
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@AnyToken}%
-  {\FV@BreakAnywherefalse
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}
-\fvset{breakanywhere=false}
-\let\FancyVerbBreakStart\relax
-\let\FancyVerbBreakStop\relax
-\edef\FV@hashchar{\string#}
-\edef\FV@dollarchar{\string$}
-\edef\FV@ampchar{\string&}
-\edef\FV@underscorechar{\string_}
-\edef\FV@tildechar{\string~}
-\edef\FV@leftsquarebracket{\string[}
-\edef\FV@rightsquarebracket{\string]}
-\newcommand{\FV@EscChars}{%
-  \let\#\FV@hashchar
-  \let\%\@percentchar
-  \let\{\@charlb
-  \let\}\@charrb
-  \let\$\FV@dollarchar
-  \let\&\FV@ampchar
-  \let\_\FV@underscorechar
-  \let\\\@backslashchar
-  \let~\FV@tildechar
-  \let\~\FV@tildechar
-  \let\[\FV@leftsquarebracket
-  \let\]\FV@rightsquarebracket
-} %$ <- highlighting
-\define@key{FV}{breakbefore}{%
-  \ifstrempty{#1}%
-   {\let\FV@BreakBefore\@empty
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}%
-   {\def\FV@BreakBefore{#1}%
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
-}
-\fvset{breakbefore={}}
-\newboolean{FV@BreakBeforeGroup}
-\define@booleankey{FV}{breakbeforegroup}%
- {\FV@BreakBeforeGrouptrue}%
- {\FV@BreakBeforeGroupfalse}%
-\fvset{breakbeforegroup=true}
-\def\FV@BreakBeforePrep{%
-  \ifx\FV@BreakBefore\@empty\relax
-  \else
-    \gdef\FV@BreakBefore@Def{}%
-    \begingroup
-    \def\FV@BreakBefore@Process##1##2\FV@Undefined{%
-      \expandafter\FV@BreakBefore@Process@i\expandafter{##1}%
-      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
-      \else
-        \FV@BreakBefore@Process##2\FV@Undefined
-      \fi
-    }%
-    \def\FV@BreakBefore@Process@i##1{%
-      \g@addto@macro\FV@BreakBefore@Def{%
-        \@namedef{FV@BreakBefore@Token\detokenize{##1}}{}}%
-    }%
-    \FV@EscChars
-    \expandafter\FV@BreakBefore@Process\FV@BreakBefore\FV@Undefined
-    \endgroup
-    \FV@BreakBefore@Def
-  \fi
-}
-\define@key{FV}{breakafter}{%
-  \ifstrempty{#1}%
-   {\let\FV@BreakAfter\@empty
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}%
-   {\def\FV@BreakAfter{#1}%
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
-}
-\fvset{breakafter={}}
-\newboolean{FV@BreakAfterGroup}
-\define@booleankey{FV}{breakaftergroup}%
- {\FV@BreakAfterGrouptrue}%
- {\FV@BreakAfterGroupfalse}%
-\fvset{breakaftergroup=true}
-\def\FV@BreakAfterPrep{%
-  \ifx\FV@BreakAfter\@empty\relax
-  \else
-    \gdef\FV@BreakAfter@Def{}%
-    \begingroup
-    \def\FV@BreakAfter@Process##1##2\FV@Undefined{%
-      \expandafter\FV@BreakAfter@Process@i\expandafter{##1}%
-      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
-      \else
-        \FV@BreakAfter@Process##2\FV@Undefined
-      \fi
-    }%
-    \def\FV@BreakAfter@Process@i##1{%
-      \ifcsname FV@BreakBefore@Token\detokenize{##1}\endcsname
-        \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
-         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-           {}%
-           {\PackageError{minted}%
-            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
-            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}}%
-         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-           {\PackageError{minted}%
-             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
-             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}%
-           {}}%
-      \else
-      \fi
-      \g@addto@macro\FV@BreakAfter@Def{%
-        \@namedef{FV@BreakAfter@Token\detokenize{##1}}{}}%
-    }%
-    \FV@EscChars
-    \expandafter\FV@BreakAfter@Process\FV@BreakAfter\FV@Undefined
-    \endgroup
-    \FV@BreakAfter@Def
-  \fi
-}
-\expandafter\def\expandafter\FV@FormattingPrep\expandafter{%
-  \expandafter\FV@BreakBeforePrep\expandafter\FV@BreakAfterPrep\FV@FormattingPrep}
-\define@key{FV}{breakanywheresymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAnywhereSymbolPre{}}%
-    {\def\FancyVerbBreakAnywhereSymbolPre{\hbox{#1}}}}
-\fvset{breakanywheresymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-\define@key{FV}{breakanywheresymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAnywhereSymbolPost{}}%
-    {\def\FancyVerbBreakAnywhereSymbolPost{\hbox{#1}}}}
-\fvset{breakanywheresymbolpost={}}
-\define@key{FV}{breakbeforesymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakBeforeSymbolPre{}}%
-    {\def\FancyVerbBreakBeforeSymbolPre{\hbox{#1}}}}
-\fvset{breakbeforesymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-\define@key{FV}{breakbeforesymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakBeforeSymbolPost{}}%
-    {\def\FancyVerbBreakBeforeSymbolPost{\hbox{#1}}}}
-\fvset{breakbeforesymbolpost={}}
-\define@key{FV}{breakaftersymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAfterSymbolPre{}}%
-    {\def\FancyVerbBreakAfterSymbolPre{\hbox{#1}}}}
-\fvset{breakaftersymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-\define@key{FV}{breakaftersymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAfterSymbolPost{}}%
-    {\def\FancyVerbBreakAfterSymbolPost{\hbox{#1}}}}
-\fvset{breakaftersymbolpost={}}
-\newcommand{\FancyVerbBreakAnywhereBreak}{%
-  \discretionary{\FancyVerbBreakAnywhereSymbolPre}%
-   {\FancyVerbBreakAnywhereSymbolPost}{}}
-\newcommand{\FancyVerbBreakBeforeBreak}{%
-  \discretionary{\FancyVerbBreakBeforeSymbolPre}%
-   {\FancyVerbBreakBeforeSymbolPost}{}}
-\newcommand{\FancyVerbBreakAfterBreak}{%
-  \discretionary{\FancyVerbBreakAfterSymbolPre}%
-   {\FancyVerbBreakAfterSymbolPost}{}}
-\newsavebox{\FV@LineBox}
-\newsavebox{\FV@LineIndentBox}
-\let\FV@LineIndentChars\@empty
-\def\FV@GetNextChar{\let\FV@NextChar=}
-\def\FV@CleanRemainingChars#1\FV@Undefined{}
-\def\FV@GetLineIndent{\afterassignment\FV@CheckIndentChar\FV@GetNextChar}
-\def\FV@CheckIndentChar{%
-  \ifx\FV@NextChar\FV@Undefined
-    \let\FV@Next=\relax
-  \else
-    \expandafter\ifx\FV@NextChar\FV@Space
-      \g@addto@macro{\FV@LineIndentChars}{\FV@Space}%
-      \let\FV@Next=\FV@GetLineIndent
-    \else
-      \expandafter\ifx\FV@NextChar\FV@Tab
-        \g@addto@macro{\FV@LineIndentChars}{\FV@Tab}%
-        \let\FV@Next=\FV@GetLineIndent
-      \else
-        \let\FV@Next=\FV@CleanRemainingChars
-      \fi
-    \fi
-  \fi
-  \FV@Next
-}
-\def\FV@Break{%
-  \def\FV@Tmp{}%
-  \let\FV@LastToken\minted@undefined
-  \FV@Break@Scan
-}
-\def\FV@EndBreak{\FV@Tmp}
-\begingroup
-\catcode`\$=3%
-\gdef\FV@Break@Scan{%
-  \@ifnextchar\FV@EndBreak%
-   {}%
-   {\ifx\@let@token$\relax
-      \let\FV@Break@Next\FV@Break@Math
-    \else
-      \ifx\@let@token\bgroup\relax
-        \let\FV@Break@Next\FV@Break@Group
-      \else
-        \let\FV@Break@Next\FV@Break@Token
-      \fi
-    \fi
-    \FV@Break@Next}%
-}
-\endgroup
-\begingroup
-\catcode`\$=3%
-\gdef\FV@Break@Math$#1${%
-  \g@addto@macro{\FV@Tmp}{$#1$}%
-  \let\FV@LastToken\minted@undefined
-  \FV@Break@Scan}
-\endgroup
-\def\FV@Break@Group#1{%
-  \g@addto@macro{\FV@Tmp}{{#1}}%
-  \ifstrempty{#1}{}{\let\FV@LastToken\minted@undefined}%
-  \FV@Break@Scan}
-\def\FV@Break@AnyToken#1{%
-  \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
-  \FV@Break@Scan}
-\def\FV@Break@BeforeAfterToken#1{%
-  \ifcsname FV@BreakBefore@Token\detokenize{#1}\endcsname
-    \let\FV@Break@Next\FV@Break@BeforeTokenBreak
-  \else
-    \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-      \let\FV@Break@Next\FV@Break@AfterTokenBreak
-    \else
-      \let\FV@Break@Next\FV@Break@BeforeAfterTokenNoBreak
-    \fi
-  \fi
-  \FV@Break@Next{#1}%
-}
-\def\FV@Break@BeforeAfterTokenNoBreak#1{%
-  \g@addto@macro{\FV@Tmp}{#1}%
-  \let\FV@LastToken#1%
-  \FV@Break@Scan}
-\def\FV@Break@BeforeTokenBreak#1{%
-  \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
-   {\ifx#1\FV@LastToken\relax
-      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-        \def\FV@RescanToken{#1}%
-      \else
-        \g@addto@macro{\FV@Tmp}{#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-        \let\FV@LastToken#1%
-      \fi
-    \else
-      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
-        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-        \def\FV@RescanToken{#1}%
-      \else
-        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-        \let\FV@LastToken#1%
-      \fi
-    \fi}%
-   {\ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
-      \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-      \def\FV@RescanToken{#1}%
-    \else
-      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
-      \let\FV@Break@Next\FV@Break@Scan
-      \let\FV@LastToken#1%
-    \fi}%
-  \FV@Break@Next}
-\def\FV@Break@BeforeTokenBreak@AfterRescan{%
-  \expandafter\FV@Break@AfterTokenBreak\FV@RescanToken}
-\def\FV@Break@AfterTokenBreak#1{%
-  \let\FV@LastToken#1%
-  \@ifnextchar\FV@Space%
-   {\g@addto@macro{\FV@Tmp}{#1}\FV@Break@Scan}%
-   {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-     {\ifx\@let@token#1\relax
-        \g@addto@macro{\FV@Tmp}{#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-      \else
-        \ifx\@let@token\bgroup\relax
-          \g@addto@macro{\FV@Tmp}{#1}%
-          \let\FV@Break@Next\FV@Break@AfterTokenBreak@Group
-        \else
-          \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
-          \let\FV@Break@Next\FV@Break@Scan
-        \fi
-      \fi}%
-     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
-      \let\FV@Break@Next\FV@Break@Scan}%
-    \FV@Break@Next}%
-}
-\def\FV@Break@AfterTokenBreak@Group#1{%
-  \g@addto@macro{\FV@Tmp}{{#1}}%
-  \ifstrempty{#1}%
-   {\let\FV@Break@Next\FV@Break@AfterTokenBreak@Group@i}%
-   {\let\FV@Break@Next\FV@Break@Scan\let\FV@LastToken\minted@undefined}%
-  \FV@Break@Next}
-\def\FV@Break@AfterTokenBreak@Group@i{%
-  \@ifnextchar\FV@LastToken%
-   {\FV@Break@Scan}%
-   {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAfterBreak}%
-    \FV@Break@Scan}}
-\def\FV@makeLineNumber{%
-  \hss
-  \FancyVerbFormatBreakSymbolLeft{\FancyVerbBreakSymbolLeft}%
-  \hbox to \FV@BreakSymbolSepLeft{\hfill}%
-  \rlap{\hskip\linewidth
-    \hbox to \FV@BreakSymbolSepRight{\hfill}%
-    \FancyVerbFormatBreakSymbolRight{\FancyVerbBreakSymbolRight}%
-    \FV@SetLineBreakLast
-  }%
-}
-\def\FV@SaveLineBox#1{%
-  \savebox{\FV@LineBox}{%
-    \advance\linewidth by -\FV@BreakIndent
-    \hbox to \FV@BreakIndent{\hfill}%
-    \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-     {\let\FV@LineIndentChars\@empty
-      \FV@GetLineIndent#1\FV@Undefined
-      \savebox{\FV@LineIndentBox}{\FV@LineIndentChars}%
-      \hbox to \wd\FV@LineIndentBox{\hfill}%
-      \advance\linewidth by -\wd\FV@LineIndentBox}%
-     {}%
-    \ifdefempty{\FancyVerbBreakSymbolLeft}{}%
-     {\hbox to \FV@BreakSymbolIndentLeft{\hfill}%
-      \advance\linewidth by -\FV@BreakSymbolIndentLeft}%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
-     {\advance\linewidth by -\FV@BreakSymbolIndentRight}%
-    \parbox[t]{\linewidth}{%
-      \raggedright
-      \leftlinenumbers*
-      \begin{internallinenumbers*}%
-      \let\makeLineNumber\FV@makeLineNumber
-      \noindent\hspace*{-\FV@BreakIndent}%
-      \ifdefempty{\FancyVerbBreakSymbolLeft}{}{%
-        \hspace*{-\FV@BreakSymbolIndentLeft}}%
-      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-       {\hspace*{-\wd\FV@LineIndentBox}}%
-       {}%
-      \strut\FancyVerbFormatText{%
-        \FancyVerbBreakStart#1\FancyVerbBreakStop}\nobreak\strut
-      \end{internallinenumbers*}
-    }%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
-     {\hbox to \FV@BreakSymbolIndentRight{\hfill}}%
-  }%
-}
-\def\FancyVerbFormatText#1{#1}
-\def\FV@ListProcessLine@Break#1{%
-  \ifx\FV@ObeyTabsInit\relax\else
-    \PackageError{minted}%
-     {the options obeytabs and breaklines are not compatible}{}%
-  \fi
-  \hbox to \hsize{%
-  \kern\leftmargin
-  \hbox to \linewidth{%
-  \ifx\FV@RightListFrame\relax\else
-    \advance\linewidth by -\FV@FrameSep
-    \advance\linewidth by -\FV@FrameRule
-  \fi
-  \ifx\FV@LeftListFrame\relax\else
-    \advance\linewidth by -\FV@FrameSep
-    \advance\linewidth by -\FV@FrameRule
-  \fi
-  \sbox{\FV@LineBox}{\FancyVerbFormatLine{\FancyVerbFormatText{#1}}}%
-  \ifdim\wd\FV@LineBox>\linewidth
-    \setcounter{FancyVerbLineBreakLast}{0}%
-    \FV@SaveLineBox{#1}%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
-      \let\FV@SetLineBreakLast\relax
-      \FV@SaveLineBox{#1}}%
-    \FV@LeftListNumber
-    \FV@LeftListFrame
-    \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
-    \FV@RightListFrame
-    \FV@RightListNumber
-  \else
-    \FV@LeftListNumber
-    \FV@LeftListFrame
-    \FancyVerbFormatLine{%
-      \parbox[t]{\linewidth}{\noindent\strut\FancyVerbFormatText{#1}\strut}}%
-    \FV@RightListFrame
-    \FV@RightListNumber
-  \fi}%
-  \hss}\baselineskip\z@\lineskip\z@}
-\ifcsname KV@FV@linenos\endcsname\else
-\define@booleankey{FV}{linenos}%
-  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
-\fi
-\fi
 \newsavebox{\minted@bgbox}
 \newenvironment{minted@colorbg}[1]{%
   \setlength{\OuterFrameSep}{0pt}%
@@ -1308,7 +876,6 @@
       \ShellEscape{\minted@cmd}%
       \minted@inputpyg}%
 }
-\def\FV@SpaceMMode{ }
 \def\minted@BreakBeforePrep@extension{%
   \ifcsname FV@BreakBefore@Token\@backslashchar\endcsname
     \@namedef{FV@BreakBefore@Token\detokenize{\PYGZbs}}{}%
@@ -1429,7 +996,6 @@
   \let\FV@BreakAfterPrep@orig\FV@BreakAfterPrep
   \def\FV@BreakAfterPrep{%
     \FV@BreakAfterPrep@orig\minted@BreakAfterPrep@extension}%
-  \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
     {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
   \ifthenelse{\boolean{FV@BreakAnywhere}}%
@@ -1524,6 +1090,7 @@
     {\minted@configlang{#1}%
       \setkeys{minted@opt@lang@i}{#2}}}
 \setmintedinline[php]{startinline=true}
+\setminted{tabcolor=black}
 \newcommand{\usemintedstyle}[2][]{\setminted[#1]{style=#2}}
 \begingroup
 \catcode`\ =\active

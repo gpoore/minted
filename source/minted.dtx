@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/06/21 v2.2.2 Yet another Pygments shim for LaTeX]
+    [2016/07/13 v2.3dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -43,25 +43,53 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage{lstdoc}
-\usepackage{xcolor}
-\usepackage{upquote}
+\usepackage{dingbat}
+\usepackage{microtype}
+
+\usepackage[svgnames]{xcolor}
+\usepackage{textcomp}
 \usepackage[cache, langlinenos]{minted}
 % Need to set the style here so that it is defined and brought in here.
 % If the style is set later, then docstrip interferes with any comments in
 % the style definition so that they appear as literal text in the document.
 \setminted{style=default}
-\usepackage{courier} % Useful monospace font (= has \bfseries).
-\usepackage{textcomp}
-\usepackage{microtype}
+
 \usepackage{environ}
 \usepackage{graphicx}
-\usepackage{dingbat}
 \usepackage{multicol}
 \usepackage{hyperref}
 
 
 \makeatletter
+
+% Create a short verbatim pipe that handles quotation marks properly
+\begingroup
+\catcode`\|=\active
+\gdef\pipe@active@verbatim{%
+  \begingroup
+  \let\do\@makeother\dospecials
+  \catcode`\|=\active
+  \catcode`\`=\active
+  \catcode`\'=\active
+  \catcode`\<=\active
+  \catcode`\>=\active
+  \catcode`\-=\active
+  \catcode`\,=\active
+  \catcode`\ =\active
+  \pipe@active@verbatim@i}
+\gdef\pipe@active@verbatim@i#1|{%
+  \endgroup
+  \begingroup
+  \def\FV@SV@pipe@active@verbatim{%
+    \FV@Gobble
+    \expandafter\FV@ProcessLine\expandafter{#1}}%
+  %\let\FV@BeginVBox\relax
+  %\let\FV@EndVBox\relax
+  %\def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
+  \BUseVerbatim{pipe@active@verbatim}%
+  \endgroup}
+\AtBeginDocument{\let|\pipe@active@verbatim}
+\endgroup
 
 \newcommand{\changestext}{}
 \NewEnviron{changelog}[2]{%
@@ -85,11 +113,6 @@
   \fontshape\updefault%
   \small}
 
-% FIXME This is incredibly hacky and overrides size commands around tt-text.
-% But I don't get the font inside the main body to change otherwise. :-(
-\let\mintedttold\ttfamily
-\def\ttfamily{\mintedttold\fontsize{9}{9}\selectfont}
-%
 \definecolor{minted@mint}{HTML}{0B610B}
 \definecolor{minted@samplebg}{HTML}{F0F0E0}
 \colorlet{minted@linkcolor}{minted@mint}
@@ -104,6 +127,7 @@
   pdftitle=The minted package: Highlighted source code in LaTeX,
   pdfauthor=Geoffrey M. Poore,
   pdfsubject={Minted LaTeX package manual},
+  colorlinks=true,
   allcolors=minted@linkcolor,
 }
 %
@@ -137,22 +161,23 @@
    \vspace{1ex}}}
 
 \def\minted@printopt#1(#2) (#3){%
+  \vspace{0.1in}%
   \leavevmode%
   \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{#1}}\ }%
-  \textsf{(#2)}\hfill(default: #3)\\}
+  \kern-\parindent\textsf{(#2)}\hfill(default: \texttt{#3})\\}
 
-\newenvironment{optionlist}{%
-  \par%
+\newenvironment{optionlist}%
+ {%
+  ~\par\vspace{-14pt}%
+  \def\pipechar{|}
+  \let\|\pipechar
   \newcommand*\mintednext{}%
   \renewcommand*\item[1][]{%
     \mintednext%
     \renewcommand*\mintednext{\par}%
     \minted@printopt##1%
-    \ignorespaces}
-  \DeleteShortVerb{\|}%
-  \MakeShortVerb{\+}}{%
-  \DeleteShortVerb{\+}%
-  \MakeShortVerb{\|}%
+    \ignorespaces}}
+ {%
   \par}
 
 \edef\hashchar{\string#}
@@ -170,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{3841}
+% \CheckSum{2928}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -191,6 +216,16 @@
 %
 %
 %
+% \begin{changelog}{v2.3}{2016/07/??}
+% \item The \texttt{fvextra} package is now required.  \texttt{fvextra} extends and patches \texttt{fancyvrb}, and includes improved versions of \texttt{fancyvrb} extensions that were formerly in \pkg{minted}.
+% \item As part of \texttt{fvextra}, the \texttt{upquote} package is always loaded.  \texttt{fvextra} brings the new option \texttt{curlyquotes}, which allows curly single quotation marks instead of the literal backtick and typewriter single quotation mark produced by \texttt{upquote}.  This allows the default \texttt{upquote} behavior to be disabled when desired.
+% \item Thanks to \texttt{fvextra}, the options \texttt{breakbefore}, \texttt{breakafter}, and \texttt{breakanywhere} are now compatible with non-ASCII characters under pdfTeX (\#123).
+% \item Thanks to \texttt{fvextra}, \texttt{obeytabs} no longer causes lines in multi-line comments or strings to vanish (\#88), and is now compatible with \texttt{breaklines} (\#99).  \texttt{obeytabs} will now always give correct results with tabs used for indentation.  However, tab stops are not guaranteed to be correct for tabs in the midst of text.
+% \item \texttt{fvextra} brings the new options \texttt{space}, \texttt{spacecolor}, \texttt{tab}, and \texttt{tabcolor} that allow these characters and their colors to be redefined (\#98).  The tab may now be redefined to a flexible-width character such as \texttt{\string\rightarrowfill}.  The visible tab will now always be black by default, instead of changing colors depending on whether it is part of indentation for a multiline string or comment.
+% \item \texttt{fvextra} brings the new options \texttt{highlightcolor} and \texttt{highlightlines}, which allow single lines or ranges of lines to be highlighted based on line number (\#124).
+% \item \texttt{fvextra} brings the new options \texttt{numberfirstline}, \texttt{stepnumberfromfirst}, and \texttt{stepnumberoffsetvalues} that provide better control over line numbering when \texttt{stepnumber} $\ne 1$.
+% \item Fixed a bug from v2.2.2 that prevented \texttt{upquote} from working.
+% \end{changelog} 
 %
 %
 % \begin{changelog}{v2.2.2}{2016/06/21}
@@ -382,7 +417,6 @@
 % \fvset{
 %   codes={\catcode`\%=9}, ^^A Ignore initial |%|
 %   numbersep=5pt,
-%   fontsize=\small
 % }
 % \setlength{\fboxsep}{1ex}
 %
@@ -470,6 +504,8 @@
 %   \item keyval
 %   \item kvoptions
 %   \item fancyvrb
+%   \item fvextra
+%   \item upquote
 %   \item float
 %   \item ifthen
 %   \item calc
@@ -736,7 +772,7 @@
 % \mint[frame=lines]{latex}/\usepackage[chapter]{minted}/
 %
 %
-% \DescribeMacro{cache=\meta{boolean} (default: true)}
+% \DescribeMacro{cache=\meta{boolean} (default:~true)}
 % \pkg{minted} works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are several chunks of code to highlight.  To avoid this, the package provides a |cache| option.  This is on by default.
 %
 % The |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory (this may be customized with the |cachedir| option).\footnote{The directory is actually named using a ``sanitized'' copy of \meta{jobname}, in which spaces and asterisks have been replaced by underscores, and double quotation marks have been stripped.  If the file name contains spaces, \texttt{\string\jobname} will contain a quote-wrapped name, except under older versions of MiKTeX which used the name with spaces replaced by asterisks.  Using a ``sanitized'' \meta{jobname} is simpler than accomodating the various escaping conventions.}  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
@@ -757,13 +793,13 @@
 % Note that the cache directory is relative to the |outputdir|, if an |outputdir| is specified.
 %
 %
-% \DescribeMacro{finalizecache=\meta{boolean} (default: false)}
+% \DescribeMacro{finalizecache=\meta{boolean} (default:~false)}
 % In some cases, it may be desirable to use \pkg{minted} in an environment in which |-shell-escape| is not allowed.  A document might be submitted to a publisher or preprint server or used with an online service that does not support |-shell-escape|.  This is possible as long as \pkg{minted} content does not need to be modified.
 %
 % Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the XeTeX engine since prior to TeX Live 2016 it lacked the built-in MD5 capabilities that pdfTeX and LuaTeX have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
 %
 %
-% \DescribeMacro{frozencache=\meta{boolean} (default: false)}
+% \DescribeMacro{frozencache=\meta{boolean} (default:~false)}
 % Use a frozen (static) cache created with the |finalizecache| option.  When |frozencache| is on, |-shell-escape| is not needed, and Python and Pygments are not required.  In addition, any external files accessed through |\inputminted| are no longer necessary.
 %
 % \textbf{This option must be used with care.  A document \emph{must} be in final form, as far as \pkg{minted} is concerned, \emph{before} \texttt{frozencache} is turned on, and the document \emph{must} have been compiled with \texttt{finalizecache}.   When this option is on, \pkg{minted} content cannot be modified, except by editing the cache files directly.  Changing any \pkg{minted} settings that require Pygments or Python is not possible.  If \pkg{minted} content is incorrectly modified after \texttt{frozencache} is turned on, \pkg{minted} \emph{cannot} detect the modification.}
@@ -776,7 +812,7 @@
 % \end{enumerate}
 %
 %
-% \DescribeMacro{draft=\meta{boolean} (default: false)}
+% \DescribeMacro{draft=\meta{boolean} (default:~false)}
 % This uses \pkg{fancyvrb} alone for all typesetting; \app{Pygments} is not used.  This trades syntax highlighting and some other \app{minted} features for faster compiling.  Performance should be essentially the same as using \pkg{fancyvrb} directly; no external temporary files are used.  Note that if you are not changing much code between compiles, the difference in performance between caching and draft mode may be minimal.  Also note that |draft| settings are typically inherited from the document class.
 %
 % Draft mode does not support |autogobble|.  Regular |gobble|, |linenos|, and most other options not related to syntax highlighting will still function in draft mode.
@@ -786,11 +822,11 @@
 % If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
 %
 %
-% \DescribeMacro{final=\meta{boolean} (default: true)}
+% \DescribeMacro{final=\meta{boolean} (default:~true)}
 % This is the opposite of |draft|; it is equivalent to |draft=false|.  Again, note that |draft| and |final| settings are typically inherited from the document class.
 %
 %
-% \DescribeMacro{kpsewhich=\meta{boolean} (default: false)}
+% \DescribeMacro{kpsewhich=\meta{boolean} (default:~false)}
 % This option uses |kpsewhich| to locate files that are to be highlighted.  Some build tools such as |texi2pdf| function by modifying |TEXINPUTS|; in some cases, users may customize |TEXINPUTS| as well.  The |kpsewhich| option allows \pkg{minted} to work with such configurations.
 %
 % This option may add a noticeable amount of overhead on some systems, or with some system configurations.
@@ -800,7 +836,7 @@
 % Under Windows, this option currently requires that PowerShell be installed.  It may need to be installed in versions of Windows prior to Windows 7.
 %
 %
-% \DescribeMacro{langlinenos=\meta{boolean} (default: false)}
+% \DescribeMacro{langlinenos=\meta{boolean} (default:~false)}
 % \pkg{minted} uses the \pkg{fancyvrb} package behind the scenes for the code typesetting.  \pkg{fancyvrb} provides an option |firstnumber| that allows the starting line number of an environment to be specified.  For convenience, there is an option |firstnumber=last| that allows line numbering to pick up where it left off.  The |langlinenos| option makes |firstnumber| work for each language individually with all |minted| and |\mint| usages.  For example, consider the code and output below.
 %
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
@@ -820,7 +856,7 @@
 %       return 2*x
 %   \end{minted}
 % \end{VerbatimOut}
-% \inputminted{latex}{minted.doc.out}
+% \inputminted[frame=single, rulecolor=minted@linkcolor]{latex}{minted.doc.out}
 % \hfill
 % \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
 %   \input{minted.doc.out}
@@ -830,11 +866,11 @@
 % Without the |langlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.  Rather, it would pick up with the Ruby line numbering.
 %
 %
-% \DescribeMacro{newfloat=\meta{boolean} (default: false)}
+% \DescribeMacro{newfloat=\meta{boolean} (default:~false)}
 % By default, the |listing| environment is created using the \pkg{float} package.  The |newfloat| option creates the environment using \pkg{newfloat} instead.  This provides better integration with the \pkg{caption} package.
 %
 %
-% \DescribeMacro{outputdir=\meta{directory} (default: \meta{none})}
+% \DescribeMacro{outputdir=\meta{directory} (default:~\meta{none})}
 % The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ cause problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
 %
 % The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Special characters must be escaped, while spaces require quoting and need the entire \meta{directory} to be wrapped in curly braces |{}|.  See |cachedir| above for examples of escaping and quoting.
@@ -915,9 +951,10 @@
 %
 % Following is a full list of available options.
 % For more detailed option descriptions please refer to the \pkg{fancyvrb} and \app{Pygments} documentation.
+%
 % \begin{optionlist}
-%   \item[autogobble (boolean) (+false+)]
-%     Remove (gobble) all common leading whitespace from code.  Essentially a version of +gobble+ that automatically determines what should be removed.  Good for code that originally is not indented, but is manually indented after being pasted into a \LaTeX\ document.
+%   \item[autogobble (boolean) (false)]
+%     Remove (gobble) all common leading whitespace from code.  Essentially a version of |gobble| that automatically determines what should be removed.  Good for code that originally is not indented, but is manually indented after being pasted into a \LaTeX\ document.
 %
 % \begin{example}
 %   ...text.
@@ -927,11 +964,13 @@
 %   \end{minted}
 % \end{example}
 %
-%   \item[baselinestretch (+auto+\textbar dimension) (+auto+)]
+%   \item[baselinestretch (dimension) (\meta{document default})]
 %     Value to use as for baselinestretch inside the listing.
 %
-%   \item[breakafter (string) (+\meta{none}+)]
-%     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.  For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
+%   \item[breakafter (string) (\meta{none})]
+%     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
+%
+% For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
 % For an alternative, see \texttt{breakbefore}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
 %
@@ -941,35 +980,40 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakaftergroup] (boolean) (+true+)
+%   \item[breakaftergroup] (boolean) (true)
 %     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
 %
-%   \item[breakaftersymbolpre (string) (+\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor}+)]
+%   \item[breakaftersymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakafter}.
 %
-%   \item[breakaftersymbolpost (string) (+\meta{none}+)]
+%   \item[breakaftersymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakafter}.
 %
-%   \item[breakanywhere (boolean) (+false+)]
-%     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.
+%   \item[breakanywhere (boolean) (false)]
+%     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
 %
+% \begingroup
+% \fvset{xrightmargin=0.5em}
 % \begin{longexample}
 %   \begin{minted}[breaklines, breakanywhere]{python}
 %   some_string = 'SomeTextThatGoesOnAndOnForSoLongThatItCouldNeverFitOnOneLine'
 %   \end{minted}
 % \end{longexample}
+% \endgroup
 %
-%   \item[breakanywheresymbolpre (string) (+\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor}+)]
+%   \item[breakanywheresymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakanywhere}.
 %
-%   \item[breakanywheresymbolpost (string) (+\meta{none}+)]
+%   \item[breakanywheresymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakanywhere}.
 %
-%   \item[breakautoindent (boolean) (+true+)]
+%   \item[breakautoindent (boolean) (true)]
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %
-%   \item[breakbefore (string) (+\meta{none}+)]
-%     Break lines before specified characters, not just at spaces, when \texttt{breaklines=true}.  For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
+%   \item[breakbefore (string) (\meta{none})]
+%     Break lines before specified characters, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
+%
+% For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
 %  For an alternative, see \texttt{breakafter}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
 %
@@ -979,30 +1023,30 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakbeforegroup] (boolean) (+true+)
+%   \item[breakbeforegroup] (boolean) (true)
 %     When \texttt{breakbefore} is used, group all adjacent identical characters together, and only allow a break before the first character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
 %
-%   \item[breakbeforesymbolpre (string) (+\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor}+)]
+%   \item[breakbeforesymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakbefore}.
 %
-%   \item[breakbeforesymbolpost (string) (+\meta{none}+)]
+%   \item[breakbeforesymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakbefore}.
 %
-%   \item[breakbytoken (boolean) (+false+)]
+%   \item[breakbytoken (boolean) (false)]
 %   Only break lines at locations that are not within tokens; prevent tokens from being split by line breaks.  By default, \texttt{breaklines} causes line breaking at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if a break occurs in the middle of a string or similar token.
 %
 %   This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.  If the breaks provided by \texttt{breakbytoken} occur in unexpected locations, it may indicate a bug or shortcoming in the Pygments lexer for the language.
 %
-%   \item[breakbytokenanywhere (boolean) (+false+)] 
+%   \item[breakbytokenanywhere (boolean) (false)] 
 %   Like \texttt{breakbytoken}, but also allows line breaks between immediately adjacent tokens, not just between tokens that are separated by spaces.  Using \texttt{breakbytokenanywhere} with \texttt{breakanywhere} is redundant.
-%   \item[breakindent (dimension) (+0pt+)]
+%
+%   \item[breakindent (dimension) (0pt)]
 %     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
-%   \item[breaklines (boolean) (+false+)] 
+%
+%   \item[breaklines (boolean) (false)] 
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.
 %
-% \textbf{This is not compatible with the option \texttt{obeytabs}.}  Additional information about the incompatibility is on \href{https://github.com/gpoore/minted/issues/99}{GitHub}.
-%
-% By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+% By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, \texttt{breakbefore}, and \texttt{breakafter} for more fine-tuned breaking.  Currently, only \texttt{breakbytoken} and \texttt{breakbytokenanywhere} work with |\mintinline|.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 % \begin{example}
 %   ...text.
@@ -1040,12 +1084,12 @@
 %\end{Verbatim}
 %     uses the \pkg{etoolbox} package to redefine \texttt{\string\colorbox} within all \texttt{minted} environments.
 %
-%     Automatic line breaks will not work with \texttt{showspaces=true} unless you use \texttt{breakanywhere}.  You may be able to change the definition of \texttt{\string\FV@Space} if you need this; see the \pkg{fancyvrb} implementation for details.
+%     Automatic line breaks will not work with \texttt{showspaces=true} unless you use \texttt{breakanywhere} or \texttt{breakafter=\string\space}.
 %
-%   \item[breaksymbol (string) (+breaksymbolleft+)]
+%   \item[breaksymbol (string) (breaksymbolleft)]
 %     Alias for \texttt{breaksymbolleft}.
 %
-%   \item[breaksymbolleft (string) (+\string\tiny\string\ensuremath\{\string\hookrightarrow\}+, {\tiny\ensuremath{\hookrightarrow}})]
+%   \item[breaksymbolleft (string) (\string\tiny\string\ensuremath\{\string\hookrightarrow\}, {\tiny\ensuremath{\hookrightarrow}})]
 %     The symbol used at the beginning (left) of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbolleft} to an empty string (``\texttt{=,}'' or ``\texttt{=\{\}}'').  The symbol is wrapped within curly braces \texttt{\{\}} when used, so there is no danger of formatting commands such as \texttt{\string\tiny} ``escaping.''
 %
 %     The \texttt{\string\hookrightarrow} and \texttt{\string\hookleftarrow} may be further customized by the use of the \texttt{\string\rotatebox} command provided by \pkg{graphicx}.  Additional arrow-type symbols that may be useful are available in the \pkg{dingbat} (\texttt{\string\carriagereturn}) and \pkg{mnsymbol} (hook and curve arrows) packages, among others.
@@ -1055,10 +1099,10 @@
 %   \item[breaksymbolright (string) (\meta{none})]
 %     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
 %
-%   \item[breaksymbolindent (dimension) (+breaksymbolindentleft+)]
+%   \item[breaksymbolindent (dimension) (breaksymbolindentleft)]
 %     Alias for \texttt{breaksymbolindentleft}.
 %
-%   \item[breaksymbolindentleft (dimension) (width of 4 characters in teletype font at default point size)]
+%   \item[breaksymbolindentleft (dimension) (\meta{width of 4 characters in default teletype font})]
 %     The extra left indentation that is provided to make room for \texttt{breaksymbolleft}.  This indentation is only applied when there is a \texttt{breaksymbolleft}.
 %
 %     This may be set to the width of a specific number of (fixed-width) characters by using an approach such as 
@@ -1070,16 +1114,16 @@
 %
 %     Does not apply to \texttt{\string\mintinline}.
 %
-%   \item[breaksymbolindentright (dimension) (width of 4 characters in teletype font at default point size)]
+%   \item[breaksymbolindentright (dimension) (\meta{width of 4 characters in default teletype font})]
 %     The extra right indentation that is provided to make room for \texttt{breaksymbolright}.  This indentation is only applied when there is a \texttt{breaksymbolright}.
 %
-%   \item[breaksymbolsep (dimension) (+breaksymbolsepleft+)]
+%   \item[breaksymbolsep (dimension) (breaksymbolsepleft)]
 %     Alias for \texttt{breaksymbolsepleft}
 %
-%   \item[breaksymbolsepleft (dimension) (+1em+)]
+%   \item[breaksymbolsepleft (dimension) (1em)]
 %     The separation between the \texttt{breaksymbolleft} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
 %
-%   \item[breaksymbolsepright (dimension) (+1em+)]
+%   \item[breaksymbolsepright (dimension) (1em)]
 %     The separation between the \texttt{breaksymbolright} and the adjacent code.
 %
 %   \item[bgcolor (string) (\meta{none})]
@@ -1124,15 +1168,21 @@
 %\end{Verbatim}
 % \pkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
 %
-%   \item[codetagify (list of strings) (highlight +XXX+, +TODO+, +BUG+, and +NOTE+)]
+%   \item[codetagify (list of strings) (\textrm{highlight \texttt{XXX}, \texttt{TODO}, \texttt{BUG}, and \texttt{NOTE}})]
 %     Highlight special code tags in comments and docstrings.
-%   \item[encoding (string) (system-specific)]
-%     Sets the file encoding that \app{Pygments} expects.  See also +outencoding+.
+%
+% \item[curlyquotes (boolean) (false)]
+% By default, the backtick \texttt{\textasciigrave} and typewriter single quotation mark \texttt{\textquotesingle} always appear literally, instead of becoming the left and right curly single quotation marks \texttt{`'}.  This option allows these characters to be replaced by the curly quotation marks when that is desirable.
+%
+%   \item[encoding (string) (\meta{system-specific})]
+%     Sets the file encoding that \app{Pygments} expects.  See also |outencoding|.
 %   \item[escapeinside (string) (\meta{none})]
-%   Escape to \LaTeX\ between the two characters specified in \texttt{\string(string\string)}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).  Requires \app{Pygments} 2.0\string+.
+%   Escape to \LaTeX\ between the two characters specified in \texttt{\string(string\string)}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).  Requires \app{Pygments} 2.0+.
 %
 % \textbf{Escaping does not work inside strings and comments (for comments, there is \texttt{texcomments}).  As of Pygments 2.0.2, this means that escaping is ``fragile'' with some lexers.}  Due to the way that Pygments implements \texttt{escapeinside}, any ``escaped'' \LaTeX\ code that resembles a string or comment for the current lexer may break \texttt{escapeinside}.  There is a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/1118}{Pygments issue} for this case.  Additional details and a limited workaround for some scenarios are available on the \href{https://github.com/gpoore/minted/issues/70#issuecomment-111729930}{\pkg{minted} GitHub site}.
 %
+% \begingroup  ^^A Need to prevent active "|" from causing problems
+% \catcode`\|=11
 % \begin{example}
 %   \begin{minted}[escapeinside=||]{py}
 %   def f(x):
@@ -1140,50 +1190,61 @@
 %       return y
 %   \end{minted}
 % \end{example}
+% \endgroup
 %
-% \textbf{Note that when math is used inside escapes, in a few cases ligature handling may need to be modified.}  The single-quote character (\texttt{\textquotesingle}) is normally a shortcut for \texttt{\string^\string\prime} in math mode, but this is disabled in verbatim content as a byproduct of ligatures being disabled.  For the same reason, any package that relies on active characters in math mode (for example, \pkg{icomma}) will produce errors along the lines of \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.  This may be fixed by modifying \texttt{\string\@noligs}, as described at \url{http://tex.stackexchange.com/questions/223876}.  \pkg{minted} currently does not attempt to patch \texttt{\string\@noligs} due to the potential for package conflicts.
-%   \item[firstline (integer) (+1+)]
+% \textbf{Note that when math is used inside escapes, any active characters beyond those that are normally active in verbatim can cause problems.}  Any package that relies on special active characters in math mode (for example, \pkg{icomma}) will produce errors along the lines of \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.  This may be fixed by modifying \texttt{\string\@noligs}, as described at \url{http://tex.stackexchange.com/questions/223876}.
+%   \item[firstline (integer) (1)]
 %     The first line to be shown.
 %     All lines before that line are ignored and do not appear in the output.
-%   \item[firstnumber (+auto+\textbar integer) (+auto+ = 1)]
+%   \item[firstnumber (auto \| last \| integer) (auto = 1)]
 %     Line number of the first line.
-%   \item[fontfamily (family name) (+tt+)]
+%   \item[fontfamily (family name) (tt)]
 %     The font family to use.
-%     +tt+, +courier+ and +helvetica+ are pre-defined.
-%   \item[fontseries (series name) (+auto+ -- the same as the current font)]
+%     |tt|, |courier| and |helvetica| are pre-defined.
+%   \item[fontseries (series name) (auto \textrm{-- the same as the current font})]
 %     The font series to use.
-%   \item[fontsize (font size) (+auto+ -- the same as the current font)]
-%     The size of the font to use, as a size command, e.g. +\footnotesize+.
-%   \item[fontshape (font shape) (+auto+ -- the same as the current font)]
+%   \item[fontsize (font size) (auto \textrm{-- the same as the current font})]
+%     The size of the font to use, as a size command, e.g. |\footnotesize|.
+%   \item[fontshape (font shape) (auto \textrm{-- the same as the current font})]
 %     The font shape to use.
 %   \item[formatcom (command) (\meta{none})]
 %     A format to execute before printing verbatim text.
-%   \item[frame (+none+\textbar +leftline+\textbar +topline+\textbar +bottomline+\textbar +lines+\textbar +single+) (+none+)]
+%   \item[frame (none \| leftline \| topline \| bottomline \| lines \| single) (none)]
 %     The type of frame to put around the source code listing.
-%   \item[framerule (dimension) (+0.4pt+)]
+%   \item[framerule (dimension) (0.4pt)]
 %     Width of the frame.
 %   \item[framesep (dimension) (\cmd\fboxsep)]
 %     Distance between frame and content.
-%   \item[funcnamehighlighting (boolean) (+true+)] \appliesto{PHP}
-%     If +true+, highlights built-in function names.
-%   \item[gobble (integer) (+0+)]
+%   \item[funcnamehighlighting (boolean) (true)] \appliesto{PHP}
+%     If |true|, highlights built-in function names.
+%   \item[gobble (integer) (0)]
 %     Remove the first $n$ characters from each input line.
-%   \item[keywordcase] (string) (+'lower'+)
-%     Changes capitalization of keywords.  Takes +'lower'+, +'upper'+, or +'capitalize'+.
+%
+% \item[highlightcolor (string) (LightCyan)]
+% Set the color used for |highlightlines|, using a predefined color name from \pkg{color} or \pkg{xcolor}, or a color defined via |\definecolor|.
+%
+%
+% \item[highlightlines (string) (\meta{none})]
+% This highlights a single line or a range of lines based on line numbers.  For example, |highlightlines={1, 3-4}|.  The line numbers refer to the line numbers that would appear if |linenos=true|, etc.  They do not refer to original or actual line numbers before adjustment by |firstnumber|.
+%
+% The highlighting color can be customized with |highlightcolor|.
+%
+%
+%   \item[keywordcase] (string) (lower)
+%     Changes capitalization of keywords.  Takes |lower|, |upper|, or |capitalize|.
 %   \item[label (string) (\emph{empty})]
 %     Add a label to the top, the bottom or both of the frames around the code.
 %     See the \pkg{fancyvrb} documentation for more information and examples.
-%     \emph{Note:} This does \emph{not} add a +\label+ to the current listing.
+%     \emph{Note:} This does \emph{not} add a |\label| to the current listing.
 %     To achieve that, use a floating environment (section \ref{sec:float}) instead.
-%   \item[labelposition (+none+\textbar +topline+\textbar +bottomline+\textbar +all+) (+topline+, +all+ or \emph{none})]
-%     Position where to print the label (see above;  default: +topline+ if one label is defined, +all+ if two are defined, \emph{none} else).
+%   \item[labelposition (none \| topline \| bottomline \| all) (topline, all,  \textrm{or} none)]
+%     Position where to print the label (see above;  default: |topline| if one label is defined, |all| if two are defined, |none| else).
 %     See the \pkg{fancyvrb} documentation for more information.
-%   \item[lastline (integer) (\emph{last line of input})]
+%   \item[lastline (integer) (\meta{last line of input})]
 %     The last line to be shown.
-%   \item[linenos (boolean) (+false+)]
+%   \item[linenos (boolean) (false)]
 %     Enables line numbers.
-%     In order to customize the display style of line numbers, you need to redefine the +\theFancyVerbLine+
-%     macro:
+%     In order to customize the display style of line numbers, you need to redefine the |\theFancyVerbLine| macro:
 %
 % \begin{example}
 %   \renewcommand{\theFancyVerbLine}{\sffamily
@@ -1200,64 +1261,94 @@
 %   \end{minted}
 % \end{example}
 %
-%   \item[numbers (+left+\textbar+right+) (\emph{none})]
-%     Essentially the same as +linenos+, except the side on which the numbers appear may be specified.
-%   \item[mathescape (boolean) (+false+)]
+% \item[numberfirstline (boolean) (false)]
+% Always number the first line, regardless of |stepnumber|.
+%
+%
+%   \item[numbers (left \| right \| both \| none) (none)]
+%     Essentially the same as |linenos|, except the side on which the numbers appear may be specified.
+%   \item[mathescape (boolean) (false)]
 %     Enable \LaTeX{} math mode inside comments.
 %     Usage as in package \pkg{listings}.
 %     See the note under \texttt{escapeinside} regarding math and ligatures.
-%   \item[numberblanklines (boolean) (+true+)]
+%   \item[numberblanklines (boolean) (true)]
 %     Enables or disables numbering of blank lines.
-%   \item[numbersep (dimension) (+12pt+)]
+%   \item[numbersep (dimension) (12pt)]
 %     Gap between numbers and start of line.
-%   \item[obeytabs (boolean) (+false+)]
-% \textbf{\textcolor{red}{Due to the many issues with \pkg{fancyvrb}'s implementation of \texttt{obeytabs}, this option should be avoided if possible.}}
+%   \item[obeytabs (boolean) (false)]
+%     Treat tabs as tabs instead of converting them to spaces---that is, expand them to tab stops determined by |tabsize|.  \textcolor{DarkRed}{\textbf{While this will correctly expand tabs within leading indentation, usually it will not correctly expand tabs that are preceded by anything other than spaces or other tabs.  It should be avoided in those case.}}
 %
-%     Treat tabs as tabs instead of converting them to spaces.
-%
-% \textbf{This is not compatible with the option \texttt{breaklines}.}
-%
-% \textbf{This will cause errors with tabbed indentation inside multiline comments.}
-%
-% There is a \href{https://github.com/gpoore/minted/issues/99}{GitHub issue} with additional technical details.
-%   \item[outencoding (string) (system-specific)]
-%     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via +encoding+.
-%   \item[python3 (boolean) (+false+)] \appliesto{PythonConsoleLexer}
+%   \item[outencoding (string) (\meta{system-specific})]
+%     Sets the file encoding that \app{Pygments} uses for highlighted output.  Overrides any encoding previously set via |encoding|.
+%   \item[python3 (boolean) (false)] \appliesto{PythonConsoleLexer}
 %     Specifies whether Python 3 highlighting is applied.
-%   \item[resetmargins (boolean) (+false+)]
+%   \item[resetmargins (boolean) (false)]
 %     Resets the left margin inside other environments.
-%   \item[rulecolor (color command) (\emph{black})]
+%   \item[rulecolor (color command) (black)]
 %     The color of the frame.
-%   \item[samepage (boolean) (+false+)]
+%   \item[samepage (boolean) (false)]
 %     Forces the whole listing to appear on the same page, even if it doesn't fit.
-%   \item[showspaces (boolean) (+false+)]
+%   \item[showspaces (boolean) (false)]
 %     Enables visible spaces: \verb*/visible spaces/.
-%   \item[showtabs (boolean) (+false+)]
-%     Enables visible tabs---only works in combination with +obeytabs+.
-%   \item[startinline (boolean) (+false+)] \appliesto{PHP}
-%     Specifies that the code starts in PHP mode, i.e., leading +<?php+ is omitted.
-%   \item[style] (string) (\emph{default})
+%   \item[showtabs (boolean) (false)]
+%     Enables visible tabs---only works in combination with |obeytabs|.
+%
+%
+% \item[space (macro) (\string\textvisiblespace, \textvisiblespace)]
+% Redefine the visible space character.  Note that this is only used if |showspaces=true|.
+%
+%
+% \item[spacecolor (string) (none)]
+% Set the color of visible spaces.  By default (|none|), they take the color of their surroundings.
+%
+%
+%   \item[startinline (boolean) (false)] \appliesto{PHP}
+%     Specifies that the code starts in PHP mode, i.e., leading |<?php| is omitted.
+%   \item[style] (string) (\meta{default})
 %     Sets the stylesheet used by \app{Pygments}.
-%   \item[stepnumber (integer) (+1+)]
+%   \item[stepnumber (integer) (1)]
 %     Interval at which line numbers appear.
-%   \item[stripall (boolean) (+false+)]
+%
+%
+% \item[stepnumberfromfirst (boolean) (false)]
+% By default, when line numbering is used with |stepnumber| $\ne 1$, only line numbers that are a multiple of |stepnumber| are included.  This offsets the line numbering from the first line, so that the first line, and all lines separated from it by a multiple of |stepnumber|, are numbered.
+%
+%
+% \item[stepnumberoffsetvalues (boolean) (false)]
+% By default, when line numbering is used with |stepnumber| $\ne 1$, only line numbers that are a multiple of |stepnumber| are included.  Using |firstnumber| to offset the numbering will change which lines are numbered and which line gets which number, but will not change which \emph{numbers} appear.  This option causes |firstnumber| to be ignored in determining which line numbers are a multiple of |stepnumber|.  |firstnumber| is still used in calculating the actual numbers that appear.  As a result, the line numbers that appear will be a multiple of |stepnumber|, plus |firstnumber| minus 1.
+%
+%
+%   \item[stripall (boolean) (false)]
 %     Strip all leading and trailing whitespace from the input.
-%   \item[stripnl (boolean) (+true+)]
+%   \item[stripnl (boolean) (true)]
 %     Strip leading and trailing newlines from the input.
-%   \item[tabsize (integer) (+8+)]
-%     The number of spaces a tab is equivalent to.  If +obeytabs+ is \emph{not} active, tabs will be converted into this number of spaces.  If +obeytabs+ is active, tab stops will be set this number of space characters apart.
-%   \item[texcl (boolean) (+false+)]
+%
+%
+% \item[tab (macro) ({\rmfamily\pkg{fancyvrb}'s} \string\FancyVerbTab, \FancyVerbTab)]
+% Redefine the visible tab character.  Note that this is only used if |showtabs=true|.  |\rightarrowfill|, \hbox to 2em{\rightarrowfill}, may be a nice alternative.
+%
+%
+% \item[tabcolor (string) (black)]
+% Set the color of visible tabs.  If |tabcolor=none|, tabs take the color of their surroundings.  This is typically undesirable for tabs that indent multiline comments or strings.
+%
+%
+%   \item[tabsize (integer) (8)]
+%     The number of spaces a tab is equivalent to.  If |obeytabs| is \emph{not} active, tabs will be converted into this number of spaces.  If |obeytabs| is active, tab stops will be set this number of space characters apart.
+%   \item[texcl (boolean) (false)]
 %     Enables \LaTeX{} code inside comments.
 %     Usage as in package \pkg{listings}.  See the note under \texttt{escapeinside} regarding math and ligatures.
-%   \item[texcomments (boolean) (+false+)]
-%     Enables \LaTeX{} code inside comments.  The newer name for +texcl+.  See the note under \texttt{escapeinside} regarding math and ligatures.
+%   \item[texcomments (boolean) (false)]
+%     Enables \LaTeX{} code inside comments.  The newer name for |texcl|.  See the note under |escapeinside| regarding math and ligatures.
 %
-%     As of Pygments 2.0.2, \texttt{texcomments} fails with multiline C/C\detokenize{++} preprocessor directives, and may fail in some other circumstances.  This is because preprocessor directives are \href{http://pygments.org/docs/tokens/}{tokenized as \texttt{Comment.Preproc}}, so \texttt{texcomments} causes preprocessor directives to be treated as literal \LaTeX\ code.  \href{https://bitbucket.org/birkenfeld/pygments-main/issue/1086/wrong-processing-of-in-c-c-macros-if-is}{An issue has been opened} at the Pygments site; additional details are also available on the \href{https://github.com/gpoore/minted/issues/66}{\pkg{minted} GitHub site}.
-%   \item[xleftmargin (dimension) (+0+)]
+%     As of Pygments 2.0.2, \texttt{texcomments} fails with multiline C/C++ preprocessor directives, and may fail in some other circumstances.  This is because preprocessor directives are \href{http://pygments.org/docs/tokens/}{tokenized as \texttt{Comment.Preproc}}, so \texttt{texcomments} causes preprocessor directives to be treated as literal \LaTeX\ code.  \href{https://bitbucket.org/birkenfeld/pygments-main/issue/1086/wrong-processing-of-in-c-c-macros-if-is}{An issue has been opened} at the Pygments site; additional details are also available on the \href{https://github.com/gpoore/minted/issues/66}{\pkg{minted} GitHub site}.
+%   \item[xleftmargin (dimension) (0)]
 %     Indentation to add before the listing.
-%   \item[xrightmargin (dimension) (+0+)]
+%   \item[xrightmargin (dimension) (0)]
 %     Indentation to add after the listing.
+%
 % \end{optionlist}
+%
+%
 %
 %
 % \section{Defining shortcuts}
@@ -1357,9 +1448,6 @@
 %
 % \item \textbf{I'm getting errors with math, something like \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.}  This is due to ligatures being disabled within verbatim content.  See the note under |escapeinside|.
 %
-% \item \textbf{Quotation marks and backticks don't look right.  Backtick characters \texttt{\string`} are appearing as left quotes.  Single quotes are appearing as curly right quotes.}
-% This is due to how Pygments outputs \LaTeX\ code, combined with how \LaTeX\ deals with verbatim content.  Try |\usepackage{upquote}|.
-%
 % \item \textbf{I'm getting errors with Beamer.}  Due to how Beamer treats verbatim content, you may need to use either the |fragile| or |fragile=singleslide| options for frames that contain \pkg{minted} commands and environments.  |fragile=singleslide| works best, but it disables overlays.  |fragile| works by saving the contents of each frame to a temp file and then reusing them.  This approach allows overlays, but will break if you have the string |\end{frame}| at the beginning of a line (for example, in a |minted| environment).  To work around that, you can indent the content of the environment (so that the |\end{frame}| is preceded by one or more spaces) and then use the |gobble| or |autogobble| options to remove the indentation.
 %
 % \item \textbf{Tabs are eaten by Beamer.}  This is due to \href{https://bitbucket.org/rivanvx/beamer/issue/310/tab-characters-in-listings-lost-when-using}{a bug in Beamer's treatment of verbatim content}.  Upgrade Beamer or use the linked patch.  Otherwise, try |fragile=singleslide| if you don't need overlays, or consider using \cmd\inputminted\ or converting the tabs into spaces.
@@ -1449,7 +1537,7 @@
 %    \begin{macrocode}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
-\RequirePackage{fancyvrb}
+\RequirePackage{fvextra}
 \RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
@@ -1469,7 +1557,7 @@
 %
 % Make sure that either |color| or |xcolor| is loaded by the beginning of the document.
 %    \begin{macrocode}
-\AtBeginDocument{%
+\AtEndPreamble{%
   \@ifpackageloaded{color}{}{%
     \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
 }
@@ -2111,22 +2199,22 @@
 %
 % \begin{macro}{\minted@def@optfv}
 %
-% Define \pkg{fancyvrb} options.
+% Define \pkg{fancyvrb} options.  The |#1={##1}| is needed because any braces enclosing the argument (|##1|) will be stripped during the initial capture, and they need to be reinserted before \pkg{fancyvrb} gets the argument and sends it through another \pkg{keyval} processing step.  If there were no braces initially, adding them here doesn't hurt, since they are just stripped off again during processing.
 %    \begin{macrocode}
 \newcommand{\minted@def@optfv}[1]{%
   \define@key{minted@opt@g}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=##1,}%
+      \minted@optlistfv@g#1={##1},}%
     \@namedef{minted@opt@g:#1}{##1}}
   \define@key{minted@opt@g@i}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=##1,}%
+      \minted@optlistfv@g@i#1={##1},}%
     \@namedef{minted@opt@g@i:#1}{##1}}
   \define@key{minted@opt@lang}{#1}{%
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1=##1,}%
+      \minted@tmp#1={##1},}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
       \minted@tmp
     \@namedef{minted@opt@lang\minted@lang:#1}{##1}}
@@ -2134,13 +2222,13 @@
     \expandafter\let\expandafter\minted@tmp%
       \csname minted@optlistfv@lang\minted@lang @i\endcsname
     \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1=##1,}%
+      \minted@tmp#1={##1},}%
     \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
       \minted@tmp
     \@namedef{minted@opt@lang\minted@lang @i:#1}{##1}}
   \define@key{minted@opt@cmd}{#1}{%
     \expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=##1,}%
+      \minted@optlistfv@cmd#1={##1},}%
     \@namedef{minted@opt@cmd:#1}{##1}}
 }
 %    \end{macrocode}
@@ -2271,7 +2359,7 @@
 %
 % The typical style macros created by |\minted@checkstyle|, which are of the form |\PYG<style>|, are used indirectly.  All code is highlighted with |commandprefix=PYG|, so that it uses |\PYG|.  Then |\PYG| is |\let| to |\PYG<style>| as appropriate.  This way, code need not be highlighted again when the style is changed.  This has the disadvantage that none of the |\PYG<symbol>| macros will be defined; rather, only |\PYG<style><symbol>| macros will be defined.  It would be possible to |\let| |\PYG<symbol>| to |\PYG<style><symbol>|, but it is simpler to define a complete set of symbol macros using the |PYG| prefix, so that all symbol macros will be defined by default.\footnote{It would be possible to hard-code the symbol macros in \pkg{minted} itself, but that would have the disadvantage of tying \pkg{minted} more closely to a particular version of \pkg{Pygments}.  Similarly, \texttt{\string\let}ing symbol macros assumes a complete, fixed list of symbol macros.  The current approach is harder to break than these alternatives; the worst-case scenario should be needing to purge the cache, rather than dealing with an undefined macro.}
 %
-% Whenever |\minted@checkstyle| is invoked with a named style and style macros need to be created, there is a check to see if the |PYG| prefix macros have been created, and they are generated if they do not yet exist.  This is important when |\MintedPygmentize| is used to call a custom |pygmentize|; we want to wait as late as possible to use |pygmentize|, so we don't want to generate the |\PYG| macros until the last possible moment.
+% Whenever |\minted@checkstyle| is invoked with a named style and style macros need to be created, there is a check to see if the |PYG| prefix macros have been created, and they are generated if they do not yet exist.  This is important when |\MintedPygmentize| is used to call a custom |pygmentize|; we want to wait as late as possible to use |pygmentize|, so we don't want to generate the |\PYG| macros until the last possible moment.  When the |\PYG| macros are actually created, the single quote macro is patched after loading.
 %
 % It isn't necessary to set the initial style to |default|, because the current style is always obtained via |\minted@get@opt{style}{default}|, so |default| is always the fallback value and need not be set explicitly.  |\minted@checkstyle| is used in each command/environment, so that using |pygmentize| can be delayed as long as possible.
 %    \begin{macrocode}
@@ -2329,6 +2417,7 @@
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%
+    \ifstrempty{#1}{\minted@patch@PYGZsq}{}%
   \fi
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
@@ -2337,26 +2426,19 @@
 %
 %
 % \begin{macro}{\minted@patch@PYGZsq}
-% Patch the \pkg{Pygments} single quote macro for \pkg{upquote}.  The single quote macro from Pygments 1.6+ needs to be patched if the \pkg{upquote} package is in use.  The conditionals for the patch definition are borrowed from \pkg{upquote}.  Patching is done |\AtBeginDocument|, after the macros will have been created.  Patching is only attempted if the macro exists, so that there is a graceful fallback in the event of a custom \pkg{Pygments} stylesheet.
+% The single quote macro from \pkg{Pygments} 1.6+ needs to be patched if the \pkg{upquote} package is in use.  Patching is done when the default style is created.  Patching is only attempted if the macro exists, so that there is a graceful fallback in the event of a custom \pkg{Pygments} stylesheet.
 %    \begin{macrocode}
 \newcommand{\minted@patch@PYGZsq}{%
   \ifcsname PYGZsq\endcsname
-    \ifx\upquote@cmtt\minted@undefined\else
-      \ifx\encodingdefault\upquote@OTone
-        \ifx\ttdefault\upquote@cmtt
-          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYGZsq\endcsname{\char13 }}{}%
-        \else
-          \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-          {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
-        \fi
-      \else
-        \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-        {\expandafter\gdef\csname PYGZsq\endcsname{\textquotesingle}}{}%
-      \fi
-    \fi
+    \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
+     {\minted@patch@PYGZsq@i}%
+     {}%
   \fi
 }
+\begingroup
+\catcode`\'=\active
+\gdef\minted@patch@PYGZsq@i{\gdef\PYGZsq{'}}
+\endgroup
 \ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
 %    \end{macrocode}
 % \end{macro}
@@ -2491,7 +2573,17 @@
 \minted@def@optfv{formatcom}
 \minted@def@optfv{label}
 \minted@def@optfv{labelposition}
-\minted@def@optfv@switch{numberblanklines}
+\minted@def@optfv{highlightlines}
+\minted@def@optfv{highlightcolor}
+\minted@def@optfv{space}
+\minted@def@optfv{spacecolor}
+\minted@def@optfv{tab}
+\minted@def@optfv{tabcolor}
+\minted@def@optfv{highlightcolor}
+\minted@def@optfv@switch{curlyquotes}
+\minted@def@optfv@switch{numberfirstline}
+\minted@def@optfv@switch{stepnumberfromfirst}
+\minted@def@optfv@switch{stepnumberoffsetvalues}
 \minted@def@optfv@switch{showspaces}
 \minted@def@optfv@switch{resetmargins}
 \minted@def@optfv@switch{samepage}
@@ -2549,791 +2641,6 @@
 % \end{macro}
 %
 %
-% \subsection{Additions to \texttt{fancyvrb}}
-%
-% The following code adds automatic line breaking functionality to \pkg{fancyvrb}'s |Verbatim| environment.  The code is intentionally written as an extension to \pkg{fancyvrb}, rather than as part of \pkg{minted}.  Once the code has received more use and been further refined, it probably should be separated out into its own package as an extension of \pkg{fancyvrb}.
-%
-% The line breaking defined here is used in \pkg{minted}'s |minted| environment and |\mint| command, which use |Verbatim| internally.  The |\mintinline| command implements line wrapping using a slightly different system (essentially, |BVerbatim|, with the |\vbox| |\let| to |\relax|).  This is implemented separately within \pkg{minted}, rather than as an extension to \pkg{fancyvrb}, for simplicity and because |BVerbatim| wouldn't be itself without the box.  Likewise, |breaklines| is not applied to |fancyvrb|'s |\Verb| or short verb, since their implementation is different from that of |\mintinline|. Ideally, an extension of |fancyvrb| would add line breaking to these, or (probable better) provide equivalent commands that support breaks.
-%
-% \subsubsection{Setup}
-%
-% \textbf{All of the additions to \pkg{fancyvrb} should be defined conditionally.}  If an extension to \pkg{fancyvrb} (such as that proposed above) is loaded before \pkg{minted}, and if this extension provides |breaklines|, then we don't want to overwrite that definition and create a conflict.  We assume that any extension of \pkg{fancyvrb} would use the \pkg{keyval} package, since that is what \pkg{fancyvrb} currently uses, and test for the existence of a \pkg{fancyrvb} \pkg{keyval} key |breaklines|.
-%    \begin{macrocode}
-\ifcsname KV@FV@breaklines\endcsname\else
-%    \end{macrocode}
-%
-%
-% \subsubsection{Line breaking}
-%
-% Begin by defining keys, with associated macros, bools, and dimens.
-% \begin{macro}{FV@BreakLines}
-% Turn line breaking on of off.
-%    \begin{macrocode}
-\newboolean{FV@BreakLines}
-\let\FV@ListProcessLine@Orig\FV@ListProcessLine
-\define@booleankey{FV}{breaklines}%
-  {\FV@BreakLinestrue
-    \let\FV@ListProcessLine\FV@ListProcessLine@Break}%
-  {\FV@BreakLinesfalse
-    \let\FV@ListProcessLine\FV@ListProcessLine@Orig}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakIndent}
-%    \begin{macrocode}
-\newdimen\FV@BreakIndent
-\define@key{FV}{breakindent}{\FV@BreakIndent=#1}
-\fvset{breakindent=0pt}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{FV@BreakAutoIndent}
-%    \begin{macrocode}
-\newboolean{FV@BreakAutoIndent}
-\define@booleankey{FV}{breakautoindent}%
-  {\FV@BreakAutoIndenttrue}{\FV@BreakAutoIndentfalse}
-\fvset{breakautoindent=true}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakSymbolLeft}
-% The left-hand symbol indicating a break.  Since breaking is done in such a way that a left-hand symbol will often be desired while a right-hand symbol may not be, a shorthand option |breaksymbol| is supplied.  This shorthand convention is continued with other options applying to the left-hand symbol.
-%    \begin{macrocode}
-\define@key{FV}{breaksymbolleft}{\def\FancyVerbBreakSymbolLeft{#1}}
-\define@key{FV}{breaksymbol}{\fvset{breaksymbolleft=#1}}
-\fvset{breaksymbolleft=\tiny\ensuremath{\hookrightarrow}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakSymbolRight}
-% The right-hand symbol indicating a break.
-%    \begin{macrocode}
-\define@key{FV}{breaksymbolright}{\def\FancyVerbBreakSymbolRight{#1}}
-\fvset{breaksymbolright={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% Separation of break symbols from the text.
-%
-% \begin{macro}{\FV@BreakSymbolSepLeft}
-%    \begin{macrocode}
-\newdimen\FV@BreakSymbolSepLeft
-\define@key{FV}{breaksymbolsepleft}{\FV@BreakSymbolSepLeft=#1}
-\define@key{FV}{breaksymbolsep}{\fvset{breaksymbolsepleft=#1}}
-\fvset{breaksymbolsepleft=1em}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakSymbolSepRight}
-%    \begin{macrocode}
-\newdimen\FV@BreakSymbolSepRight
-\define@key{FV}{breaksymbolsepright}{\FV@BreakSymbolSepRight=#1}
-\fvset{breaksymbolsepright=1em}
-%    \end{macrocode}
-% \end{macro}
-%
-% Additional indentation to make room for the break symbols.
-%
-% \begin{macro}{\FV@BreakSymbolIndentLeft}
-%    \begin{macrocode}
-\newdimen\FV@BreakSymbolIndentLeft
-\settowidth{\FV@BreakSymbolIndentLeft}{\ttfamily xxxx}
-\define@key{FV}{breaksymbolindentleft}{\FV@BreakSymbolIndentLeft=#1}
-\define@key{FV}{breaksymbolindent}{\fvset{breaksymbolindentleft=#1}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakSymbolIndentRight}
-%    \begin{macrocode}
-\newdimen\FV@BreakSymbolIndentRight
-\settowidth{\FV@BreakSymbolIndentRight}{\ttfamily xxxx}
-\define@key{FV}{breaksymbolindentright}{\FV@BreakSymbolIndentRight=#1}
-%    \end{macrocode}
-% \end{macro}
-%
-% We need macros that contain the logic for typesetting the break symbols.  By default, the symbol macros contain everything regarding the symbol and its typesetting, while these macros contain pure logic.  The symbols should be wrapped in braces so that formatting commands (for example, |\tiny|) don't escape.
-% \begin{macro}{\FancyVerbFormatBreakSymbolLeft}
-%    \begin{macrocode}
-\newcommand{\FancyVerbFormatBreakSymbolLeft}[1]{%
-  \ifnum\value{linenumber}=1\relax\else{#1}\fi}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{FancyVerbLineBreakLast}
-% We need a counter for keeping track of the internal line number for the last segment of a broken line, so that we can avoid putting a right continuation symbol there.
-%    \begin{macrocode}
-\newcounter{FancyVerbLineBreakLast}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@SetLineBreakLast}
-%    \begin{macrocode}
-\newcommand{\FV@SetLineBreakLast}{%
-  \setcounter{FancyVerbLineBreakLast}{\value{linenumber}}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbFormatBreakSymbolRight}
-%    \begin{macrocode}
-\newcommand{\FancyVerbFormatBreakSymbolRight}[1]{%
-  \ifnum\value{linenumber}=\value{FancyVerbLineBreakLast}\relax\else{#1}\fi}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{FV@BreakAnywhere}
-% Allow line breaking (almost) anywhere.
-%    \begin{macrocode}
-\newboolean{FV@BreakAnywhere}
-\define@booleankey{FV}{breakanywhere}%
-  {\FV@BreakAnywheretrue
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@AnyToken}%
-  {\FV@BreakAnywherefalse
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}
-\fvset{breakanywhere=false}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakStart}
-%    \begin{macrocode}
-\let\FancyVerbBreakStart\relax
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakStop}
-%    \begin{macrocode}
-\let\FancyVerbBreakStop\relax
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@EscChars}
-% We need to define versions of common escaped characters that reduce to raw characters.
-%    \begin{macrocode}
-\edef\FV@hashchar{\string#}
-\edef\FV@dollarchar{\string$}
-\edef\FV@ampchar{\string&}
-\edef\FV@underscorechar{\string_}
-\edef\FV@tildechar{\string~}
-\edef\FV@leftsquarebracket{\string[}
-\edef\FV@rightsquarebracket{\string]}
-\newcommand{\FV@EscChars}{%
-  \let\#\FV@hashchar
-  \let\%\@percentchar
-  \let\{\@charlb
-  \let\}\@charrb
-  \let\$\FV@dollarchar
-  \let\&\FV@ampchar
-  \let\_\FV@underscorechar
-  \let\\\@backslashchar
-  \let~\FV@tildechar
-  \let\~\FV@tildechar
-  \let\[\FV@leftsquarebracket
-  \let\]\FV@rightsquarebracket
-} %$ <- highlighting
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakBefore}
-% Allow line breaking (almost) anywhere, but only before specified characters.
-%    \begin{macrocode}
-\define@key{FV}{breakbefore}{%
-  \ifstrempty{#1}%
-   {\let\FV@BreakBefore\@empty
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}%
-   {\def\FV@BreakBefore{#1}%
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
-}
-\fvset{breakbefore={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{FV@BreakBeforeGroup}
-% Determine whether breaking before specified characters is always allowed before each individual character, or is only allowed before the first in a group of identical characters.
-%    \begin{macrocode}
-\newboolean{FV@BreakBeforeGroup}
-\define@booleankey{FV}{breakbeforegroup}%
- {\FV@BreakBeforeGrouptrue}%
- {\FV@BreakBeforeGroupfalse}%
-\fvset{breakbeforegroup=true}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakBeforePrep}
-% We need a way to break before characters if they have been specified as breaking characters.  It would be possible to do that via a nested conditional, but that would be messy.  It is much simpler to create an empty macro whose name contains the character, and test for the existence of this macro.  This needs to be done inside a |\begingroup...\endgroup| so that the macros do not have to be cleaned up manually.  A good place to do this is in |\FV@FormattingPrep|, which is inside a group and before processing starts.  The macro is added to |\FV@FormattingPrep| below, after |\FV@BreakAfterPrep| is defined.
-%
-% The procedure here is a bit roundabout.  We need to use |\FV@EscChars| to handle character escapes, but the character redefinitions need to be kept local, requiring that we work within a |\begingroup...\endgroup|.  So we loop through the breaking tokens and assemble a macro that will itself define character macros.  Only this defining macro is declared global, and it contains \emph{expanded} characters so that there is no longer any dependence on |\FV@EscChars|.
-%    \begin{macrocode}
-\def\FV@BreakBeforePrep{%
-  \ifx\FV@BreakBefore\@empty\relax
-  \else
-    \gdef\FV@BreakBefore@Def{}%
-    \begingroup
-    \def\FV@BreakBefore@Process##1##2\FV@Undefined{%
-      \expandafter\FV@BreakBefore@Process@i\expandafter{##1}%
-      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
-      \else
-        \FV@BreakBefore@Process##2\FV@Undefined
-      \fi
-    }%
-    \def\FV@BreakBefore@Process@i##1{%
-      \g@addto@macro\FV@BreakBefore@Def{%
-        \@namedef{FV@BreakBefore@Token\detokenize{##1}}{}}%
-    }%
-    \FV@EscChars
-    \expandafter\FV@BreakBefore@Process\FV@BreakBefore\FV@Undefined
-    \endgroup
-    \FV@BreakBefore@Def
-  \fi
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakAfter}
-% Allow line breaking (almost) anywhere, but only after specified characters.
-%    \begin{macrocode}
-\define@key{FV}{breakafter}{%
-  \ifstrempty{#1}%
-   {\let\FV@BreakAfter\@empty
-    \let\FancyVerbBreakStart\relax
-    \let\FancyVerbBreakStop\relax}%
-   {\def\FV@BreakAfter{#1}%
-    \let\FancyVerbBreakStart\FV@Break
-    \let\FancyVerbBreakStop\FV@EndBreak
-    \let\FV@Break@Token\FV@Break@BeforeAfterToken}%
-}
-\fvset{breakafter={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{FV@BreakAfterGroup}
-% Determine whether breaking after specified characters is always allowed after each individual character, or is only allowed after groups of identical characters.
-%    \begin{macrocode}
-\newboolean{FV@BreakAfterGroup}
-\define@booleankey{FV}{breakaftergroup}%
- {\FV@BreakAfterGrouptrue}%
- {\FV@BreakAfterGroupfalse}%
-\fvset{breakaftergroup=true}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@BreakAfterPrep}
-% We need a way to break after characters if they have been specified as breaking characters.  It would be possible to do that via a nested conditional, but that would be messy.  It is much simpler to create an empty macro whose name contains the character, and test for the existence of this macro.  This needs to be done inside a |\begingroup...\endgroup| so that the macros do not have to be cleaned up manually.  A good place to do this is in |\FV@FormattingPrep|, which is inside a group and before processing starts.
-%
-% The procedure here is a bit roundabout.  We need to use |\FV@EscChars| to handle character escapes, but the character redefinitions need to be kept local, requiring that we work within a |\begingroup...\endgroup|.  So we loop through the breaking tokens and assemble a macro that will itself define character macros.  Only this defining macro is declared global, and it contains \emph{expanded} characters so that there is no longer any dependence on |\FV@EscChars|.
-%    \begin{macrocode}
-\def\FV@BreakAfterPrep{%
-  \ifx\FV@BreakAfter\@empty\relax
-  \else
-    \gdef\FV@BreakAfter@Def{}%
-    \begingroup
-    \def\FV@BreakAfter@Process##1##2\FV@Undefined{%
-      \expandafter\FV@BreakAfter@Process@i\expandafter{##1}%
-      \expandafter\ifx\expandafter\relax\detokenize{##2}\relax
-      \else
-        \FV@BreakAfter@Process##2\FV@Undefined
-      \fi
-    }%
-    \def\FV@BreakAfter@Process@i##1{%
-      \ifcsname FV@BreakBefore@Token\detokenize{##1}\endcsname
-        \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
-         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-           {}%
-           {\PackageError{minted}%
-            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
-            {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}}%
-         {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-           {\PackageError{minted}%
-             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}%
-             {Conflicting breakbeforegroup and breakaftergroup for "\detokenize{##1}"}}%
-           {}}%
-      \else
-      \fi
-      \g@addto@macro\FV@BreakAfter@Def{%
-        \@namedef{FV@BreakAfter@Token\detokenize{##1}}{}}%
-    }%
-    \FV@EscChars
-    \expandafter\FV@BreakAfter@Process\FV@BreakAfter\FV@Undefined
-    \endgroup
-    \FV@BreakAfter@Def
-  \fi
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% Now that |\FV@BreakBeforePrep| and |\FV@BreakAfterPrep| are defined, add them to |\FV@FormattingPrep|.  The ordering here is important, since |\FV@BreakAfterPrep| contains compatibility checks with |\FV@BreakBeforePrep|, and thus must be used after it.
-%    \begin{macrocode}
-\expandafter\def\expandafter\FV@FormattingPrep\expandafter{%
-  \expandafter\FV@BreakBeforePrep\expandafter\FV@BreakAfterPrep\FV@FormattingPrep}
-%    \end{macrocode}
-%
-%
-% \begin{macro}{\FancyVerbBreakAnywhereSymbolPre}
-% The pre-break symbol for breaks introduced by |breakanywhere|.  That is, the symbol before breaks that occur between characters, rather than at spaces.
-%    \begin{macrocode}
-\define@key{FV}{breakanywheresymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAnywhereSymbolPre{}}%
-    {\def\FancyVerbBreakAnywhereSymbolPre{\hbox{#1}}}}
-\fvset{breakanywheresymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakAnywhereSymbolPost}
-% The post-break symbol for breaks introduced by |breakanywhere|.
-%    \begin{macrocode}
-\define@key{FV}{breakanywheresymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAnywhereSymbolPost{}}%
-    {\def\FancyVerbBreakAnywhereSymbolPost{\hbox{#1}}}}
-\fvset{breakanywheresymbolpost={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakBeforeSymbolPre}
-% The pre-break symbol for breaks introduced by |breakbefore|.
-%    \begin{macrocode}
-\define@key{FV}{breakbeforesymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakBeforeSymbolPre{}}%
-    {\def\FancyVerbBreakBeforeSymbolPre{\hbox{#1}}}}
-\fvset{breakbeforesymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakBeforeSymbolPost}
-% The post-break symbol for breaks introduced by |breakbefore|.
-%    \begin{macrocode}
-\define@key{FV}{breakbeforesymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakBeforeSymbolPost{}}%
-    {\def\FancyVerbBreakBeforeSymbolPost{\hbox{#1}}}}
-\fvset{breakbeforesymbolpost={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakAfterSymbolPre}
-% The pre-break symbol for breaks introduced by |breakafter|.
-%    \begin{macrocode}
-\define@key{FV}{breakaftersymbolpre}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAfterSymbolPre{}}%
-    {\def\FancyVerbBreakAfterSymbolPre{\hbox{#1}}}}
-\fvset{breakaftersymbolpre={\,\footnotesize\ensuremath{_\rfloor}}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakAfterSymbolPost}
-% The post-break symbol for breaks introduced by |breakafter|.
-%    \begin{macrocode}
-\define@key{FV}{breakaftersymbolpost}{%
-  \ifstrempty{#1}%
-    {\def\FancyVerbBreakAfterSymbolPost{}}%
-    {\def\FancyVerbBreakAfterSymbolPost{\hbox{#1}}}}
-\fvset{breakaftersymbolpost={}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakAnywhereBreak}
-% When |breakanywhere=true|, line breaks may occur at almost any location.  This is the macro that governs the breaking in those cases.  By default, |\discretionary| is used.  |\discretionary| takes three arguments:  a character to insert before the break, a character to insert after the break, and a character to insert if there is no break.
-%
-% |\discretionary| will generally only insert breaks when breaking at spaces simply cannot make lines short enough (this may be tweaked to some extent with hyphenation settings).  This can produce a somewhat ragged appearance in some cases.  If you want breaks exactly at the margin (or as close as possible) regardless of whether a break at a space is an option, you may want to use |\allowbreak| instead.
-%    \begin{macrocode}
-\newcommand{\FancyVerbBreakAnywhereBreak}{%
-  \discretionary{\FancyVerbBreakAnywhereSymbolPre}%
-   {\FancyVerbBreakAnywhereSymbolPost}{}}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \begin{macro}{\FancyVerbBreakBeforeBreak}
-% The macro governing breaking for |breakbefore=true|.
-%    \begin{macrocode}
-\newcommand{\FancyVerbBreakBeforeBreak}{%
-  \discretionary{\FancyVerbBreakBeforeSymbolPre}%
-   {\FancyVerbBreakBeforeSymbolPost}{}}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbBreakAfterBreak}
-% The macro governing breaking for |breakafter=true|.
-%    \begin{macrocode}
-\newcommand{\FancyVerbBreakAfterBreak}{%
-  \discretionary{\FancyVerbBreakAfterSymbolPre}%
-   {\FancyVerbBreakAfterSymbolPost}{}}
-%    \end{macrocode}
-% \end{macro}
-%
-% Define helper macros.
-% \begin{macro}{\FV@LineBox}
-% A box for saving a line of code, so that its dimensions may be determined and thus we may figure out if it needs line breaking.
-%    \begin{macrocode}
-\newsavebox{\FV@LineBox}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@LineIndentBox}
-% A box for saving the indentation of code, so that its dimensions may be determined for use in autoindentation of continuation lines.
-%    \begin{macrocode}
-\newsavebox{\FV@LineIndentBox}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@LineIndentChars}
-% A macro for storing the indentation characters, if any, of a given line.  For use in autoindentation of continuation lines
-%    \begin{macrocode}
-\let\FV@LineIndentChars\@empty
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@GetLineIndent}
-% A macro that takes a line and determines the indentation, storing the indentation chars in |\FV@LineIndentChars|.
-%    \begin{macrocode}
-\def\FV@GetNextChar{\let\FV@NextChar=}
-\def\FV@CleanRemainingChars#1\FV@Undefined{}
-\def\FV@GetLineIndent{\afterassignment\FV@CheckIndentChar\FV@GetNextChar}
-\def\FV@CheckIndentChar{%
-  \ifx\FV@NextChar\FV@Undefined
-    \let\FV@Next=\relax
-  \else
-    \expandafter\ifx\FV@NextChar\FV@Space
-      \g@addto@macro{\FV@LineIndentChars}{\FV@Space}%
-      \let\FV@Next=\FV@GetLineIndent
-    \else
-      \expandafter\ifx\FV@NextChar\FV@Tab
-        \g@addto@macro{\FV@LineIndentChars}{\FV@Tab}%
-        \let\FV@Next=\FV@GetLineIndent
-      \else
-        \let\FV@Next=\FV@CleanRemainingChars
-      \fi
-    \fi
-  \fi
-  \FV@Next
-}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% Define the macros that actually perform |breakanywhere|, |breakbefore|, and |breakafter|.
-%
-% \begin{macro}{\FV@Break}
-% The entry macro for breaking lines, either anywhere or before/after specified characters.  The current line (or argument) will be scanned token by token/group by group, and accumulated (with added potential breaks) in |\FV@Tmp|.  After scanning is complete, |\FV@Tmp| will be inserted.  It would be possible to insert each token/group into the document immediately after it is scanned, instead of accumulating them in a ``buffer.''  But that would interfere with macros.  Even in the current approach, macros that take optional arguments are problematic.\footnote{Through a suitable definition that tracks the current state and looks for square brackets, this might be circumvented.  Then again, in verbatim contexts, macro use should be minimal, so the restriction to macros without optional arguments should generally not be an issue.}
-%    \begin{macrocode}
-\def\FV@Break{%
-  \def\FV@Tmp{}%
-  \let\FV@LastToken\minted@undefined
-  \FV@Break@Scan
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@EndBreak}
-%    \begin{macrocode}
-\def\FV@EndBreak{\FV@Tmp}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@Scan}
-% Look ahead via |\@ifnextchar|.  Don't do anything if we're at the end of the region to be scanned.  Otherwise, invoke a macro to deal with what's next based on whether it is math, or a group, or something else.
-%
-% This and some following macros are defined inside of groups, to ensure proper catcodes.
-%    \begin{macrocode}
-\begingroup
-\catcode`\$=3%
-\gdef\FV@Break@Scan{%
-  \@ifnextchar\FV@EndBreak%
-   {}%
-   {\ifx\@let@token$\relax
-      \let\FV@Break@Next\FV@Break@Math
-    \else
-      \ifx\@let@token\bgroup\relax
-        \let\FV@Break@Next\FV@Break@Group
-      \else
-        \let\FV@Break@Next\FV@Break@Token
-      \fi
-    \fi
-    \FV@Break@Next}%
-}
-\endgroup
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@Math}
-% Grab an entire math span, and insert it into |\FV@Tmp|.  Due to grouping, this works even when math contains things like |\text{$x$}|.  After dealing with the math span, continue scanning.
-%    \begin{macrocode}
-\begingroup
-\catcode`\$=3%
-\gdef\FV@Break@Math$#1${%
-  \g@addto@macro{\FV@Tmp}{$#1$}%
-  \let\FV@LastToken\minted@undefined
-  \FV@Break@Scan}
-\endgroup
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@Group}
-% Grab the group, and insert it into |\FV@Tmp| (as a group) before continuing scanning.
-%    \begin{macrocode}
-\def\FV@Break@Group#1{%
-  \g@addto@macro{\FV@Tmp}{{#1}}%
-  \ifstrempty{#1}{}{\let\FV@LastToken\minted@undefined}%
-  \FV@Break@Scan}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@Token}
-% This macro is |\let| to |\FV@Break@AnyToken| or |\FV@Break@BeforeAfterToken| by the |breakanywhere| and |breakbefore|/|breakafter| options, so it is not explicitly defined.
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@AnyToken}
-% Deal with breaking around any token.
-%
-% If it is ever necessary, it would be possible to create a more sophisticated version involving catcode checks via |\ifcat|.  Something like this:
-%\begin{Verbatim}
-%\begingroup
-%\catcode`\a=11%
-%\catcode`\+=12%
-%\gdef\FV@Break...
-%  \ifcat\noexpand#1a%
-%    \g@addto@macro{\FV@Tmp}...
-%  \else
-%...
-%\endgroup
-%\end{Verbatim}
-%
-% This doesn't break macros with \emph{mandatory} arguments, because |\FancyVerbBreakAnywhereBreak| is inserted \emph{before} the token.  Groups themselves are added without any special handling.  So a macro would end up right next to its original arguments, without anything being inserted.  Optional arguments will cause this approach to fail; there is currently no attempt to identify them, since that is a much harder problem.
-%    \begin{macrocode}
-\def\FV@Break@AnyToken#1{%
-  \g@addto@macro{\FV@Tmp}{\FancyVerbBreakAnywhereBreak#1}%
-  \FV@Break@Scan}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@Break@BeforeAfterToken}
-% Deal with breaking around only specified tokens.  This is a bit trickier.  We only break if a macro corresponding to the token exists.  We also need to check whether the specified token should be grouped, that is, whether breaks are allowed between identical characters.  All of this has to be written carefully so that nothing is accidentally inserted into the stream for future scanning.
-%
-% Dealing with tokens followed by empty groups (for example, |\x{}|) is particularly challenging when we want to avoid breaks between identical characters.  When a token is followed by a group, we need to save the current token for later reference (|\x| in the example), then capture and save the following group, and then---only if the group was empty---see if the following token is identical to the old saved token.
-%    \begin{macrocode}
-\def\FV@Break@BeforeAfterToken#1{%
-  \ifcsname FV@BreakBefore@Token\detokenize{#1}\endcsname
-    \let\FV@Break@Next\FV@Break@BeforeTokenBreak
-  \else
-    \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-      \let\FV@Break@Next\FV@Break@AfterTokenBreak
-    \else
-      \let\FV@Break@Next\FV@Break@BeforeAfterTokenNoBreak
-    \fi
-  \fi
-  \FV@Break@Next{#1}%
-}
-\def\FV@Break@BeforeAfterTokenNoBreak#1{%
-  \g@addto@macro{\FV@Tmp}{#1}%
-  \let\FV@LastToken#1%
-  \FV@Break@Scan}
-\def\FV@Break@BeforeTokenBreak#1{%
-  \ifthenelse{\boolean{FV@BreakBeforeGroup}}%
-   {\ifx#1\FV@LastToken\relax
-      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-        \def\FV@RescanToken{#1}%
-      \else
-        \g@addto@macro{\FV@Tmp}{#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-        \let\FV@LastToken#1%
-      \fi
-    \else
-      \ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
-        \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-        \def\FV@RescanToken{#1}%
-      \else
-        \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-        \let\FV@LastToken#1%
-      \fi
-    \fi}%
-   {\ifcsname FV@BreakAfter@Token\detokenize{#1}\endcsname
-      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak}%
-      \let\FV@Break@Next\FV@Break@BeforeTokenBreak@AfterRescan
-      \def\FV@RescanToken{#1}%
-    \else
-      \g@addto@macro{\FV@Tmp}{\FancyVerbBreakBeforeBreak#1}%
-      \let\FV@Break@Next\FV@Break@Scan
-      \let\FV@LastToken#1%
-    \fi}%
-  \FV@Break@Next}
-\def\FV@Break@BeforeTokenBreak@AfterRescan{%
-  \expandafter\FV@Break@AfterTokenBreak\FV@RescanToken}
-\def\FV@Break@AfterTokenBreak#1{%
-  \let\FV@LastToken#1%
-  \@ifnextchar\FV@Space%
-   {\g@addto@macro{\FV@Tmp}{#1}\FV@Break@Scan}%
-   {\ifthenelse{\boolean{FV@BreakAfterGroup}}%
-     {\ifx\@let@token#1\relax
-        \g@addto@macro{\FV@Tmp}{#1}%
-        \let\FV@Break@Next\FV@Break@Scan
-      \else
-        \ifx\@let@token\bgroup\relax
-          \g@addto@macro{\FV@Tmp}{#1}%
-          \let\FV@Break@Next\FV@Break@AfterTokenBreak@Group
-        \else
-          \g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
-          \let\FV@Break@Next\FV@Break@Scan
-        \fi
-      \fi}%
-     {\g@addto@macro{\FV@Tmp}{#1\FancyVerbBreakAfterBreak}%
-      \let\FV@Break@Next\FV@Break@Scan}%
-    \FV@Break@Next}%
-}
-\def\FV@Break@AfterTokenBreak@Group#1{%
-  \g@addto@macro{\FV@Tmp}{{#1}}%
-  \ifstrempty{#1}%
-   {\let\FV@Break@Next\FV@Break@AfterTokenBreak@Group@i}%
-   {\let\FV@Break@Next\FV@Break@Scan\let\FV@LastToken\minted@undefined}%
-  \FV@Break@Next}
-\def\FV@Break@AfterTokenBreak@Group@i{%
-  \@ifnextchar\FV@LastToken%
-   {\FV@Break@Scan}%
-   {\g@addto@macro{\FV@Tmp}{\FancyVerbBreakAfterBreak}%
-    \FV@Break@Scan}}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% And finally the really important things.
-%
-% \begin{macro}{\FV@makeLineNumber}
-% We need a version of \pkg{lineno}'s |\makeLineNumber| that is adapted for our purposes.  This is adapted directly from the example |\makeLineNumber| that is given in the \pkg{lineno} documentation under the discussion of internal line numbers.  The |\FV@SetLineBreakLast| is needed to determine the internal line number of the last segment of the broken line, so that we can disable the right-hand break symbol on this segment.  When a right-hand break symbol is in use, a line of code will be processed twice:  once to determine the last internal line number, and once to use this information only to insert right-hand break symbols on the appropriate lines.  During the second run, |\FV@SetLineBreakLast| is disabled by |\let|ting it to |\relax|.
-%    \begin{macrocode}
-\def\FV@makeLineNumber{%
-  \hss
-  \FancyVerbFormatBreakSymbolLeft{\FancyVerbBreakSymbolLeft}%
-  \hbox to \FV@BreakSymbolSepLeft{\hfill}%
-  \rlap{\hskip\linewidth
-    \hbox to \FV@BreakSymbolSepRight{\hfill}%
-    \FancyVerbFormatBreakSymbolRight{\FancyVerbBreakSymbolRight}%
-    \FV@SetLineBreakLast
-  }%
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@SaveLineBox}
-% This is the macro that does most of the work.  This was inspired by Marco Daniel's code at \url{http://tex.stackexchange.com/a/112573/10742}.
-%
-% This macro is invoked when a line is too long.  We modify the |\linewidth| to take into account |breakindent| and |breakautoindent|, and insert |\hbox|es to fill the empty space.  We also account for |breaksymbolindentleft| and |breaksymbolindentright|, but \emph{only} when there are actually break symbols.  The code is placed in a |\parbox|.  Break symbols are inserted via \pkg{lineno}'s |internallinenumbers*|, which does internal line numbers without continuity between environments (the |linenumber| counter is automatically reset).  The beginning of the code has negative |\hspace| inserted to pull it out to the correct starting position.  |\strut|s are used to maintain correct line heights.  The |\parbox| is followed by an empty |\hbox| that takes up the space needed for a right-hand break symbol (if any).
-%    \begin{macrocode}
-\def\FV@SaveLineBox#1{%
-  \savebox{\FV@LineBox}{%
-    \advance\linewidth by -\FV@BreakIndent
-    \hbox to \FV@BreakIndent{\hfill}%
-    \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-     {\let\FV@LineIndentChars\@empty
-      \FV@GetLineIndent#1\FV@Undefined
-      \savebox{\FV@LineIndentBox}{\FV@LineIndentChars}%
-      \hbox to \wd\FV@LineIndentBox{\hfill}%
-      \advance\linewidth by -\wd\FV@LineIndentBox}%
-     {}%
-    \ifdefempty{\FancyVerbBreakSymbolLeft}{}%
-     {\hbox to \FV@BreakSymbolIndentLeft{\hfill}%
-      \advance\linewidth by -\FV@BreakSymbolIndentLeft}%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
-     {\advance\linewidth by -\FV@BreakSymbolIndentRight}%
-    \parbox[t]{\linewidth}{%
-      \raggedright
-      \leftlinenumbers*
-      \begin{internallinenumbers*}%
-      \let\makeLineNumber\FV@makeLineNumber
-      \noindent\hspace*{-\FV@BreakIndent}%
-      \ifdefempty{\FancyVerbBreakSymbolLeft}{}{%
-        \hspace*{-\FV@BreakSymbolIndentLeft}}%
-      \ifthenelse{\boolean{FV@BreakAutoIndent}}%
-       {\hspace*{-\wd\FV@LineIndentBox}}%
-       {}%
-      \strut\FancyVerbFormatText{%
-        \FancyVerbBreakStart#1\FancyVerbBreakStop}\nobreak\strut
-      \end{internallinenumbers*}
-    }%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}%
-     {\hbox to \FV@BreakSymbolIndentRight{\hfill}}%
-  }%
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FancyVerbFormatText}
-% The introduction of line breaks introduces an issue for |\FancyVerbFormatLine|.  Does it format the entire line (outside the |\parbox|), or only the text part of the line (inside the |\parbox|)?  Since both might be desirable, |\FancyVerbFormatLine| is assigned to the entire line, and a new macro |\FancyVerbFormatText| is assigned to the text, within the |\parbox|.
-%    \begin{macrocode}
-\def\FancyVerbFormatText#1{#1}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\FV@ListProcessLine@Break}
-% This macro is based on |\FV@ListProcessLine| and follows it as closely as possible.  The |\linewidth| is reduced by |\FV@FrameSep| and |\FV@FrameRule| so that text will not overrun frames.  This is done conditionally based on which frames are in use.  We save the current line in a box, and only do special things if the box is too wide.  For uniformity, all text is placed in a |\parbox|, even if it doesn't need to be wrapped.
-%
-% If a line is too wide, then it is passed to |\FV@SaveLineBox|.  If there is no right-hand break symbol, then the saved result in |\FV@LineBox| may be used immediately.  If there is a right-hand break symbol, then the line must be processed a second time, so that the right-hand break symbol may be removed from the final segment of the broken line (since it does not continue).  During the first use of |\FV@SaveLineBox|, the counter |FancyVerbLineBreakLast| is set to the internal line number of the last segment of the broken line.  During the second use of |\FV@SaveLineBox|, we disable this (|\let\FV@SetLineBreakLast\relax|) so that the value of |FancyVerbLineBreakLast| remains fixed and thus may be used to determine when a right-hand break symbol should be inserted.
-%    \begin{macrocode}
-\def\FV@ListProcessLine@Break#1{%
-  \ifx\FV@ObeyTabsInit\relax\else
-    \PackageError{minted}%
-     {the options obeytabs and breaklines are not compatible}{}%
-  \fi
-  \hbox to \hsize{%
-  \kern\leftmargin
-  \hbox to \linewidth{%
-  \ifx\FV@RightListFrame\relax\else
-    \advance\linewidth by -\FV@FrameSep
-    \advance\linewidth by -\FV@FrameRule
-  \fi
-  \ifx\FV@LeftListFrame\relax\else
-    \advance\linewidth by -\FV@FrameSep
-    \advance\linewidth by -\FV@FrameRule
-  \fi
-  \sbox{\FV@LineBox}{\FancyVerbFormatLine{\FancyVerbFormatText{#1}}}%
-  \ifdim\wd\FV@LineBox>\linewidth
-    \setcounter{FancyVerbLineBreakLast}{0}%
-    \FV@SaveLineBox{#1}%
-    \ifdefempty{\FancyVerbBreakSymbolRight}{}{%
-      \let\FV@SetLineBreakLast\relax
-      \FV@SaveLineBox{#1}}%
-    \FV@LeftListNumber
-    \FV@LeftListFrame
-    \FancyVerbFormatLine{\usebox{\FV@LineBox}}%
-    \FV@RightListFrame
-    \FV@RightListNumber
-  \else
-    \FV@LeftListNumber
-    \FV@LeftListFrame
-    \FancyVerbFormatLine{%
-      \parbox[t]{\linewidth}{\noindent\strut\FancyVerbFormatText{#1}\strut}}%
-    \FV@RightListFrame
-    \FV@RightListNumber
-  \fi}%
-  \hss}\baselineskip\z@\lineskip\z@}
-%    \end{macrocode}
-% \end{macro}
-%
-%
-% \subsection{\texttt{linenos}}
-% Since \pkg{fancyvrb} currently doesn't have a |linenos| key, we create one that mimics |numbers=left| (but only after checking to make sure that another package hasn't already patched this).
-%    \begin{macrocode}
-\ifcsname KV@FV@linenos\endcsname\else
-\define@booleankey{FV}{linenos}%
-  {\@nameuse{FV@Numbers@left}}{\@nameuse{FV@Numbers@none}}
-\fi
-%    \end{macrocode}
-%
-%
-% \subsection{Cleanup}
-%
-% Finally, end the conditional creation of \pkg{fancyvrb} extensions.
-%    \begin{macrocode}
-\fi
-%    \end{macrocode}
 %
 %
 % \subsection{Internal helpers}
@@ -3611,9 +2918,8 @@
 %
 % A check is performed to make sure that style macros exist.  This is done here, rather than when a style is set, so that creating the style macros is done as late as possible in case a custom |pygmentize| is in use via |\MintedPygmentize|.  At the last possible moment, |\PYG| is |\let| to |\PYG<style>|.  All modifications to the style macro for breaking are made to |\PYG<style>| rather than |\PYG|, so that the |\let|ing that must ultimately take place will indeed do what is intended.
 %
-% The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.  |\FV@Space| is also patched for math mode, so that space characters will vanish rather than appear as literal spaces within math mode.  To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
+% The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.   To simplify the logic, |breakbytoken| is turned on if |breakbytokenanywhere| is on.
 %    \begin{macrocode}
-\def\FV@SpaceMMode{ }
 \def\minted@BreakBeforePrep@extension{%
   \ifcsname FV@BreakBefore@Token\@backslashchar\endcsname
     \@namedef{FV@BreakBefore@Token\detokenize{\PYGZbs}}{}%
@@ -3734,7 +3040,6 @@
   \let\FV@BreakAfterPrep@orig\FV@BreakAfterPrep
   \def\FV@BreakAfterPrep{%
     \FV@BreakAfterPrep@orig\minted@BreakAfterPrep@extension}%
-  \everymath\expandafter{\the\everymath\let\FV@Space\FV@SpaceMMode}%
   \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
     {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
   \ifthenelse{\boolean{FV@BreakAnywhere}}%
@@ -3869,6 +3174,7 @@
 % Now that the settings macros exist, we go ahead and create any needed defaults.
 %    \begin{macrocode}
 \setmintedinline[php]{startinline=true}
+\setminted{tabcolor=black}
 %    \end{macrocode}
 %
 % \begin{macro}{\usemintedstyle}
