@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/07/13 v2.3dev Yet another Pygments shim for LaTeX]
+    [2016/07/14 v2.3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -142,7 +142,7 @@
      \inputminted[resetmargins]{latex}{example.out}%
    \end{minipage}%
    \hspace{0.05\linewidth}%
-   \begin{minipage}{0.4\linewidth}%
+   \begin{minipage}{0.45\linewidth-2\fboxsep}%
      \input{example.out}%
    \end{minipage}%
    \vspace{1ex}}}
@@ -153,7 +153,7 @@
   {\end{VerbatimOut}%
    \vspace{1ex}%
    \setlength{\parindent}{0pt}%
-   \fbox{\begin{minipage}{0.95\linewidth}%
+   \fbox{\begin{minipage}{\linewidth-2\fboxsep}%
      \inputminted[resetmargins]{latex}{example.out}%
      ~\hrulefill~
      \input{example.out}%
@@ -216,14 +216,14 @@
 %
 %
 %
-% \begin{changelog}{v2.3}{2016/07/??}
-% \item The \texttt{fvextra} package is now required.  \texttt{fvextra} extends and patches \texttt{fancyvrb}, and includes improved versions of \texttt{fancyvrb} extensions that were formerly in \pkg{minted}.
+% \begin{changelog}{v2.3}{2016/07/14}
+% \item The \texttt{fvextra} package is now required.  \texttt{fvextra} extends and patches \texttt{fancyvrb}, and includes improved versions of \texttt{fancyvrb} extensions that were formerly in \texttt{minted}.
 % \item As part of \texttt{fvextra}, the \texttt{upquote} package is always loaded.  \texttt{fvextra} brings the new option \texttt{curlyquotes}, which allows curly single quotation marks instead of the literal backtick and typewriter single quotation mark produced by \texttt{upquote}.  This allows the default \texttt{upquote} behavior to be disabled when desired.
 % \item Thanks to \texttt{fvextra}, the options \texttt{breakbefore}, \texttt{breakafter}, and \texttt{breakanywhere} are now compatible with non-ASCII characters under pdfTeX (\#123).
 % \item Thanks to \texttt{fvextra}, \texttt{obeytabs} no longer causes lines in multi-line comments or strings to vanish (\#88), and is now compatible with \texttt{breaklines} (\#99).  \texttt{obeytabs} will now always give correct results with tabs used for indentation.  However, tab stops are not guaranteed to be correct for tabs in the midst of text.
 % \item \texttt{fvextra} brings the new options \texttt{space}, \texttt{spacecolor}, \texttt{tab}, and \texttt{tabcolor} that allow these characters and their colors to be redefined (\#98).  The tab may now be redefined to a flexible-width character such as \texttt{\string\rightarrowfill}.  The visible tab will now always be black by default, instead of changing colors depending on whether it is part of indentation for a multiline string or comment.
 % \item \texttt{fvextra} brings the new options \texttt{highlightcolor} and \texttt{highlightlines}, which allow single lines or ranges of lines to be highlighted based on line number (\#124).
-% \item \texttt{fvextra} brings the new options \texttt{numberfirstline}, \texttt{stepnumberfromfirst}, and \texttt{stepnumberoffsetvalues} that provide better control over line numbering when \texttt{stepnumber} $\ne 1$.
+% \item \texttt{fvextra} brings the new options \texttt{numberfirstline}, \texttt{stepnumberfromfirst}, and \texttt{stepnumberoffsetvalues} that provide better control over line numbering when \texttt{stepnumber} is not 1.
 % \item Fixed a bug from v2.2.2 that prevented \texttt{upquote} from working.
 % \end{changelog} 
 %
@@ -532,27 +532,6 @@
 % In order to do that, please refer to the
 % \href{http://www.tex.ac.uk/cgi-bin/texfaq2html?label=inst-wlcf}{\TeX{} FAQ}.
 % If you just want to experiment with the latest version, you could locate your current |minted.sty| in your \TeX\ installation and replace it with the latest version.  Or you could just put the latest |minted.sty| in the same directory as the file you wish to use it with.
-%
-%
-% \section{Transitioning to version 2}
-%
-% Transitioning from \pkg{minted} 1.7 to 2.0+ should require no changes in almost all cases.  Version 2 provides the same interface and all of the same features.
-%
-% In cases when custom code was used to hook into the \pkg{minted} internals, it may still be desirable to use the old \pkg{minted} 1.7.  For those cases, the new package \pkg{minted1} is provided.  Simply load this before any other package attempts to load \pkg{minted}, and you will have the code from 1.7.
-%
-% A brief summary of new features in version 2.0 is provided below.  More detail is available in the \hyperref[sec:version-history]{Version History}.
-% \begin{itemize}
-% \item New inline command |\mintinline|.
-% \item Support for caching highlighted code with new package option |cache|.  This drastically reduces package overhead.  Caching is on by default.  A cache directory called |_minted-|\meta{document~name} will be created in the document root directory.  This may be modified with the |cachedir| package option.
-% \item Automatic line breaking for all commands and environments with new option |breaklines|.  Many additional options for customizing line breaking.
-% \item Support for Unicode under the pdfTeX engine.
-% \item Set document-wide options using |\setminted{|\meta{opts}|}|.  Set language-specific options using |\setminted[|\meta{lang}|]{|\meta{opts}|}|.  Similarly, set inline-specific options using |\setmintedinline|.
-% \item Package option |langlinenos|:  do line numbering by language.
-% \item Many new options, including |encoding|, |autogobble|, and |escapeinside| (requires Pygments 2.0+).
-% \item New package option |outputdir| provides compatibility with command-line options |-output-directory| and |-aux-directory|.
-% \item New package option |draft| disables Python use to give maximum performance.
-% \item |\mint| can now take code delimited by matched curly braces |{}|.
-% \end{itemize}
 %
 %
 % \section{Basic usage}
@@ -993,7 +972,7 @@
 %     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
 %
 % \begingroup
-% \fvset{xrightmargin=0.5em}
+% \fvset{xrightmargin=1em}
 % \begin{longexample}
 %   \begin{minted}[breaklines, breakanywhere]{python}
 %   some_string = 'SomeTextThatGoesOnAndOnForSoLongThatItCouldNeverFitOnOneLine'
@@ -3172,6 +3151,8 @@
 % \end{macro}
 %
 % Now that the settings macros exist, we go ahead and create any needed defaults.
+%
+% PHP should use |startinline| for |\mintinline|.  Visible tabs should have a specified color so that they don't change colors when used to indent multiline strings or comments.
 %    \begin{macrocode}
 \setmintedinline[php]{startinline=true}
 \setminted{tabcolor=black}

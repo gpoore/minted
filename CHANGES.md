@@ -1,6 +1,47 @@
 # Changes
 
 
+## v2.3 (2016/07/14)
+
+*  The `fvextra` package is now required.  `fvextra` extends and patches
+   `fancyvrb`, and includes improved versions of `fancyvrb` extensions that
+   were formerly in `minted`.
+
+*  As part of `fvextra`, the `upquote` package is always loaded.  `fvextra`
+   brings the new option `curlyquotes`, which allows curly single quotation
+   marks instead of the literal backtick and typewriter single quotation mark
+   produced by `upquote`.  This allows the default `upquote` behavior to be
+   disabled when desired.
+
+*  Thanks to `fvextra`, the options `breakbefore`, `breakafter`, and
+   `breakanywhere` are now compatible with non-ASCII characters under
+   pdfTeX (#123).
+
+*  Thanks to `fvextra`, `obeytabs` no longer causes lines in multi-line
+   comments or strings to vanish (\#88), and is now compatible with
+   `breaklines` (#99).  `obeytabs` will now always give correct results with
+   tabs used for indentation.  However, tab stops are not guaranteed to be
+   correct for tabs in the midst of text.
+
+*  `fvextra` brings the new options `space`, `spacecolor`, `tab`, and
+    `tabcolor` that allow these characters and their colors to be redefined
+    (#98).  The tab may now be redefined to a flexible-width character such
+    as `\rightarrowfill`.  The visible tab will now always be black by default,
+    instead of changing colors depending on whether it is part of indentation
+    for a multiline string or comment.
+
+*  `fvextra` brings the new options `highlightcolor` and `highlightlines`,
+   which allow single lines or ranges of lines to be highlighted based on line
+   number (#124).
+
+*  `fvextra` brings the new options `numberfirstline`, `stepnumberfromfirst`,
+   and `stepnumberoffsetvalues` that provide better control over line
+   numbering when `stepnumber` is not 1.
+
+*  Fixed a bug from v2.2.2 that prevented `upquote` from working.
+
+
+
 ## v2.2.2 (2016/06/21)
 
 *  Fixed a bug introduced in v2.2 that prevented setting the Pygments style in
