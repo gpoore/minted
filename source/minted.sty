@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/07/14 v2.3 Yet another Pygments shim for LaTeX]
+    [2016/07/16 v2.3.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -729,6 +729,7 @@
 \fi
 \newcounter{minted@pygmentizecounter}
 \newcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
+  \minted@checkstyle{\minted@get@opt{style}{default}}%
   \stepcounter{minted@pygmentizecounter}%
   \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
     {\def\minted@codefile{\minted@outputdir\minted@jobname.pyg}}%
@@ -989,7 +990,6 @@
   \fi
 }
 \newcommand{\minted@inputpyg}{%
-  \minted@checkstyle{\minted@get@opt{style}{default}}%
   \let\FV@BreakBeforePrep@orig\FV@BreakBeforePrep
   \def\FV@BreakBeforePrep{%
     \FV@BreakBeforePrep@orig\minted@BreakBeforePrep@extension}%
