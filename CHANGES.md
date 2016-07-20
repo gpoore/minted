@@ -1,6 +1,16 @@
 # Changes
 
 
+## v2.4 (2016/07/20)
+
+*  Line breaking and all associated options are now completely delegated to
+   `fvextra`.
+
+*  Fixed a bug from v2.2 that could cause the first command or environment to
+   vanish when `caching=false` (related to work on `\MintedPygmentize`).
+
+
+
 ## v2.3 (2016/07/14)
 
 *  The `fvextra` package is now required.  `fvextra` extends and patches

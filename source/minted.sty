@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/07/16 v2.3.1dev Yet another Pygments shim for LaTeX]
+    [2016/07/20 v2.4 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -662,6 +662,8 @@
 \minted@def@optfv@switch{showtabs}
 \minted@def@optfv@switch{obeytabs}
 \minted@def@optfv@switch{breaklines}
+\minted@def@optfv@switch{breakbytoken}
+\minted@def@optfv@switch{breakbytokenanywhere}
 \minted@def@optfv{breakindent}
 \minted@def@optfv@switch{breakautoindent}
 \minted@def@optfv{breaksymbol}
@@ -684,8 +686,6 @@
 \minted@def@optfv@switch{breakanywhere}
 \minted@def@optfv{breakanywheresymbolpre}
 \minted@def@optfv{breakanywheresymbolpost}
-\minted@def@opt@switch{breakbytoken}
-\minted@def@opt@switch{breakbytokenanywhere}
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
@@ -877,188 +877,26 @@
       \ShellEscape{\minted@cmd}%
       \minted@inputpyg}%
 }
-\def\minted@BreakBeforePrep@extension{%
-  \ifcsname FV@BreakBefore@Token\@backslashchar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZbs}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\FV@underscorechar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZus}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\@charlb\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZob}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\@charrb\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZcb}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{^}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZca}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\FV@ampchar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZam}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{<}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZlt}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{>}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZgt}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\FV@hashchar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZsh}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\@percentchar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZpc}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\FV@dollarchar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZdl}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{-}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZhy}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{'}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZsq}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{"}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZdq}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\FV@tildechar\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZti}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{@}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZat}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{[}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZlb}}{}%
-  \fi
-  \ifcsname FV@BreakBefore@Token\detokenize{]}\endcsname
-    \@namedef{FV@BreakBefore@Token\detokenize{\PYGZrb}}{}%
-  \fi
-}
-\def\minted@BreakAfterPrep@extension{%
-  \ifcsname FV@BreakAfter@Token\@backslashchar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZbs}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\FV@underscorechar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZus}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\@charlb\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZob}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\@charrb\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZcb}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{^}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZca}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\FV@ampchar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZam}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{<}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZlt}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{>}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZgt}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\FV@hashchar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZsh}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\@percentchar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZpc}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\FV@dollarchar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZdl}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{-}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZhy}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{'}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZsq}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{"}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZdq}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\FV@tildechar\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZti}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{@}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZat}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{[}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZlb}}{}%
-  \fi
-  \ifcsname FV@BreakAfter@Token\detokenize{]}\endcsname
-    \@namedef{FV@BreakAfter@Token\detokenize{\PYGZrb}}{}%
-  \fi
-}
 \newcommand{\minted@inputpyg}{%
-  \let\FV@BreakBeforePrep@orig\FV@BreakBeforePrep
-  \def\FV@BreakBeforePrep{%
-    \FV@BreakBeforePrep@orig\minted@BreakBeforePrep@extension}%
-  \let\FV@BreakAfterPrep@orig\FV@BreakAfterPrep
-  \def\FV@BreakAfterPrep{%
-    \FV@BreakAfterPrep@orig\minted@BreakAfterPrep@extension}%
-  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
-    {\setkeys{minted@opt@cmd}{breakbytoken=true}}{}%
-  \ifthenelse{\boolean{FV@BreakAnywhere}}%
-    {\expandafter\let\expandafter\minted@orig@PYG@breakanywhere%
-       \csname PYG\minted@get@opt{style}{default}\endcsname
-     \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-       \minted@orig@PYG@breakanywhere{##1}%
-         {\FancyVerbBreakStart##2\FancyVerbBreakStop}}}{}%
-  \ifx\FV@BreakBefore\@empty
-    \ifx\FV@BreakAfter\@empty
-    \else
-      \expandafter\let\expandafter\minted@orig@PYG@breakbeforeafter%
-        \csname PYG\minted@get@opt{style}{default}\endcsname
-      \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-        \minted@orig@PYG@breakbeforeafter{##1}%
-         {\FancyVerbBreakStart##2\FancyVerbBreakStop}}%
-    \fi
-  \else
-    \expandafter\let\expandafter\minted@orig@PYG@breakbeforeafter%
-      \csname PYG\minted@get@opt{style}{default}\endcsname
-    \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \minted@orig@PYG@breakbeforeafter{##1}%
-       {\FancyVerbBreakStart##2\FancyVerbBreakStop}}%
-  \fi
+  \expandafter\let\expandafter\minted@PYGstyle%
+    \csname PYG\minted@get@opt{style}{default}\endcsname
+  \VerbatimPygments{\PYG}{\minted@PYGstyle}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
     {\let\FV@BeginVBox\relax
      \let\FV@EndVBox\relax
      \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
-     \ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-      {\minted@inputpyg@breakbytoken
-       \minted@inputpyg@inline}%
-      {\minted@inputpyg@inline}}%
+     \minted@inputpyg@inline}%
     {\minted@inputpyg@inline}}%
-   {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
-     {\ifthenelse{\equal{\minted@get@opt{breakbytoken}{false}}{true}}%
-       {\minted@inputpyg@breakbytoken
-        \minted@inputpyg@block}%
-       {\minted@inputpyg@block}}%
-     {\minted@inputpyg@block}}%
-}
-\def\minted@inputpyg@breakbytoken{%
-  \expandafter\let\expandafter\minted@orig@PYG@breakbytoken%
-    \csname PYG\minted@get@opt{style}{default}\endcsname
-  \ifthenelse{\equal{\minted@get@opt{breakbytokenanywhere}{false}}{true}}%
-   {\let\minted@orig@allowbreak\allowbreak
-    \def\allowbreak{\let\allowbreak\minted@orig@allowbreak}%
-    \expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \allowbreak{}\leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
-   {\expandafter\def\csname PYG\minted@get@opt{style}{default}\endcsname##1##2{%
-      \leavevmode\hbox{\minted@orig@PYG@breakbytoken{##1}{##2}}}}%
+   {\minted@inputpyg@block}%
 }
 \def\minted@inputpyg@inline{%
-  \expandafter\let\expandafter\PYG%
-    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\colorbox{\minted@get@opt{bgcolor}{}}{%
       \minted@input{\minted@outputdir\minted@infile}}}%
 }
 \def\minted@inputpyg@block{%
-  \expandafter\let\expandafter\PYG%
-    \csname PYG\minted@get@opt{style}{default}\endcsname
   \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
    {\minted@input{\minted@outputdir\minted@infile}}%
    {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%
