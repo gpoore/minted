@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/07/20 v2.4 Yet another Pygments shim for LaTeX]
+    [2016/08/09 v2.4.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2542}
+% \CheckSum{2610}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -216,9 +216,14 @@
 %
 %
 %
+% \begin{changelog}{v2.4.1}{2016/??/??}
+% \item The \texttt{autogobble} option now takes \texttt{firstline} and \texttt{lastline} into account (\#130).
+% \end{changelog}
+%
+%
 % \begin{changelog}{v2.4}{2016/07/20}
 % \item Line breaking and all associated options are now completely delegated to \texttt{fvextra}.
-% \item Fixed a bug from v2.2 that could cause the first command or environment to vanish when \texttt{caching=false} (related to work on \texttt{\string\MintedPygmentize}).
+% \item Fixed a bug from v2.2 that could cause the first command or environment to vanish when \texttt{cache=false} (related to work on \texttt{\string\MintedPygmentize}).
 % \end{changelog}
 %
 %
@@ -2782,7 +2787,7 @@
         \ifx\XeTeXinterchartoks\minted@undefined
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
             {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-              \pdf@mdfivesum{\minted@cmd autogobble}}}%
+              \pdf@mdfivesum{\minted@cmd autogobble(\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi-\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi)}}}%
             {\edef\minted@hash{\pdf@filemdfivesum{#1}%
               \pdf@mdfivesum{\minted@cmd}}}%
         \else
@@ -2790,7 +2795,7 @@
             \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
             \immediate\write\minted@code{\minted@cmd}%
             \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-              {\immediate\write\minted@code{autogobble}}{}%
+              {\immediate\write\minted@code{autogobble(\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi-\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi)}}{}%
             \immediate\closeout\minted@code 
             \edef\minted@argone@esc{#1}%
             \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
@@ -2818,7 +2823,7 @@
           \else
             \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
              {\edef\minted@hash{\mdfivesum file {#1}%
-                \mdfivesum{\minted@cmd autogobble}}}%
+                \mdfivesum{\minted@cmd autogobble(\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi-\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi)}}}%
              {\edef\minted@hash{\mdfivesum file {#1}%
                 \mdfivesum{\minted@cmd}}}%
           \fi
@@ -2838,10 +2843,14 @@
               import textwrap;
               from io import open;
               f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
-              t = f.read();
+              t = f.readlines();
               f.close();
               f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
-              f.write(textwrap.dedent(t));
+              fvstartnum = }\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi\detokenize{;
+              fvstopnum = }\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi\detokenize{;
+              s = fvstartnum-1 if fvstartnum != 0 else 0;
+              e = fvstopnum if fvstopnum != 0 else len(t);
+              [f.write(textwrap.dedent(\"\".join(x))) for x in (t[0:s], t[s:e], t[e:]) if x];
               f.close();"}%
             }%
             \ShellEscape{\minted@autogobblecmd}}{}%
@@ -2883,10 +2892,14 @@
           import textwrap;
           from io import open;
           f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
-          t = f.read();
+          t = f.readlines();
           f.close();
           f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
-          f.write(textwrap.dedent(t));
+          fvstartnum = }\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi\detokenize{;
+          fvstopnum = }\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi\detokenize{;
+          s = fvstartnum-1 if fvstartnum != 0 else 0;
+          e = fvstopnum if fvstopnum != 0 else len(t);
+          [f.write(textwrap.dedent(\"\".join(x))) for x in (t[0:s], t[s:e], t[e:]) if x];
           f.close();"}%
         }%
         \ShellEscape{\minted@autogobblecmd}}{}%
