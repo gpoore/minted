@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2610}
+% \CheckSum{2611}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -218,6 +218,7 @@
 %
 % \begin{changelog}{v2.4.1}{2016/??/??}
 % \item The \texttt{autogobble} option now takes \texttt{firstline} and \texttt{lastline} into account (\#130).
+% \item Fixed \texttt{numberblanklines}, which had been lost in the transition to 2.0+ (\#135).
 % \end{changelog}
 %
 %
@@ -2572,6 +2573,7 @@
 \minted@def@optfv{highlightcolor}
 \minted@def@optfv@switch{curlyquotes}
 \minted@def@optfv@switch{numberfirstline}
+\minted@def@optfv@switch{numberblanklines}
 \minted@def@optfv@switch{stepnumberfromfirst}
 \minted@def@optfv@switch{stepnumberoffsetvalues}
 \minted@def@optfv@switch{showspaces}
