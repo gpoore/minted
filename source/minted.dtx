@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/08/09 v2.4.1dev Yet another Pygments shim for LaTeX]
+    [2016/10/29 v2.4.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2611}
+% \CheckSum{2614}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -216,7 +216,8 @@
 %
 %
 %
-% \begin{changelog}{v2.4.1}{2016/??/??}
+% \begin{changelog}{v2.4.1}{2016/10/??}
+% \item Single quotation marks in \texttt{\string\jobname} are now replaced with underscores in \texttt{\string\minted@jobname} to prevent quoting errors (\#137).
 % \item The \texttt{autogobble} option now takes \texttt{firstline} and \texttt{lastline} into account (\#130).
 % \item Fixed \texttt{numberblanklines}, which had been lost in the transition to 2.0+ (\#135).
 % \end{changelog}
@@ -772,7 +773,7 @@
 %
 %
 % \DescribeMacro{cachedir=\meta{directory} (def:~\_minted-\meta{jobname})}
-% This allows the directory in which cached files are stored to be specified.  Paths should use forward spaces, even under Windows.
+% This allows the directory in which cached files are stored to be specified.  Paths should use forward slashes, even under Windows.
 %
 % Special characters must be escaped.  For example, |cachedir=~/mintedcache| would not work because the tilde |~| would be converted into the \LaTeX\ commands for a non-breaking space, rather than being treated literally.  Instead, use |\string~/mintedcache|, |\detokenize{~/mintedcache}|, or an equivalent solution.
 %
@@ -864,7 +865,7 @@
 % \DescribeMacro{outputdir=\meta{directory} (default:~\meta{none})}
 % The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ cause problems for \pkg{minted}, because the \pkg{minted} temporary files are saved in |<outputdir>|, but \pkg{minted} still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \pkg{minted} can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
 %
-% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward spaces, even under Windows.  Special characters must be escaped, while spaces require quoting and need the entire \meta{directory} to be wrapped in curly braces |{}|.  See |cachedir| above for examples of escaping and quoting.
+% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward slashes, even under Windows.  Special characters must be escaped, while spaces require quoting and need the entire \meta{directory} to be wrapped in curly braces |{}|.  See |cachedir| above for examples of escaping and quoting.
 %
 %
 % \DescribeMacro{section}
@@ -1588,11 +1589,12 @@
 %
 %
 % \begin{macro}{\minted@jobname}
-% At various points, temporary files and directories will need to be named after the main |.tex| file.  The typical way to do this is to use |\jobname|.  However, if the file name contains spaces, then |\jobname| will contain the name wrapped in quotes (older versions of MiKTeX replace spaces with asterisks instead, and \texttt{XeTeX} apparently \href{http://tex.stackexchange.com/a/93829/10742}{allows double quotes within file names}, in which case names are wrapped in single quotes).  While that is perfectly fine for working with \LaTeX\ internally, it causes problems with |\write18|, since quotes will end up in unwanted locations in shell commands.  It would be possible to strip the wrapping quotation marks when they are present, and maintain any spaces in the file name.  But it is simplest to create a ``sanitized'' version of |\jobname| in which spaces and asterisks are replaced by underscores, and double quotes are stripped.
+% At various points, temporary files and directories will need to be named after the main |.tex| file.  The typical way to do this is to use |\jobname|.  However, if the file name contains spaces, then |\jobname| will contain the name wrapped in quotes (older versions of MiKTeX replace spaces with asterisks instead, and \texttt{XeTeX} apparently \href{http://tex.stackexchange.com/a/93829/10742}{allows double quotes within file names}, in which case names are wrapped in single quotes).  While that is perfectly fine for working with \LaTeX\ internally, it causes problems with |\write18|, since quotes will end up in unwanted locations in shell commands.  It would be possible to strip the wrapping quotation marks when they are present, and maintain any spaces in the file name.  But it is simplest to create a ``sanitized'' version of |\jobname| in which spaces and asterisks are replaced by underscores, and double quotes are stripped.  Single quotes are also replaced, since they can cause quoted string errors, or become double quotes in the process of being passed to the system through |\write18|.
 %    \begin{macrocode}
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{'}{__}[\minted@jobname]
 %    \end{macrocode}
 % \end{macro}
 %

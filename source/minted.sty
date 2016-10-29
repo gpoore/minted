@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/08/09 v2.4.1dev Yet another Pygments shim for LaTeX]
+    [2016/10/29 v2.4.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -57,6 +57,7 @@
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{'}{__}[\minted@jobname]
 \newcommand{\minted@cachedir}{\detokenize{_}minted-\minted@jobname}
 \let\minted@cachedir@windows\minted@cachedir
 \define@key{minted}{cachedir}{%
