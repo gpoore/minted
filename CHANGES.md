@@ -1,13 +1,26 @@
 # Changes
 
 
+## v2.4.1 (2016/10/31)
+
+*  Single quotation marks in `\jobname` are now replaced with underscores in
+   `\minted@jobname` to prevent quoting errors (#137).
+
+*  The `autogobble` option now takes `firstline` and `lastline` into account
+   (#130).
+
+*  Fixed `numberblanklines`, which had been lost in the transition to v2.0+ 
+   (#135).
+
+
+
 ## v2.4 (2016/07/20)
 
 *  Line breaking and all associated options are now completely delegated to
    `fvextra`.
 
 *  Fixed a bug from v2.2 that could cause the first command or environment to
-   vanish when `caching=false` (related to work on `\MintedPygmentize`).
+   vanish when `cache=false` (related to work on `\MintedPygmentize`).
 
 
 

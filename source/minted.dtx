@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2016/10/29 v2.4.1dev Yet another Pygments shim for LaTeX]
+    [2016/10/31 v2.4.1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -216,10 +216,10 @@
 %
 %
 %
-% \begin{changelog}{v2.4.1}{2016/10/??}
+% \begin{changelog}{v2.4.1}{2016/10/31}
 % \item Single quotation marks in \texttt{\string\jobname} are now replaced with underscores in \texttt{\string\minted@jobname} to prevent quoting errors (\#137).
 % \item The \texttt{autogobble} option now takes \texttt{firstline} and \texttt{lastline} into account (\#130).
-% \item Fixed \texttt{numberblanklines}, which had been lost in the transition to 2.0+ (\#135).
+% \item Fixed \texttt{numberblanklines}, which had been lost in the transition to v2.0+ (\#135).
 % \end{changelog}
 %
 %
@@ -1594,7 +1594,7 @@
 \StrSubstitute{\jobname}{ }{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
 \StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{'}{__}[\minted@jobname]
+\StrSubstitute{\minted@jobname}{'}{_}[\minted@jobname]
 %    \end{macrocode}
 % \end{macro}
 %
