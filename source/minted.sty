@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/10/31 v2.4.1 Yet another Pygments shim for LaTeX]
+    [2016/12/24 v2.4.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1070,7 +1070,7 @@
       \minted@configlang{#2}%
       \setkeys{minted@opt@cmd}{#1}%
       \minted@fvset
-      \begin{VerbatimOut}[codes={\catcode`\^^I=12}]{\minted@jobname.pyg}}%
+      \begin{VerbatimOut}[codes={\catcode`\^^I=12},firstline,lastline]{\minted@jobname.pyg}}%
     {\end{VerbatimOut}%
         \minted@langlinenoson
         \minted@pygmentize{\minted@lang}%
