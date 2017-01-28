@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2016/12/24 v2.4.2dev Yet another Pygments shim for LaTeX]
+    [2017/01/28 v2.4.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -844,9 +844,9 @@
           \ifwindows
             \StrSubstitute{\minted@infile}{/}{\@backslashchar}[\minted@infile@windows]
             \StrSubstitute{\minted@actualinfile}{/}{\@backslashchar}[\minted@actualinfile@windows]
-            \ShellEscape{move /y \minted@infile@windows\space\minted@actualinfile@windows}%
+            \ShellEscape{move /y \minted@outputdir\minted@infile@windows\space\minted@outputdir\minted@actualinfile@windows}%
           \else
-            \ShellEscape{mv -f \minted@infile\space\minted@actualinfile}%
+            \ShellEscape{mv -f \minted@outputdir\minted@infile\space\minted@outputdir\minted@actualinfile}%
           \fi
           \let\minted@infile\minted@actualinfile
           \expandafter\minted@addcachefile\expandafter{\minted@cachefilename}%
