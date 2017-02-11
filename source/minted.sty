@@ -5,7 +5,7 @@
 %% The original source files were:
 %%
 %% minted.dtx  (with options: `package')
-%% Copyright 2013--2016 Geoffrey M. Poore
+%% Copyright 2013--2017 Geoffrey M. Poore
 %% Copyright 2010--2011 Konrad Rudolph
 %% 
 %% This work may be distributed and/or modified under the
@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2017/01/28 v2.4.2dev Yet another Pygments shim for LaTeX]
+    [2017/02/10 v2.4.2dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -104,12 +104,10 @@
    {\PackageError{minted}{Missing Pygments output; \string\inputminted\space
      was^^Jprobably given a file that does not exist--otherwise, you may need
      ^^Jthe outputdir package option, or may be using an incompatible build
-     tool\ifwindows,^^Jor may be using the kpsewhich option without having
-     PowerShell installed\fi,^^Jor may be using frozencache with a missing file}%
+     tool,^^Jor may be using frozencache with a missing file}%
     {This could be caused by using -output-directory or -aux-directory
      ^^Jwithout setting minted's outputdir, or by using a build tool that
-     ^^Jchanges paths in ways minted cannot detect\ifwindows, or by using the
-     ^^Jkpsewhich option without PowerShell\fi,
+     ^^Jchanges paths in ways minted cannot detect,
      ^^Jor using frozencache with a missing file.}}%
 }
 \newcommand{\minted@infile}{\minted@jobname.out.pyg}
@@ -742,7 +740,11 @@
       \csname minted@optlistcl@lang\minted@lang @i\endcsname}}%
     {\let\minted@optlistcl@inlines\@empty}%
   \def\minted@cmd{%
-    \ifminted@kpsewhich\ifwindows powershell\space\fi\fi
+    \ifminted@kpsewhich
+      \ifwindows
+        \detokenize{for /f "usebackq tokens=*"}\space\@percentchar\detokenize{a in (`kpsewhich}\space\minted@codefile\detokenize{`) do}\space
+      \fi
+    \fi
     \MintedPygmentize\space -l #2
     -f latex -P commandprefix=PYG -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
@@ -750,7 +752,7 @@
     \minted@optlistcl@cmd -o \minted@outputdir\minted@infile\space
     \ifminted@kpsewhich
       \ifwindows
-        \detokenize{$}(kpsewhich \minted@codefile)%
+        \@percentchar\detokenize{a}%
       \else
         \detokenize{`}kpsewhich \minted@codefile\space
           \detokenize{||} \minted@codefile\detokenize{`}%
@@ -812,29 +814,7 @@
         \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
         \IfFileExists{\minted@infile}{}{%
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
-            \edef\minted@argone@esc{#1}%
-            \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
-            \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
-            \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
-            \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
-            \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
-            %Need a version of open() that supports encoding under Python 2
-            \edef\minted@autogobblecmd{%
-              \detokenize{python -c "import sys; import os;
-              import textwrap;
-              from io import open;
-              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
-              t = f.readlines();
-              f.close();
-              f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
-              fvstartnum = }\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi\detokenize{;
-              fvstopnum = }\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi\detokenize{;
-              s = fvstartnum-1 if fvstartnum != 0 else 0;
-              e = fvstopnum if fvstopnum != 0 else len(t);
-              [f.write(textwrap.dedent(\"\".join(x))) for x in (t[0:s], t[s:e], t[e:]) if x];
-              f.close();"}%
-            }%
-            \ShellEscape{\minted@autogobblecmd}}{}%
+            \minted@autogobble{#1}}{}%
           \ShellEscape{\minted@cmd}}%
       \fi
       \ifthenelse{\boolean{minted@finalizecache}}%
@@ -861,31 +841,54 @@
       \minted@inputpyg}%
     {%
       \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
-        \edef\minted@argone@esc{#1}%
-        \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
-        \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
-        \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
-        \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
-        \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
-        %Need a version of open() that supports encoding under Python 2
-        \edef\minted@autogobblecmd{%
-          \detokenize{python -c "import sys; import os;
-          import textwrap;
-          from io import open;
-          f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"r\", encoding=\"}\minted@encoding\detokenize{\");
-          t = f.readlines();
-          f.close();
-          f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\")), \"w\", encoding=\"}\minted@encoding\detokenize{\");
-          fvstartnum = }\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi\detokenize{;
-          fvstopnum = }\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi\detokenize{;
-          s = fvstartnum-1 if fvstartnum != 0 else 0;
-          e = fvstopnum if fvstopnum != 0 else len(t);
-          [f.write(textwrap.dedent(\"\".join(x))) for x in (t[0:s], t[s:e], t[e:]) if x];
-          f.close();"}%
-        }%
-        \ShellEscape{\minted@autogobblecmd}}{}%
+        \minted@autogobble{#1}}{}%
       \ShellEscape{\minted@cmd}%
       \minted@inputpyg}%
+}
+\def\minted@autogobble#1{%
+  \edef\minted@argone@esc{#1}%
+  \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
+  \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
+  \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
+  \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
+  \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
+  %Need a version of open() that supports encoding under Python 2
+  \edef\minted@autogobblecmd{%
+    \ifminted@kpsewhich
+      \ifwindows
+        \detokenize{for /f "usebackq tokens=*" }\@percentchar\detokenize{a in (`kpsewhich} #1\detokenize{`) do}\space
+      \fi
+    \fi
+    \detokenize{python -c "import sys; import os;
+    import textwrap;
+    from io import open;
+    fname = }%
+      \ifminted@kpsewhich
+        \detokenize{sys.argv[1];}\space%
+      \else
+        \detokenize{os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\"));}\space%
+      \fi
+    \detokenize{f = open(fname, \"r\", encoding=\"}\minted@encoding\detokenize{\") if os.path.isfile(fname) else None;
+    t = f.readlines() if f is not None else None;
+    t_opt = t if t is not None else [];
+    f.close() if f is not None else None;
+    tmpfname = os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\"));
+    f = open(tmpfname, \"w\", encoding=\"}\minted@encoding\detokenize{\") if t is not None else None;
+    fvstartnum = }\ifx\FancyVerbStartNum\z@ 0\else\FancyVerbStartNum\fi\detokenize{;
+    fvstopnum = }\ifx\FancyVerbStopNum\z@ 0\else\FancyVerbStopNum\fi\detokenize{;
+    s = fvstartnum-1 if fvstartnum != 0 else 0;
+    e = fvstopnum if fvstopnum != 0 else len(t_opt);
+    [f.write(textwrap.dedent(\"\".join(x))) for x in (t_opt[0:s], t_opt[s:e], t_opt[e:]) if x and t is not None];
+    f.close() if t is not None else os.remove(tmpfname);"}%
+    \ifminted@kpsewhich
+      \ifwindows
+        \space\@percentchar\detokenize{a}%
+      \else
+        \space\detokenize{`}kpsewhich #1\space\detokenize{||} #1\detokenize{`}%
+      \fi
+    \fi
+  }%
+  \ShellEscape{\minted@autogobblecmd}%
 }
 \newcommand{\minted@inputpyg}{%
   \expandafter\let\expandafter\minted@PYGstyle%
