@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2588}
+% \CheckSum{2592}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -216,7 +216,8 @@
 %
 %
 %
-% \begin{changelog}{v2.4.2}{2017/02/??}
+% \begin{changelog}{v2.4.2}{2017/05/??}
+% \item Comments in the Pygments \LaTeX\ style files no longer appear as literal text when \texttt{minted} is used in \texttt{.dtx} files (\#161).
 % \item \texttt{autogobble} now works with package option \texttt{kpsewhich} (\#151).  Under Windows, the \texttt{kpsewhich} option no longer requires PowerShell.
 % \item Fixed a bug that prevented \texttt{finalizecache} from working with \texttt{outputdir} (\#149).
 % \item Fixed a bug with \texttt{firstline} and \texttt{lastline} that prevented them from working with the \texttt{minted} environment (\#145).
@@ -2349,7 +2350,7 @@
 % \begin{macro}{\minted@checkstyle}
 % Make sure that style macros exist.
 %
-% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  The catcodes for |-| and |_| must be changed during macro definition to accomodate style names like |paraiso-light|, |paraiso-dark|, and |algol_nu|.
+% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  The catcodes for |-| and |_| must be changed during macro definition to accomodate style names like |paraiso-light|, |paraiso-dark|, and |algol_nu|.  The catcode for |%| must be changed to the default value in case \pkg{minted} is being used in a |.dtx| file; otherwise, \LaTeX\ comments in the Pygments style files will appear as literal text.
 %
 % If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default-pyg-prefix.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
 %
@@ -2391,6 +2392,7 @@
         \let\def\gdef
         \catcode`\_=11
         \catcode`\-=11
+        \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{%
           \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
@@ -2410,6 +2412,7 @@
         \let\def\gdef
         \catcode`\_=11
         \catcode`\-=11
+        \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
         \endgroup}%
