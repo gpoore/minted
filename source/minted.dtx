@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2017/02/10 v2.4.2dev Yet another Pygments shim for LaTeX]
+    [2017/07/08 v2.5dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -216,7 +216,8 @@
 %
 %
 %
-% \begin{changelog}{v2.4.2}{2017/05/??}
+% \begin{changelog}{v2.5}{2017/07/??}
+% \item Added support for \texttt{beamer} overlays with \texttt{beameroverlays} option (\#155).
 % \item Comments in the Pygments \LaTeX\ style files no longer appear as literal text when \texttt{minted} is used in \texttt{.dtx} files (\#161).
 % \item \texttt{autogobble} now works with package option \texttt{kpsewhich} (\#151).  Under Windows, the \texttt{kpsewhich} option no longer requires PowerShell.
 % \item Fixed a bug that prevented \texttt{finalizecache} from working with \texttt{outputdir} (\#149).
@@ -964,6 +965,11 @@
 %
 %   \item[baselinestretch (dimension) (\meta{document default})]
 %     Value to use as for baselinestretch inside the listing.
+%
+%
+% \item[beameroverlays (boolean) (false)]
+% Give the |<| and |>| characters their normal text meanings when used with |escapeinside| and |texcomments|, so that \pkg{beamer} overlays of the form |\only<1>{...}| will work.
+%
 %
 %   \item[breakafter (string) (\meta{none})]
 %     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
@@ -2579,6 +2585,7 @@
 \minted@def@optfv{tab}
 \minted@def@optfv{tabcolor}
 \minted@def@optfv{highlightcolor}
+\minted@def@optfv@switch{beameroverlays}
 \minted@def@optfv@switch{curlyquotes}
 \minted@def@optfv@switch{numberfirstline}
 \minted@def@optfv@switch{numberblanklines}
