@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2592}
+% \CheckSum{2597}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -217,6 +217,7 @@
 %
 %
 % \begin{changelog}{v2.5}{2017/07/??}
+% \item Fixed incompatibility with \texttt{babel magyar} (\#158).
 % \item Added support for \texttt{beamer} overlays with \texttt{beameroverlays} option (\#155).
 % \item Comments in the Pygments \LaTeX\ style files no longer appear as literal text when \texttt{minted} is used in \texttt{.dtx} files (\#161).
 % \item \texttt{autogobble} now works with package option \texttt{kpsewhich} (\#151).  Under Windows, the \texttt{kpsewhich} option no longer requires PowerShell.
@@ -2398,6 +2399,7 @@
         }%
         \begingroup
         \let\def\gdef
+        \catcode\string``=12
         \catcode`\_=11
         \catcode`\-=11
         \catcode`\%=14
@@ -2418,6 +2420,7 @@
         \fi
         \begingroup
         \let\def\gdef
+        \catcode\string``=12
         \catcode`\_=11
         \catcode`\-=11
         \catcode`\%=14
