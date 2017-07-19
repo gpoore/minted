@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2017/07/08 v2.5dev Yet another Pygments shim for LaTeX]
+    [2017/07/19 v2.5dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -163,7 +163,7 @@
 \def\minted@printopt#1(#2) (#3){%
   \vspace{0.1in}%
   \leavevmode%
-  \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{#1}}\ }%
+  \marginpar{\raggedleft\texttt{\textcolor{minted@linkcolor}{\small #1}}\ }%
   \kern-\parindent\textsf{(#2)}\hfill(default: \texttt{#3})\\}
 
 \newenvironment{optionlist}%
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2597}
+% \CheckSum{2604}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -217,6 +217,7 @@
 %
 %
 % \begin{changelog}{v2.5}{2017/07/??}
+% \item Added support for \texttt{*nchars} options from \texttt{fvextra} v1.3 that allow setting \texttt{breaklines}-related indentation in terms of a number of characters, rather than as a fixed dimension.
 % \item Fixed incompatibility with \texttt{babel magyar} (\#158).
 % \item Added support for \texttt{beamer} overlays with \texttt{beameroverlays} option (\#155).
 % \item Comments in the Pygments \LaTeX\ style files no longer appear as literal text when \texttt{minted} is used in \texttt{.dtx} files (\#161).
@@ -1045,8 +1046,13 @@
 %   \item[breakbytokenanywhere (boolean) (false)] 
 %   Like \texttt{breakbytoken}, but also allows line breaks between immediately adjacent tokens, not just between tokens that are separated by spaces.  Using \texttt{breakbytokenanywhere} with \texttt{breakanywhere} is redundant.
 %
-%   \item[breakindent (dimension) (0pt)]
-%     When a line is broken, indent the continuation lines by this amount.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
+% \item[breakindent (dimension) (\meta{breakindentnchars})]
+% When a line is broken, indent the continuation lines by this amount.  When |breakautoindent| and |breakindent| are used together, the indentations add.  This  indentation is combined with |breaksymbolindentleft| to give the total actual left indentation.
+%
+% Does not apply to \texttt{\string\mintinline}.
+%
+% \item[breakindentnchars (integer) (0)]
+% This allows |breakindent| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
 %   \item[breaklines (boolean) (false)] 
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.
@@ -1104,32 +1110,49 @@
 %   \item[breaksymbolright (string) (\meta{none})]
 %     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
 %
-%   \item[breaksymbolindent (dimension) (breaksymbolindentleft)]
-%     Alias for \texttt{breaksymbolindentleft}.
 %
-%   \item[breaksymbolindentleft (dimension) (\meta{width of 4 characters in default teletype font})]
-%     The extra left indentation that is provided to make room for \texttt{breaksymbolleft}.  This indentation is only applied when there is a \texttt{breaksymbolleft}.
+% \item[breaksymbolindent (dimension) (\meta{breaksymbolindentleftnchars})]
+% Alias for |breaksymbolindentleft|.
 %
-%     This may be set to the width of a specific number of (fixed-width) characters by using an approach such as 
-%\begin{Verbatim}
-%\newdimen\temporarydimen
-%\settowidth{\temporarydimen}{\ttfamily aaaa}
-%\end{Verbatim}
-% and then using \texttt{breaksymbolindentleft=\string\temporarydimen}.
+% \item[breaksymbolindentnchars (integer) (\meta{breaksymbolindentleftnchars})]
+% Alias for |breaksymbolindentleftnchars|.
+%
+%
+% \item[breaksymbolindentleft (dimension) (\meta{breaksymbolindentleftnchars})]
+% The extra left indentation that is provided to make room for |breaksymbolleft|.  This indentation is only applied when there is a |breaksymbolleft|.
 %
 %     Does not apply to \texttt{\string\mintinline}.
 %
-%   \item[breaksymbolindentright (dimension) (\meta{width of 4 characters in default teletype font})]
-%     The extra right indentation that is provided to make room for \texttt{breaksymbolright}.  This indentation is only applied when there is a \texttt{breaksymbolright}.
+% \item[breaksymbolindentleftnchars (integer) (4)]
+% This allows |breaksymbolindentleft| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
-%   \item[breaksymbolsep (dimension) (breaksymbolsepleft)]
-%     Alias for \texttt{breaksymbolsepleft}
+% \item[breaksymbolindentright (dimension) (\meta{breaksymbolindentrightnchars})]
+% The extra right indentation that is provided to make room for |breaksymbolright|.  This indentation is only applied when there is a |breaksymbolright|.
 %
-%   \item[breaksymbolsepleft (dimension) (1em)]
-%     The separation between the \texttt{breaksymbolleft} and the adjacent code.  Does not apply to \texttt{\string\mintinline}.
+% \item[breaksymbolindentrightnchars (integer) (4)]
+% This allows |breaksymbolindentright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
-%   \item[breaksymbolsepright (dimension) (1em)]
-%     The separation between the \texttt{breaksymbolright} and the adjacent code.
+%
+% \item[breaksymbolsep (dimension) (\meta{breaksymbolsepleftnchars})]
+% Alias for |breaksymbolsepleft|.
+%
+% \item[breaksymbolsepnchars (integer) (\meta{breaksymbolsepleftnchars})]
+% Alias for |breaksymbolsepleftnchars|.
+%
+%
+% \item[breaksymbolsepleft (dimension) (\meta{breaksymbolsepleftnchars})]
+% The separation between the |breaksymbolleft| and the adjacent text. 
+%
+% \item[breaksymbolsepleftnchars (integer) (2)]
+% Allows |breaksymbolsepleft| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
+%
+%
+% \item[breaksymbolsepright (dimension) (\meta{breaksymbolseprightnchars})]
+% The \emph{minimum} separation between the |breaksymbolright| and the adjacent text.  This is the separation between |breaksymbolright| and the furthest extent to which adjacent text could reach.  In practice, |\linewidth| will typically not be an exact integer multiple of the character width (assuming a fixed-width font), so the actual separation between the |breaksymbolright| and adjacent text will generally be larger than |breaksymbolsepright|.  This ensures that break symbols have the same spacing from the margins on both left and right.  If the same spacing from text is desired instead, |breaksymbolsepright| may be adjusted.  (See the definition of |\FV@makeLineNumber| in \pkg{fvextra} for implementation details.)
+%
+% \item[breaksymbolseprightnchars (integer) (2)]
+% Allows |breaksymbolsepright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
+%
 %
 %   \item[bgcolor (string) (\meta{none})]
 %     Background color of the listing.  Be aware that this option has several limitations (described below); see ``Framing alternatives'' below for more powerful alternatives.
@@ -2559,7 +2582,7 @@
 \minted@def@opt{style}
 %    \end{macrocode}
 %
-% \pkg{fancyvrb} options.
+% \pkg{fancyvrb} and \pkg{fvextra} options.
 %    \begin{macrocode}
 \minted@def@optfv{frame}
 \minted@def@optfv{framesep}
@@ -2605,16 +2628,23 @@
 \minted@def@optfv@switch{breakbytoken}
 \minted@def@optfv@switch{breakbytokenanywhere}
 \minted@def@optfv{breakindent}
+\minted@def@optfv{breakindentnchars}
 \minted@def@optfv@switch{breakautoindent}
 \minted@def@optfv{breaksymbol}
 \minted@def@optfv{breaksymbolsep}
+\minted@def@optfv{breaksymbolsepnchars}
 \minted@def@optfv{breaksymbolindent}
+\minted@def@optfv{breaksymbolindentnchars}
 \minted@def@optfv{breaksymbolleft}
 \minted@def@optfv{breaksymbolsepleft}
+\minted@def@optfv{breaksymbolsepleftnchars}
 \minted@def@optfv{breaksymbolindentleft}
+\minted@def@optfv{breaksymbolindentleftnchars}
 \minted@def@optfv{breaksymbolright}
 \minted@def@optfv{breaksymbolsepright}
+\minted@def@optfv{breaksymbolseprightnchars}
 \minted@def@optfv{breaksymbolindentright}
+\minted@def@optfv{breaksymbolindentrightnchars}
 \minted@def@optfv{breakbefore}
 \minted@def@optfv{breakbeforesymbolpre}
 \minted@def@optfv{breakbeforesymbolpost}
