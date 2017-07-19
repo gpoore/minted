@@ -1,6 +1,38 @@
 # Changes
 
 
+## v2.5 (2017/07/19)
+
+*  The default placement for the `listing` float is now `tbp` instead of `h`,
+   to parallel `figure` and `table` and also avoid warnings caused by `h`
+   (#165).  The documentation now contains information about changing default
+   placement.  The `float` package is no longer loaded when the `newfloat`
+   package option is used.
+
+*  Added support for `*nchars` options from `fvextra` v1.3 that allow setting
+   `breaklines`-related indentation in terms of a number of characters, rather
+   than as a fixed dimension.
+
+*  Fixed incompatibility with `babel magyar` (#158).
+
+*  Added support for `beamer` overlays with `beameroverlays` option (#155).
+
+*  Comments in the Pygments LaTeX style files no longer appear as literal
+   text when `minted` is used in `.dtx` files (#161).
+
+*  `autogobble` now works with package option `kpsewhich` (#151).  Under
+   Windows, the `kpsewhich` option no longer requires PowerShell.
+
+*  Fixed a bug that prevented `finalizecache` from working with `outputdir`
+   (#149).
+
+*  Fixed a bug with `firstline` and `lastline` that prevented them from
+   working with the `minted` environment (#145).
+
+*  Added note on `breqn` conflicts to FAQ (#163).
+
+
+
 ## v2.4.1 (2016/10/31)
 
 *  Single quotation marks in `\jobname` are now replaced with underscores in
@@ -9,7 +41,7 @@
 *  The `autogobble` option now takes `firstline` and `lastline` into account
    (#130).
 
-*  Fixed `numberblanklines`, which had been lost in the transition to v2.0+ 
+*  Fixed `numberblanklines`, which had been lost in the transition to v2.0+
    (#135).
 
 
