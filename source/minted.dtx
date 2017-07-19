@@ -225,6 +225,7 @@
 % \item \texttt{autogobble} now works with package option \texttt{kpsewhich} (\#151).  Under Windows, the \texttt{kpsewhich} option no longer requires PowerShell.
 % \item Fixed a bug that prevented \texttt{finalizecache} from working with \texttt{outputdir} (\#149).
 % \item Fixed a bug with \texttt{firstline} and \texttt{lastline} that prevented them from working with the \texttt{minted} environment (\#145).
+% \item Added note on \texttt{breqn} conflicts to FAQ (\#163).
 % \end{changelog}
 %
 %
@@ -1489,6 +1490,12 @@
 % This is a font issue.  You need a different font encoding, possibly with a different font.  Try |\usepackage[T1]{fontenc}|, perhaps with |\usepackage{lmodern}|, or something similar.
 %
 % \item \textbf{I'm getting errors with math, something like \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.}  This is due to ligatures being disabled within verbatim content.  See the note under |escapeinside|.
+%
+% \item \textbf{With \texttt{mathescape} and the \pkg{breqn} package (or another special math package), the document never finishes compiling or there are other unexpected results.}  Some math packages like \pkg{breqn} give certain characters like the comma special meanings in math mode.  These can conflict with \pkg{minted}.  In the \pkg{breqn} and comma case, this can be fixed by redefining the comma within |minted| environments:
+%\begin{verbatim}
+%\AtBeginEnvironment{minted}{\catcode`\,=12\mathcode`\,="613B}
+%\end{verbatim}
+%Other packages/special characters may need their own modifications.
 %
 % \item \textbf{I'm getting errors with Beamer.}  Due to how Beamer treats verbatim content, you may need to use either the |fragile| or |fragile=singleslide| options for frames that contain \pkg{minted} commands and environments.  |fragile=singleslide| works best, but it disables overlays.  |fragile| works by saving the contents of each frame to a temp file and then reusing them.  This approach allows overlays, but will break if you have the string |\end{frame}| at the beginning of a line (for example, in a |minted| environment).  To work around that, you can indent the content of the environment (so that the |\end{frame}| is preceded by one or more spaces) and then use the |gobble| or |autogobble| options to remove the indentation.
 %
