@@ -217,6 +217,7 @@
 %
 %
 % \begin{changelog}{v2.5}{2017/07/??}
+% \item The default placement for the \texttt{listing} float is now \texttt{tbp} instead of \texttt{h}, to parallel \texttt{figure} and \texttt{table} and also avoid warnings caused by \texttt{h} (\#165).  The documentation now contains information about changing default placement.  The \texttt{float} package is no longer loaded when the \texttt{newfloat} package option is used.
 % \item Added support for \texttt{*nchars} options from \texttt{fvextra} v1.3 that allow setting \texttt{breaklines}-related indentation in terms of a number of characters, rather than as a fixed dimension.
 % \item Fixed incompatibility with \texttt{babel magyar} (\#158).
 % \item Added support for \texttt{beamer} overlays with \texttt{beameroverlays} option (\#155).
@@ -708,8 +709,7 @@
 % \section{Floating listings}\label{sec:float}
 %
 % \DescribeEnv{listing}
-% \pkg{minted} provides the |listing| environment to wrap around a source code block.  This puts the code into a floating box.  You can also provide a |\caption| and a |\label| for such a listing in the usual way (that is,
-% as for the |table| and |figure| environments):
+% \pkg{minted} provides the |listing| environment to wrap around a source code block.  This puts the code into a floating box, with the default placement |tbp| like figures and tables.  You can also provide a |\caption| and a |\label| for such a listing in the usual way (that is, as for the |figure| and |table| environments):
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
 %   \begin{listing}[H]
 %     \mint{cl}/(car (cons 1 '(2)))/
@@ -728,6 +728,18 @@
 %   \input{minted.doc.out}
 % \end{minipage}}
 % \hfill\hfill
+%
+% The default |listing| placement can be modified easily.  When the package option |newfloat=false| (default), the \pkg{float} package is used to create the |listing| environment.  Placement can be modified by redefining |\fps@listing|.  For example,
+%\begin{verbatim}
+%\makeatletter
+%\renewcommand{\fps@listing}{htp}
+%\makeatother
+%\end{verbatim}
+% When |newfloat=true|, the more powerful \pkg{newfloat} package is used to create the |listing| environment.  In that case, \pkg{newfloat} commands are available to customize |listing|:
+%\begin{verbatim}
+%\SetupFloatingEnvironment{listing}{placement=htp}
+%\end{verbatim}
+%
 %
 % \DescribeMacro{\listoflistings}
 % The |\listoflistings| macro will insert a list of all (floated) listings in the document:
@@ -1568,7 +1580,6 @@
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
-\RequirePackage{float}
 \RequirePackage{ifthen}
 \RequirePackage{calc}
 \IfFileExists{shellesc.sty}
@@ -1713,7 +1724,7 @@
 %
 %    \begin{macrocode}
 \ProcessKeyvalOptions*
-\ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{}
+\ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{\RequirePackage{float}}
 \ifcsname tikzifexternalizing\endcsname 
   \tikzifexternalizing{\minted@drafttrue\minted@cachefalse}{}
 \else
@@ -3403,13 +3414,13 @@
 %    \begin{macrocode}
 \ifthenelse{\boolean{minted@newfloat}}%
  {\@ifundefined{minted@float@within}%
-    {\DeclareFloatingEnvironment[fileext=lol,placement=h]{listing}}%
+    {\DeclareFloatingEnvironment[fileext=lol,placement=tbp]{listing}}%
     {\def\minted@tmp#1{%
-       \DeclareFloatingEnvironment[fileext=lol,placement=h, within=#1]{listing}}%
+       \DeclareFloatingEnvironment[fileext=lol,placement=tbp, within=#1]{listing}}%
      \expandafter\minted@tmp\expandafter{\minted@float@within}}}%
  {\@ifundefined{minted@float@within}%
-    {\newfloat{listing}{h}{lol}}%
-    {\newfloat{listing}{h}{lol}[\minted@float@within]}}
+    {\newfloat{listing}{tbp}{lol}}%
+    {\newfloat{listing}{tbp}{lol}[\minted@float@within]}}
 %    \end{macrocode}
 % \end{environment}
 %
