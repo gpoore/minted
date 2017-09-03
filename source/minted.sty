@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2017/07/19 v2.5 Yet another Pygments shim for LaTeX]
+    [2017/09/03 v2.5.1dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -700,16 +700,24 @@
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
+\newenvironment{minted@snugshade*}[1]{%
+  \def\FrameCommand##1{\hskip\@totalleftmargin
+    \colorbox{#1}{##1}%
+    \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+  \MakeFramed{\advance\hsize-\width
+    \@totalleftmargin\z@ \linewidth\hsize
+    \advance\labelsep\fboxsep
+    \@setminipage}%
+ }{\par\unskip\@minipagefalse\endMakeFramed}
 \newsavebox{\minted@bgbox}
 \newenvironment{minted@colorbg}[1]{%
   \setlength{\OuterFrameSep}{0pt}%
-  \colorlet{shadecolor}{#1}%
   \let\minted@tmp\FV@NumberSep
   \edef\FV@NumberSep{%
     \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
   \medskip
-  \begin{snugshade*}}
- {\end{snugshade*}%
+  \begin{minted@snugshade*}{#1}}
+ {\end{minted@snugshade*}%
   \medskip\noindent}
 \newwrite\minted@code
 \newcommand{\minted@savecode}[1]{

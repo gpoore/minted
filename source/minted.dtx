@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2017/07/19 v2.5 Yet another Pygments shim for LaTeX]
+    [2017/09/03 v2.5.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2604}
+% \CheckSum{2631}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -214,6 +214,11 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+%
+%
+% \begin{changelog}{v2.5.1}{2017/??/??}
+% \item Reimplemented \texttt{bgcolor} option to be compatible with \texttt{color} package.
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.5}{2017/07/19}
@@ -2700,6 +2705,22 @@
 %
 % \subsection{Internal helpers}
 %
+% \begin{environment}{minted@snugshade*}
+% Define a custom version of \pkg{framed}'s |snugshade*| that takes a color as argument.  This avoids the need to redefine |shadecolor|.
+%    \begin{macrocode}
+\newenvironment{minted@snugshade*}[1]{%
+  \def\FrameCommand##1{\hskip\@totalleftmargin 
+    \colorbox{#1}{##1}%
+    \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+  \MakeFramed{\advance\hsize-\width 
+    \@totalleftmargin\z@ \linewidth\hsize
+    \advance\labelsep\fboxsep
+    \@setminipage}%
+ }{\par\unskip\@minipagefalse\endMakeFramed}
+%    \end{macrocode}
+% \end{environment}
+%
+%
 % \begin{environment}{\minted@bgbox}
 %
 % Define an environment that may be wrapped around a |minted| environment to assign a background color.  This is retained as a holdover from version 1.0.  In most cases, it is probably better to use a dedicated framing package, such as \pkg{tcolorbox} or \pkg{mdframed}.
@@ -2715,13 +2736,12 @@
 %    \begin{macrocode}
 \newenvironment{minted@colorbg}[1]{%
   \setlength{\OuterFrameSep}{0pt}%
-  \colorlet{shadecolor}{#1}%
   \let\minted@tmp\FV@NumberSep
   \edef\FV@NumberSep{%
     \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
   \medskip
-  \begin{snugshade*}}
- {\end{snugshade*}%
+  \begin{minted@snugshade*}{#1}}
+ {\end{minted@snugshade*}%
   \medskip\noindent}
 %    \end{macrocode}
 % \end{environment}
