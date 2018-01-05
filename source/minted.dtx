@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2017/09/03 v2.5.1dev Yet another Pygments shim for LaTeX]
+    [2018/01/05 v2.5.1dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -216,7 +216,8 @@
 %
 %
 %
-% \begin{changelog}{v2.5.1}{2017/??/??}
+% \begin{changelog}{v2.5.1}{2018/??/??}
+% \item Added note to FAQ about getting \texttt{texi2pdf} to work with \texttt{minted} given \texttt{texi2pdf}'s assumptions about temp files (\#186).
 % \item Reimplemented \texttt{bgcolor} option to be compatible with \texttt{color} package.
 % \end{changelog}
 %
@@ -1563,6 +1564,7 @@
 % \item \textbf{I want extended characters in frame labels, but am getting errors.}  This can happen with \pkg{minted} <2.0 and Python 2.7, due to a \href{https://bitbucket.org/birkenfeld/pygments-main/issue/801/python-2-fails-to-detect-terminal-encoding}{terminal encoding issue with Pygments}.  It should work with any version of Python with \pkg{minted} 2.0+, which processes labels internally and does not send them to Python.
 % \item \textbf{\texttt{minted} environments have extra vertical space inside \texttt{tabular}.}  It is possible to \href{https://github.com/gpoore/minted/issues/82}{create a custom environment} that eliminates the extra space.  However, a general solution that behaves as expected in the presence of adjacent text remains to be found.
 % \item \textbf{I'm receiving a warning from \texttt{lineno.sty} that ``Command \texttt{\string\@parboxrestore} has changed.''}  This can happen when \pkg{minted} is loaded after \pkg{csquotes}.  Try loading \pkg{minted} first.  If you receive this message when you are not using \pkg{csquotes}, you may want to experiment with the order of loading packages and might also open an issue.
+% \item \textbf{I'm using \app{texi2pdf}, and getting ``Cannot stat'' errors from \app{tar}}:  This is due to the way that \app{texi2pdf} handles temporary files.  \pkg{minted} automatically cleans up its temporary files, but \app{texi2pdf} assumes that any temporary file that is ever created will still exist at the end of the run, so it tries to access the files that \pkg{minted} has deleted. It's possible to disable minted's temp file cleanup by adding |\renewcommand{\DeleteFile}[2][]{}| after the |\usepackage{minted}|.
 % \end{itemize}
 %
 %
