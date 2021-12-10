@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2021/12/02 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/07 v2.6dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -896,7 +896,7 @@
     fvstartnum = }\the\numexpr\FancyVerbStartNum\detokenize{;
     fvstopnum = }\the\numexpr\FancyVerbStopNum\detokenize{;
     s = max(0, fvstartnum-1);
-    e = min(max(0, fvstopnum), len(t_opt));
+    e = min(s, fvstopnum if fvstopnum > 0 else len(t_opt));
     [f.write(textwrap.dedent(\"\".join(x))) for x in (t_opt[0:s], t_opt[s:e], t_opt[e:]) if x and t is not None];
     f.close() if t is not None else os.remove(tmpfname);"}%
     \ifminted@kpsewhich
