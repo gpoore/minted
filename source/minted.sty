@@ -480,64 +480,87 @@
     \@namedef{minted@opt@cmd:#2}{##1}}
   \ifstrempty{#1}{}{\@namedef{minted@opt@g:#2}{#1}}%
 }
+\newcounter{minted@stylecounter}
+\newcommand{\minted@styleprefix}[1]{\csname minted@styleprefix@#1\endcsname}%
 \newcommand{\minted@checkstyle}[1]{%
-  \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
-    \ifstrempty{#1}{}{\ifcsname PYG\endcsname\else\minted@checkstyle{}\fi}%
-    \expandafter\gdef%
-      \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
+  \edef\minted@checkedstyle{\ifstrempty{#1}{default}{#1}}%
+  \ifcsname minted@isloaded@\minted@checkedstyle\endcsname
+  \else
+    \ifstrempty{#1}{}{\ifdefined\PYG\else
+                        \minted@checkstyle{}%
+                        \edef\minted@checkedstyle{#1}%
+                      \fi}%
+    \ifcsname minted@styleprefix@\minted@checkedstyle\endcsname
+      \def\minted@styleprefixwasknown{1}%
+    \else
+      \def\minted@styleprefixwasknown{O}%
+      \expandafter\xdef\csname minted@styleprefix@\minted@checkedstyle\endcsname
+          {PYG\roman{minted@stylecounter}}%
+      \stepcounter{minted@stylecounter}%
+    \fi
+    \immediate\write\@mainaux
+          {\global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
+               {\minted@styleprefix{\minted@checkedstyle}}%
+           \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
     \ifthenelse{\boolean{minted@cache}}%
-     {\IfFileExists
-       {\minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
-       {}%
-       {%
-        \ifthenelse{\boolean{minted@frozencache}}%
+     {\let\next\@firstofone
+        \IfFileExists
+        {\minted@outputdir\minted@cachedir/\minted@checkedstyle.pygstyle}%
+        {\if1\minted@styleprefixwasknown\let\next\@gobble\fi}%
+        {%
+         \ifthenelse{\boolean{minted@frozencache}}%
          {\PackageError{minted}%
            {Missing style definition for #1 with frozencache}%
-           {Missing style definition for #1 with frozencache}}%
+           {Missing style definition for #1 with frozencache}%
+          \let\next\@gobble
+         }%
+         {}%
+        }%
+        \next
          {\ifwindows
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-              -P commandprefix=PYG#1
+              -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+                \minted@checkedstyle.pygstyle}%
           \else
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-              -P commandprefix=PYG#1
+              -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir\minted@cachedir/%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+                \minted@checkedstyle.pygstyle}%
           \fi}%
-        }%
         \begingroup
         \let\def\gdef
         \catcode\string``=12
-        \catcode`\_=11
-        \catcode`\-=11
         \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{%
-          \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+          \minted@outputdir\minted@cachedir/\minted@checkedstyle.pygstyle}%
         \endgroup
-        \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
+        \global\expandafter\let\csname minted@isloaded@\minted@checkedstyle\endcsname\@empty
+        \expandafter\minted@addcachefile\expandafter{\minted@checkedstyle.pygstyle}}%
      {%
         \ifwindows
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > \minted@outputdir@windows\minted@jobname.out.pyg}%
+            -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
+            > \minted@outputdir@windows\minted@jobname.out.pyg}%
         \else
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > \minted@outputdir\minted@jobname.out.pyg}%
+            -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
+            > \minted@outputdir\minted@jobname.out.pyg}%
         \fi
         \begingroup
         \let\def\gdef
         \catcode\string``=12
-        \catcode`\_=11
-        \catcode`\-=11
         \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
-        \endgroup}%
+        \endgroup
+        \global\expandafter\let\csname minted@isloaded@\minted@checkedstyle\endcsname\@empty
+    }%
     \ifstrempty{#1}{\minted@patch@PYGZsq}{}%
   \fi
 }
@@ -911,7 +934,7 @@
 }
 \newcommand{\minted@inputpyg}{%
   \expandafter\let\expandafter\minted@PYGstyle%
-    \csname PYG\minted@get@opt{style}{default}\endcsname
+    \csname\minted@styleprefix{\minted@get@opt{style}{default}}\endcsname
   \VerbatimPygments{\PYG}{\minted@PYGstyle}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%

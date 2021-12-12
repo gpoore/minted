@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2607}
+% \CheckSum{2671}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -2405,77 +2405,123 @@
 % \end{macro}
 %
 %
+% \begin{macro}{minted@stylecounter}
+% We need a counter in order to help map Pygments style names, which may contain digits or non-letter characters such as  as |-| or |_|, to command prefixes using only letters.  The command prefixes will be obtained as |PYG\roman{minted@stylecounter}|, thus will be picked along the sequence |PYG| (default style), |PYGi|, |PYGii|, ...
+%    \begin{macrocode}
+\newcounter{minted@stylecounter}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@styleprefix}
+% This macro will act as a dictionary mapping Pygments style names to legal command prefixes for LaTeX macros.
+%    \begin{macrocode}
+\newcommand{\minted@styleprefix}[1]{\csname minted@styleprefix@#1\endcsname}%
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@checkstyle}
 % Make sure that style macros exist.
 %
-% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  The catcodes for |-| and |_| must be changed during macro definition to accomodate style names like |paraiso-light|, |paraiso-dark|, and |algol_nu|.  The catcode for |%| must be changed to the default value in case \pkg{minted} is being used in a |.dtx| file; otherwise, \LaTeX\ comments in the Pygments style files will appear as literal text.
+% We have to do some tricks with |\endlinechar| to prevent |\input| from inserting unwanted whitespace.  That is primarily for inline commands, where it would introduce a line break.  There is also the very unorthodox |\let\def\gdef| to make sure that macros are defined globally.  The catcode for |%| must be changed to the default value in case \pkg{minted} is being used in a |.dtx| file; otherwise, \LaTeX\ comments in the Pygments style files will appear as literal text.
 %
-% If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default-pyg-prefix.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
+% If a style is not given, then revert to the |default| style, but create macros with prefix |PYG|, and create |default.pygstyle| if caching is on.  This allows a graceful fallback in the event that style is empty.  It is also purposefully used to create a complete set of macros with prefix |PYG|, so that the symbol macros may be used, as described next.
 %
-% The typical style macros created by |\minted@checkstyle|, which are of the form |\PYG<style>|, are used indirectly.  All code is highlighted with |commandprefix=PYG|, so that it uses |\PYG|.  Then |\PYG| is |\let| to |\PYG<style>| as appropriate.  This way, code need not be highlighted again when the style is changed.  This has the disadvantage that none of the |\PYG<symbol>| macros will be defined; rather, only |\PYG<style><symbol>| macros will be defined.  It would be possible to |\let| |\PYG<symbol>| to |\PYG<style><symbol>|, but it is simpler to define a complete set of symbol macros using the |PYG| prefix, so that all symbol macros will be defined by default.\footnote{It would be possible to hard-code the symbol macros in \pkg{minted} itself, but that would have the disadvantage of tying \pkg{minted} more closely to a particular version of \pkg{Pygments}.  Similarly, \texttt{\string\let}ing symbol macros assumes a complete, fixed list of symbol macros.  The current approach is harder to break than these alternatives; the worst-case scenario should be needing to purge the cache, rather than dealing with an undefined macro.}
+% The typical style macros created by |\minted@checkstyle|, which are of the form |\PYG<roman numeral>|, are used indirectly.  All code is highlighted with |commandprefix=PYG|, so that it uses |\PYG|.  Then |\PYG| is |\let| to |\PYG<roman numeral>| as appropriate, where each encountered style name has been mapped to a specific |<roman numeral>|.  For the default style, the prefix will be simply |PYG|.  This way, code need not be highlighted again when the style is changed.  This mechanism will load into \LaTeX\ memory under multiple names |\PYG<roman numeral><symbol>| the Pygments macros serving to escape special characters but the mark-up implementing the code highlighting uses only |\PYG<symbol>| macros.  This is of no importance as these are \LaTeX\ escapes for special characters and are independent of the Pygments style.\footnote{It would be possible to hard-code the symbol macros in \pkg{minted} itself, but that would have the disadvantage of tying \pkg{minted} more closely to a particular version of \pkg{Pygments}.  Similarly, \texttt{\string\let}ing symbol macros assumes a complete, fixed list of symbol macros.  The current approach is harder to break than these alternatives; the worst-case scenario should be needing to purge the cache, rather than dealing with an undefined macro.}
+%
+% The \LaTeX\ |aux| file is used to store for the next run the current association of command prefixes to the encountered style names.  This way, when caching is on and the document evolves with deletion or addition of code snippets, the Pygments style files get created only once and the memory of which prefix has been used for which style is kept.  If a style has been used at one stage of the document, then removed, the corresponding cached style file is not deleted immediately, but will be re-created if the user again uses the style, as the number used via roman numerals in the command prefix may not remain the same.  Similarly, if the |aux| file gets deleted, the cached Pygments style file will be automatically recreated as needed, as it can not be known anymore with which command prefixes they had been previously queried from Pygments.
 %
 % Whenever |\minted@checkstyle| is invoked with a named style and style macros need to be created, there is a check to see if the |PYG| prefix macros have been created, and they are generated if they do not yet exist.  This is important when |\MintedPygmentize| is used to call a custom |pygmentize|; we want to wait as late as possible to use |pygmentize|, so we don't want to generate the |\PYG| macros until the last possible moment.  When the |\PYG| macros are actually created, the single quote macro is patched after loading.
 %
 % It isn't necessary to set the initial style to |default|, because the current style is always obtained via |\minted@get@opt{style}{default}|, so |default| is always the fallback value and need not be set explicitly.  |\minted@checkstyle| is used in each command/environment, so that using |pygmentize| can be delayed as long as possible.
 %    \begin{macrocode}
 \newcommand{\minted@checkstyle}[1]{%
-  \ifcsname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname\else
-    \ifstrempty{#1}{}{\ifcsname PYG\endcsname\else\minted@checkstyle{}\fi}%
-    \expandafter\gdef%
-      \csname minted@styleloaded@\ifstrempty{#1}{default-pyg-prefix}{#1}\endcsname{}%
+  \edef\minted@checkedstyle{\ifstrempty{#1}{default}{#1}}%
+  \ifcsname minted@isloaded@\minted@checkedstyle\endcsname
+  \else
+    \ifstrempty{#1}{}{\ifdefined\PYG\else
+                        \minted@checkstyle{}%
+                        \edef\minted@checkedstyle{#1}%
+                      \fi}%
+%    \end{macrocode}
+% If no command prefix has yet been associated to this style, use the style counter converted into roman numerals, then step it.
+%
+% Store unconditionally into the |.aux| file the command prefix as used for this style name.  Also make sure that on next run the style counter will be initiated at a value ensuring new encountered style names will never use an already existing command prefix.
+%
+% Keep provisorily the information whether the previous run had kept a memory of the command prefix as used for this style.  Indeed, if the |.aux| file from previous run did not know this style name, it means that a possibly existing cached style file originated in yet earlier runs and it must be recreated to update its command prefix.  On the other hand if the |.aux| file does know about the style, and the style file exists, then we can use it as is.
+%    \begin{macrocode}
+    \ifcsname minted@styleprefix@\minted@checkedstyle\endcsname
+      \def\minted@styleprefixwasknown{1}%
+    \else
+      \def\minted@styleprefixwasknown{O}%
+      \expandafter\xdef\csname minted@styleprefix@\minted@checkedstyle\endcsname
+          {PYG\roman{minted@stylecounter}}%
+      \stepcounter{minted@stylecounter}%
+    \fi
+    \immediate\write\@mainaux
+          {\global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
+               {\minted@styleprefix{\minted@checkedstyle}}%
+           \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
     \ifthenelse{\boolean{minted@cache}}%
-     {\IfFileExists
-       {\minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
-       {}%
-       {%
-        \ifthenelse{\boolean{minted@frozencache}}%
+     {\let\next\@firstofone
+        \IfFileExists
+        {\minted@outputdir\minted@cachedir/\minted@checkedstyle.pygstyle}%
+        {\if1\minted@styleprefixwasknown\let\next\@gobble\fi}%
+        {%
+         \ifthenelse{\boolean{minted@frozencache}}%
          {\PackageError{minted}%
            {Missing style definition for #1 with frozencache}%
-           {Missing style definition for #1 with frozencache}}%
+           {Missing style definition for #1 with frozencache}%
+          \let\next\@gobble
+         }%
+         {}%
+        }%
+        \next
          {\ifwindows
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
-              -P commandprefix=PYG#1
+              -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+                \minted@checkedstyle.pygstyle}%
           \else
             \ShellEscape{%
               \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
-              -P commandprefix=PYG#1
+              -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir\minted@cachedir/%
-                   \ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+                \minted@checkedstyle.pygstyle}%
           \fi}%
-        }%
         \begingroup
         \let\def\gdef
         \catcode\string``=12
-        \catcode`\_=11
-        \catcode`\-=11
         \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{%
-          \minted@outputdir\minted@cachedir/\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}%
+          \minted@outputdir\minted@cachedir/\minted@checkedstyle.pygstyle}%
         \endgroup
-        \minted@addcachefile{\ifstrempty{#1}{default-pyg-prefix}{#1}.pygstyle}}%
+        \global\expandafter\let\csname minted@isloaded@\minted@checkedstyle\endcsname\@empty
+        \expandafter\minted@addcachefile\expandafter{\minted@checkedstyle.pygstyle}}%
      {%
         \ifwindows
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > \minted@outputdir@windows\minted@jobname.out.pyg}%
+            -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
+            > \minted@outputdir@windows\minted@jobname.out.pyg}%
         \else
           \ShellEscape{%
             \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
-            -P commandprefix=PYG#1 > \minted@outputdir\minted@jobname.out.pyg}%
+            -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
+            > \minted@outputdir\minted@jobname.out.pyg}%
         \fi
         \begingroup
         \let\def\gdef
         \catcode\string``=12
-        \catcode`\_=11
-        \catcode`\-=11
         \catcode`\%=14
         \endlinechar=-1\relax
         \minted@input{\minted@outputdir\minted@jobname.out.pyg}%
-        \endgroup}%
+        \endgroup
+        \global\expandafter\let\csname minted@isloaded@\minted@checkedstyle\endcsname\@empty
+    }%
     \ifstrempty{#1}{\minted@patch@PYGZsq}{}%
   \fi
 }
@@ -3018,13 +3064,13 @@
 % \begin{macro}{\minted@inputpyg}
 % For increased clarity, the actual |\input| process is separated out into its own macro.
 %
-% At the last possible moment, |\PYG| is |\let| to |\PYG|\meta{style} and redefined to used appropriate line breaking via |\VerbatimPygments| from \pkg{fvextra}.
+% At the last possible moment, |\PYG| is |\let| to |\PYG|\meta{roman number}, where |\PYG|\meta{roman number} is the result of expansion of |\minted@styleprefix|\meta{style}, and redefined to used appropriate line breaking via |\VerbatimPygments| from \pkg{fvextra}.
 %
 % The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.
 %    \begin{macrocode}
 \newcommand{\minted@inputpyg}{%
   \expandafter\let\expandafter\minted@PYGstyle%
-    \csname PYG\minted@get@opt{style}{default}\endcsname
+    \csname\minted@styleprefix{\minted@get@opt{style}{default}}\endcsname
   \VerbatimPygments{\PYG}{\minted@PYGstyle}%
   \ifthenelse{\boolean{minted@isinline}}%
    {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
