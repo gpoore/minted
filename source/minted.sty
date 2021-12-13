@@ -519,13 +519,13 @@
         \next
          {\ifwindows
             \ShellEscape{%
-              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+              \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
               -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
                 \minted@checkedstyle.pygstyle}%
           \else
             \ShellEscape{%
-              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+              \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
               -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir\minted@cachedir/%
                 \minted@checkedstyle.pygstyle}%
@@ -543,12 +543,12 @@
      {%
         \ifwindows
           \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
             -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
             > \minted@outputdir@windows\minted@jobname.out.pyg}%
         \else
           \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
             -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
             > \minted@outputdir\minted@jobname.out.pyg}%
         \fi

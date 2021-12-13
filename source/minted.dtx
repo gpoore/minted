@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2671}
+% \CheckSum{2675}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -2480,13 +2480,13 @@
         \next
          {\ifwindows
             \ShellEscape{%
-              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+              \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
               -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir@windows\minted@cachedir@windows\@backslashchar%
                 \minted@checkedstyle.pygstyle}%
           \else
             \ShellEscape{%
-              \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex 
+              \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
               -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
               > \minted@outputdir\minted@cachedir/%
                 \minted@checkedstyle.pygstyle}%
@@ -2504,12 +2504,12 @@
      {%
         \ifwindows
           \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
             -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
             > \minted@outputdir@windows\minted@jobname.out.pyg}%
         \else
           \ShellEscape{%
-            \MintedPygmentize\space -S \ifstrempty{#1}{default}{#1} -f latex
+            \MintedPygmentize\space -S \minted@checkedstyle\space -f latex
             -P commandprefix=\minted@styleprefix{\minted@checkedstyle}
             > \minted@outputdir\minted@jobname.out.pyg}%
         \fi
@@ -3064,7 +3064,7 @@
 % \begin{macro}{\minted@inputpyg}
 % For increased clarity, the actual |\input| process is separated out into its own macro.
 %
-% At the last possible moment, |\PYG| is |\let| to |\PYG|\meta{roman number}, where |\PYG|\meta{roman number} is the result of expansion of |\minted@styleprefix|\meta{style}, and redefined to used appropriate line breaking via |\VerbatimPygments| from \pkg{fvextra}.
+% At the last possible moment, |\PYG| is |\let| to |\PYG|\meta{roman number}, where |\PYG|\meta{roman number} is the result of expansion of |\minted@styleprefix|\marg{style}, and redefined to used appropriate line breaking via |\VerbatimPygments| from \pkg{fvextra}.
 %
 % The |bgcolor| option needs to be dealt with in different ways depending on whether we are using |\mintinline|.  It is simplest to apply this option here, so that the macro redefinitions may be local and thus do not need to be manually reset later.
 %    \begin{macrocode}
