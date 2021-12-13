@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2675}
+% \CheckSum{2679}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -2447,7 +2447,7 @@
 %    \end{macrocode}
 % If no command prefix has yet been associated to this style, use the style counter converted into roman numerals, then step it.
 %
-% Store unconditionally into the |.aux| file the command prefix as used for this style name.  Also make sure that on next run the style counter will be initiated at a value ensuring new encountered style names will never use an already existing command prefix.
+% Store unconditionally into the |.aux| file the command prefix as used for this style name.
 %
 % Keep provisorily the information whether the previous run had kept a memory of the command prefix as used for this style.  Indeed, if the |.aux| file from previous run did not know this style name, it means that a possibly existing cached style file originated in yet earlier runs and it must be recreated to update its command prefix.  On the other hand if the |.aux| file does know about the style, and the style file exists, then we can use it as is.
 %    \begin{macrocode}
@@ -2459,10 +2459,10 @@
           {PYG\roman{minted@stylecounter}}%
       \stepcounter{minted@stylecounter}%
     \fi
-    \immediate\write\@mainaux
-          {\global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
-               {\minted@styleprefix{\minted@checkedstyle}}%
-           \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
+    \immediate\write\@mainaux{%
+           \global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
+                                    {\minted@styleprefix{\minted@checkedstyle}}%
+          }%
     \ifthenelse{\boolean{minted@cache}}%
      {\let\next\@firstofone
         \IfFileExists
@@ -2529,6 +2529,13 @@
 %    \end{macrocode}
 % \end{macro}
 %
+%
+% At the end of the document, save to the |.aux| file the current value of the |minted@stylecounter| to be used as its initial value on the next run.  This way, usage of a new style will be with a yet-unused command prefix.  If on the next \LaTeX\ run nothing changes the |.aux| file will remain invariant.  This is done irrespective of whether |draft| or |frozencache| options are set to |true| as it does not hurt anyway.
+%    \begin{macrocode}
+\AtEndDocument{\immediate\write\@mainaux{%
+               \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
+}
+%    \end{macrocode}
 %
 % \begin{macro}{\minted@patch@PYGZsq}
 % The single quote macro from \pkg{Pygments} 1.6+ needs to be patched if the \pkg{upquote} package is in use.  Patching is done when the default style is created.  Patching is only attempted if the macro exists, so that there is a graceful fallback in the event of a custom \pkg{Pygments} stylesheet.

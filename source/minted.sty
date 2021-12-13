@@ -498,10 +498,10 @@
           {PYG\roman{minted@stylecounter}}%
       \stepcounter{minted@stylecounter}%
     \fi
-    \immediate\write\@mainaux
-          {\global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
-               {\minted@styleprefix{\minted@checkedstyle}}%
-           \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
+    \immediate\write\@mainaux{%
+           \global\noexpand\@namedef{minted@styleprefix@\minted@checkedstyle}%
+                                    {\minted@styleprefix{\minted@checkedstyle}}%
+          }%
     \ifthenelse{\boolean{minted@cache}}%
      {\let\next\@firstofone
         \IfFileExists
@@ -565,6 +565,9 @@
   \fi
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@checkstyle}[1]{}}{}
+\AtEndDocument{\immediate\write\@mainaux{%
+               \noexpand\setcounter{minted@stylecounter}{\the\value{minted@stylecounter}}}%
+}
 \newcommand{\minted@patch@PYGZsq}{%
   \ifcsname PYGZsq\endcsname
     \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
