@@ -2449,7 +2449,7 @@
 %
 % Store unconditionally into the |.aux| file the command prefix as used for this style name.
 %
-% Keep provisorily the information whether the previous run had kept a memory of the command prefix as used for this style.  Indeed, if the |.aux| file from previous run did not know this style name, it means that a possibly existing cached style file originated in yet earlier runs and it must be recreated to update its command prefix.  On the other hand if the |.aux| file does know about the style, and the style file exists, then we can use it as is.
+% Make a note here whether the previous run had kept a memory in the |.aux| file of the command prefix as used for this style.  This extra layer of protection is unneeded in normal use, due to the |\minted@cleancache| at end of \LaTeX\ run which purges from cache the unused style files, hence there is no need to worry about a previously existing style file using an obsolete command prefix.  We do this nevertheless as it ensures correct output even in the case of a removal of the |.aux| file not having been accompanied by a deletion of the cache.
 %    \begin{macrocode}
     \ifcsname minted@styleprefix@\minted@checkedstyle\endcsname
       \def\minted@styleprefixwasknown{1}%
