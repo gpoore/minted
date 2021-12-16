@@ -802,7 +802,7 @@
         \ifx\XeTeXinterchartoks\minted@undefined
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
             {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-              \pdf@mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum-\the\numexpr\FancyVerbStopNum)}}}%
+              \pdf@mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}}%
             {\edef\minted@hash{\pdf@filemdfivesum{#1}%
               \pdf@mdfivesum{\minted@cmd}}}%
         \else
@@ -810,7 +810,7 @@
             \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
             \immediate\write\minted@code{\minted@cmd}%
             \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-              {\immediate\write\minted@code{autogobble(\the\numexpr\FancyVerbStartNum-\the\numexpr\FancyVerbStopNum)}}{}%
+              {\immediate\write\minted@code{autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}{}%
             \immediate\closeout\minted@code
             \edef\minted@argone@esc{#1}%
             \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
@@ -838,7 +838,7 @@
           \else
             \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
              {\edef\minted@hash{\mdfivesum file {#1}%
-                \mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum-\the\numexpr\FancyVerbStopNum)}}}%
+                \mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}}%
              {\edef\minted@hash{\mdfivesum file {#1}%
                 \mdfivesum{\minted@cmd}}}%
           \fi
