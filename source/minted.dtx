@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/15 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/18 v2.6dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2620}
+% \CheckSum{2617}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -2433,9 +2433,9 @@
 %\begin{Verbatim}
 %\csname minted@PYGdef@<style>\endcsname
 %\end{Verbatim}
-% to allow styles to be defined later.  Styles are not defined globally to avoid naming issues with style names that involve punction characters and numbers.  Rather, styles are redefined upon every use (within groups), and all styles use macros with a |\PYG| prefix.
+% to allow styles to be defined later.  Styles are not defined globally to avoid naming issues with style names that involve punctuation characters and numbers.  Rather, styles are redefined upon every use (within groups), and all styles use macros with a |\PYG| prefix.
 %
-% Takes a single argument that is the detokenized style name.
+% Takes a single argument that is the detokenized style name.  Getting the detokenized style name here requires expansion (|\edef|) in an earlier macro (currently |\minted@defstyle|) to convert |\minted@get@opt{style}{default}| into detokenized text.  The |style| value is always wrapped in |\detokenize| when it is set, so expansion automatically detokenizes.  Detokenization can be important depending on active characters.  Expansion is important because the style name may be used with caching, so we need the current value retrieved by |\minted@get@opt|, not the value at the end of the document when cache data is written to the |.aux| file.  
 %
 % Certain catcodes are required when loading Pygments style definitions from file.  |catchfile| should automatically set everything to correct default values, except for |@| and |\endlinechar| which are handled manually.  If a different approach to handling macros is ever used in the future, these require special handling:
 % \begin{itemize}
@@ -2443,12 +2443,12 @@
 % \item Percent |%| may not have its normal meaning within a |.dtx| file.
 % \end{itemize}
 %
-% The |\ifx\PYG\relax| tests detect outdated style definitions from \pkg{minted} <2.6 and replace them when possible, and also detect missing styles.  Before \pkg{minted} 2.6, style macros used a |\PYG<style>| prefix and were defined globally.  Starting with 2.6, styles are redefined upon every use (within groups), and all styles use macros with a |\PYG| prefix.  This allows more robust treatment of style names that involve punction characters and numbers.
+% The |\ifx\PYG\relax| tests detect outdated style definitions from \pkg{minted} <2.6 and replace them when possible, and also detect missing styles.  Before \pkg{minted} 2.6, style macros used a |\PYG<style>| prefix and were defined globally.  Starting with 2.6, styles are redefined upon every use (within groups), and all styles use macros with a |\PYG| prefix.  This allows more robust treatment of style names that involve punctuation characters and numbers.
 %    \begin{macrocode}
 \newcommand{\minted@generate@PYGdef}[1]{%
   \ifthenelse{\boolean{minted@cache}}%
    {\def\minted@pygstylepath@load{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-    \expandafter\minted@addcachefile\expandafter{\minted@pygstylepath@load}}%
+    \minted@addcachefile{#1.pygstyle}}%
    {\def\minted@pygstylepath@load{\minted@outputdir\minted@jobname.out.pyg}}%
   \ifwindows
     \StrSubstitute{\minted@pygstylepath@load}%
@@ -2468,8 +2468,6 @@
       > \minted@pygstylepath@save
     }%
    }%
-  \expandafter\def\expandafter\minted@tmp@macrocs\expandafter{%
-    \csname minted@PYGdef@#1\endcsname}%
   \CatchFileDef{\minted@tmp@filecontents}%
    {\minted@pygstylepath@load}{\catcode`@=11\endlinechar=-1}%
   \begingroup
@@ -2494,7 +2492,8 @@
        {Cannot find Pygments style #1}%
     \fi
   \fi
-  \expandafter\global\expandafter\let\minted@tmp@macrocs\minted@tmp@filecontents    
+  \expandafter\global\expandafter\let\csname minted@PYGdef@#1\endcsname%
+    \minted@tmp@filecontents    
   \endgroup  
 }
 %    \end{macrocode}

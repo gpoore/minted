@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2021/12/15 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/18 v2.6dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -497,7 +497,7 @@
 \newcommand{\minted@generate@PYGdef}[1]{%
   \ifthenelse{\boolean{minted@cache}}%
    {\def\minted@pygstylepath@load{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-    \expandafter\minted@addcachefile\expandafter{\minted@pygstylepath@load}}%
+    \minted@addcachefile{#1.pygstyle}}%
    {\def\minted@pygstylepath@load{\minted@outputdir\minted@jobname.out.pyg}}%
   \ifwindows
     \StrSubstitute{\minted@pygstylepath@load}%
@@ -517,8 +517,6 @@
       > \minted@pygstylepath@save
     }%
    }%
-  \expandafter\def\expandafter\minted@tmp@macrocs\expandafter{%
-    \csname minted@PYGdef@#1\endcsname}%
   \CatchFileDef{\minted@tmp@filecontents}%
    {\minted@pygstylepath@load}{\catcode`@=11\endlinechar=-1}%
   \begingroup
@@ -543,7 +541,8 @@
        {Cannot find Pygments style #1}%
     \fi
   \fi
-  \expandafter\global\expandafter\let\minted@tmp@macrocs\minted@tmp@filecontents
+  \expandafter\global\expandafter\let\csname minted@PYGdef@#1\endcsname%
+    \minted@tmp@filecontents
   \endgroup
 }
 \newcommand{\minted@defstyle}[1]{%
