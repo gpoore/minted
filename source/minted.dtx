@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/20 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/21 v2.6dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2617}
+% \CheckSum{2619}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -217,6 +217,7 @@
 %
 %
 % \begin{changelog}{v2.6}{2021/12/??}
+% \item The default for \texttt{stripnl} is now \texttt{false}, so that original code is preserved exactly by default (\#198).
 % \item Added support for \texttt{fontencoding} option from \texttt{fvextra} (\#208).
 % \item Pygments style names may now contain arbitrary non-whitespace characters.  Previously, style names containing digits and some punctuation characters were incompatible (\#210, \#294, \#299, \#317).
 % \item Fixed \texttt{autogobble} compatibility with \texttt{fancyvrb} 4.0+ (\#315, \#316).
@@ -1376,7 +1377,7 @@
 %
 %   \item[stripall (boolean) (false)]
 %     Strip all leading and trailing whitespace from the input.
-%   \item[stripnl (boolean) (true)]
+%   \item[stripnl (boolean) (false)]
 %     Strip leading and trailing newlines from the input.
 %
 %
@@ -3149,10 +3150,11 @@
 %
 % Now that the settings macros exist, we go ahead and create any needed defaults.
 %
-% PHP should use |startinline| for |\mintinline|.  Visible tabs should have a specified color so that they don't change colors when used to indent multiline strings or comments.
+% PHP should use |startinline| for |\mintinline|.  Visible tabs should have a specified color so that they don't change colors when used to indent multiline strings or comments.  Leading/trailing empty lines should be preserved by default.
 %    \begin{macrocode}
 \setmintedinline[php]{startinline=true}
 \setminted{tabcolor=black}
+\setminted{stripnl=false}
 %    \end{macrocode}
 %
 % \begin{macro}{\usemintedstyle}

@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2021/12/20 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/21 v2.6dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -972,6 +972,7 @@
       \setkeys{minted@opt@lang@i}{#2}}}
 \setmintedinline[php]{startinline=true}
 \setminted{tabcolor=black}
+\setminted{stripnl=false}
 \newcommand{\usemintedstyle}[2][]{\setminted[#1]{style=#2}}
 \begingroup
 \catcode`\ =\active
