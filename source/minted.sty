@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2021/12/18 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/20 v2.6dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -709,6 +709,7 @@
 \minted@def@optfv@switch{breakanywhere}
 \minted@def@optfv{breakanywheresymbolpre}
 \minted@def@optfv{breakanywheresymbolpost}
+\minted@def@optfv{fontencoding}
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}

@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/18 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/20 v2.6dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -217,6 +217,7 @@
 %
 %
 % \begin{changelog}{v2.6}{2021/12/??}
+% \item Added support for \texttt{fontencoding} option from \texttt{fvextra} (\#208).
 % \item Pygments style names may now contain arbitrary non-whitespace characters.  Previously, style names containing digits and some punctuation characters were incompatible (\#210, \#294, \#299, \#317).
 % \item Fixed \texttt{autogobble} compatibility with \texttt{fancyvrb} 4.0+ (\#315, \#316).
 % \item Added note to FAQ about getting \texttt{texi2pdf} to work with \texttt{minted} given \texttt{texi2pdf}'s assumptions about temp files (\#186).
@@ -823,6 +824,11 @@
 %
 % Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the XeTeX engine since prior to TeX Live 2016 it lacked the built-in MD5 capabilities that pdfTeX and LuaTeX have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
 %
+%
+% \DescribeMacro{fontencoding=\meta{encoding} (default:~\meta{doc~encoding})}
+% Set font encoding used for typesetting code.
+%
+% For example, |fontencoding=T1|.
 %
 % \DescribeMacro{frozencache=\meta{boolean} (default:~false)}
 % Use a frozen (static) cache created with the |finalizecache| option.  When |frozencache| is on, |-shell-escape| is not needed, and Python and Pygments are not required.  In addition, any external files accessed through |\inputminted| are no longer necessary.
@@ -2714,6 +2720,7 @@
 \minted@def@optfv@switch{breakanywhere}
 \minted@def@optfv{breakanywheresymbolpre}
 \minted@def@optfv{breakanywheresymbolpost}
+\minted@def@optfv{fontencoding}
 %    \end{macrocode}
 %
 % Finally, options specific to \pkg{minted}.
