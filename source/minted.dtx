@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/21 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/22 v2.6dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -195,7 +195,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2619}
+% \CheckSum{2587}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -217,6 +217,8 @@
 %
 %
 % \begin{changelog}{v2.6}{2021/12/??}
+% \item \texttt{autogobble} automatically uses \texttt{python} or \texttt{python3} executables, depending on availability, instead of requiring \texttt{python}.  A custom executable can be specified by redefining \texttt{\string\MintedPython} (\#277, \#287).
+% \item Removed Python-based MD5 hashing for XeTeX, which was necessary before XeTeX added \texttt{\string\mdfivesum} in 2017.
 % \item The default for \texttt{stripnl} is now \texttt{false}, so that original code is preserved exactly by default (\#198).
 % \item Added support for \texttt{fontencoding} option from \texttt{fvextra} (\#208).
 % \item Pygments style names may now contain arbitrary non-whitespace characters.  Previously, style names containing digits and some punctuation characters were incompatible (\#210, \#294, \#299, \#317).
@@ -1941,7 +1943,7 @@
 %    \begin{macrocode}
 \newboolean{AppExists}
 \newread\minted@appexistsfile
-\newcommand{\TestAppExists}[1]{
+\newcommand{\TestAppExists}[1]{%
   \ifwindows
 %    \end{macrocode}
 %
@@ -1950,32 +1952,32 @@
 % otherwise, it will contain the full path of the application.
 %
 %    \begin{macrocode}
-    \DeleteFile{\minted@jobname.aex}
+    \DeleteFile{\minted@jobname.aex}%
     \ShellEscape{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
       do set > \minted@jobname.aex <nul: /p 
-      x=\string^\@percentchar \string~$PATH:i>> \minted@jobname.aex}
+      x=\string^\@percentchar \string~$PATH:i>> \minted@jobname.aex}%
     %$ <- balance syntax highlighting
     \immediate\openin\minted@appexistsfile\minted@jobname.aex
-    \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}
+    \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
     \endlinechar=-1\relax
     \readline\minted@appexistsfile to \minted@apppathifexists
     \endlinechar=\@tmp@cr
-    \ifthenelse{\equal{\minted@apppathifexists}{}}
-     {\AppExistsfalse}
-     {\AppExiststrue}
+    \ifthenelse{\equal{\minted@apppathifexists}{}}%
+     {\AppExistsfalse}%
+     {\AppExiststrue}%
     \immediate\closein\minted@appexistsfile
-    \DeleteFile{\minted@jobname.aex}
+    \DeleteFile{\minted@jobname.aex}%
   \else
 %    \end{macrocode}
 %
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success, whose existence we can then check.
 %
 %    \begin{macrocode}
-    \ShellEscape{which #1 && touch \minted@jobname.aex}
-    \IfFileExists{\minted@jobname.aex}
+    \ShellEscape{which #1 && touch \minted@jobname.aex}%
+    \IfFileExists{\minted@jobname.aex}%
       {\AppExiststrue
-        \DeleteFile{\minted@jobname.aex}}
-      {\AppExistsfalse}
+        \DeleteFile{\minted@jobname.aex}}%
+      {\AppExistsfalse}%
   \fi
 }
 %    \end{macrocode}
@@ -2867,6 +2869,73 @@
 % \end{macro}
 %
 %
+% \begin{macro}{\MintedPython}
+% Python executable to be used for |autogobble|.
+%    \begin{macrocode}
+\ifwindows
+  \newcommand{\MintedPython}{python}
+\else
+  \newcommand{\MintedPython}{python3}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@check@MintedPython}
+% Check that |\MintedPython| is a valid executable before use.  Swap |python| for |python3| and vice versa depending on what is available.
+%    \begin{macrocode}
+\newcommand{\minted@check@MintedPython}{%
+  \ifcsname minted@MintedPython@\MintedPython\endcsname
+  \else
+    \let\minted@altpython\minted@undefined
+    \ifdefstring{\MintedPython}{python}{\def\minted@altpython{python3}}{}%
+    \ifdefstring{\MintedPython}{python3}{\def\minted@altpython{python}}{}%
+    \ifx\minted@altpython\minted@undefined\relax
+      \TestAppExists{\MintedPython}%
+      \ifAppExists
+        \expandafter\global\expandafter\let%
+          \csname minted@MintedPython@\MintedPython\endcsname\relax
+      \else
+        \PackageError{minted}%
+         {Failed to find Python executable \MintedPython;
+          check Python installation (including PATH),
+          or redefine \string\MintedPython}%
+         {Failed to find Python executable \MintedPython;
+          check Python installation (including PATH),
+          or redefine \string\MintedPython}%
+      \fi
+    \else
+      \ifcsname minted@MintedPython@\minted@altpython\endcsname
+        \let\MintedPython\minted@altpython
+      \else
+        \TestAppExists{\MintedPython}%
+        \ifAppExists
+          \expandafter\global\expandafter\let%
+            \csname minted@MintedPython@\MintedPython\endcsname\relax
+        \else      
+          \TestAppExists{\minted@altpython}%
+          \ifAppExists
+            \expandafter\global\expandafter\let%
+              \csname minted@MintedPython@\minted@altpython\endcsname\relax
+            \let\MintedPython\minted@altpython
+          \else
+            \PackageError{minted}%
+             {Failed to find Python executables python or python3;
+              check Python installation (including PATH),
+              or redefine \string\MintedPython}%
+             {Failed to find Python executables python or python3;
+              check Python installation (including PATH),
+              or redefine \string\MintedPython}%
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@pygmentize}
 %
 % Pygmentize a file (default: |\minted@outputdir\minted@jobname.pyg|) using the options provided.
@@ -2921,50 +2990,15 @@
     {%
       \ifminted@frozencache
       \else
-        \ifx\XeTeXinterchartoks\minted@undefined
-          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-            {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-              \pdf@mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}}%
-            {\edef\minted@hash{\pdf@filemdfivesum{#1}%
-              \pdf@mdfivesum{\minted@cmd}}}%
-        \else
-          \ifx\mdfivesum\minted@undefined
-            \immediate\openout\minted@code\minted@jobname.mintedcmd\relax
-            \immediate\write\minted@code{\minted@cmd}%
-            \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-              {\immediate\write\minted@code{autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}{}%
-            \immediate\closeout\minted@code 
-            \edef\minted@argone@esc{#1}%
-            \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
-            \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
-            \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
-            \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
-            \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
-            %Cheating a little here by using ASCII codes to write `{` and `}`
-            %in the Python code
-            \def\minted@hashcmd{%
-              \detokenize{python -c "import hashlib; import os;
-                hasher = hashlib.sha1();
-                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedcmd\detokenize{\")), \"rb\");
-                hasher.update(f.read());
-                f.close();
-                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\")), \"rb\");
-                hasher.update(f.read());
-                f.close();
-                f = open(os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.mintedmd5\detokenize{\")), \"w\");
-                macro = \"\\edef\\minted@hash\" + chr(123) + hasher.hexdigest() + chr(125) + \"\";
-                f.write(\"\\makeatletter\" + macro + \"\\makeatother\\endinput\n\");
-                f.close();"}}%
-            \ShellEscape{\minted@hashcmd}%
-            \minted@input{\minted@outputdir\minted@jobname.mintedmd5}%
-          \else
-            \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-             {\edef\minted@hash{\mdfivesum file {#1}%
-                \mdfivesum{\minted@cmd autogobble(\the\numexpr\FancyVerbStartNum\relax-\the\numexpr\FancyVerbStopNum\relax)}}}%
-             {\edef\minted@hash{\mdfivesum file {#1}%
-                \mdfivesum{\minted@cmd}}}%
-          \fi
-        \fi
+        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
+         {\edef\minted@hash{%
+            \pdf@filemdfivesum{#1}%
+            \pdf@mdfivesum{\minted@cmd\space%
+              autogobble(\the\numexpr\FancyVerbStartNum\relax-%
+                         \the\numexpr\FancyVerbStopNum\relax)}}}%
+         {\edef\minted@hash{%
+            \pdf@filemdfivesum{#1}%
+            \pdf@mdfivesum{\minted@cmd}}}%
         \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
         \IfFileExists{\minted@infile}{}{%
           \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
@@ -3014,20 +3048,21 @@
   \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
   \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
   %Need a version of open() that supports encoding under Python 2
+  \minted@check@MintedPython
   \edef\minted@autogobblecmd{%
     \ifminted@kpsewhich
       \ifwindows
         \detokenize{for /f "usebackq tokens=*" }\@percentchar\detokenize{a in (`kpsewhich} #1\detokenize{`) do}\space
       \fi
-    \fi
-    \detokenize{python -c "import sys; import os;
+    \fi    
+    \MintedPython\detokenize{ -c "import sys; import os;
     import textwrap;
     from io import open;
     fname = }%
       \ifminted@kpsewhich
-        \detokenize{sys.argv[1];}\space%
+        \detokenize{sys.argv[1];}\space
       \else
-        \detokenize{os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\"));}\space%
+        \detokenize{os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\"));}\space
       \fi
     \detokenize{f = open(fname, \"r\", encoding=\"}\minted@encoding\detokenize{\") if os.path.isfile(fname) else None;
     t = f.readlines() if f is not None else None;
