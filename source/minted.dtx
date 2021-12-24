@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/22 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/23 v2.6dev Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1583,10 +1583,16 @@
 %
 %
 % \section*{Acknowledgements}
+% \addcontentsline{toc}{section}{Acknowledgements}
 %
-% Konrad Rudolph:  Special thanks to Philipp Stephani and the rest of the guys from \texttt{comp.text.tex} and \texttt{tex.stackexchange.com}.
+% \textbf{Konrad Rudolph:}  Special thanks to Philipp Stephani and the rest of the guys from \texttt{comp.text.tex} and \texttt{tex.stackexchange.com}.
 %
-% Geoffrey Poore:  Thanks to Marco Daniel for the code on \url{tex.stackexchange.com} that inspired automatic line breaking.  Thanks to Patrick Vogt for improving TikZ externalization compatibility.
+% \textbf{Geoffrey Poore:}
+% \begin{itemize}
+% \item Thanks to Marco Daniel for the code on \url{tex.stackexchange.com} that inspired automatic line breaking.
+% \item Thanks to Patrick Vogt for improving TikZ externalization compatibility.
+% \item Thanks to \textsf{@jfbu} for suggestions and discussion regarding support for arbitrary Pygments style names (\#210, \#294, \#299, \#317), and for debugging assistance.
+% \end{itemize}
 %
 % \PrintChangelog
 %
