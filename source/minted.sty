@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2021/12/22 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/24 v2.6dev Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -518,7 +518,7 @@
     }%
    }%
   \CatchFileDef{\minted@tmp@filecontents}%
-   {\minted@pygstylepath@load}{\catcode`@=11\endlinechar=-1}%
+   {\minted@pygstylepath@load}{\catcode`@=11\catcode`\%=14\catcode``=12\endlinechar=-1}%
   \begingroup
   \let\PYG\relax
   \minted@tmp@filecontents
@@ -533,7 +533,7 @@
       > \minted@pygstylepath@save
     }%
     \CatchFileDef{\minted@tmp@filecontents}%
-     {\minted@pygstylepath@load}{\catcode`@=11\endlinechar=-1}%
+     {\minted@pygstylepath@load}{\catcode`@=11\catcode`\%=14\catcode``=12\endlinechar=-1}%
     \minted@tmp@filecontents
     \ifx\PYG\relax
       \PackageError{minted}%
