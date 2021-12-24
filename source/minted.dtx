@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/24 v2.6dev Yet another Pygments shim for LaTeX]
+    [2021/12/24 v2.6 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -108,8 +108,8 @@
     \g@addto@macro\changestext{\end{itemize}}%
 }
 \newcommand{\PrintChangelog}{%
-    \addcontentsline{toc}{section}{Version History}
     \section*{Version History}%
+    \addcontentsline{toc}{section}{Version History}
     \label{sec:version-history}
     \begin{description}%
     \changestext
@@ -226,7 +226,7 @@
 %
 %
 %
-% \begin{changelog}{v2.6}{2021/12/??}
+% \begin{changelog}{v2.6}{2021/12/24}
 % \item \texttt{autogobble} automatically uses \texttt{python} or \texttt{python3} executables, depending on availability, instead of requiring \texttt{python}.  A custom executable can be specified by redefining \texttt{\string\MintedPython} (\#277, \#287).
 % \item Fixed \texttt{autogobble} compatibility with \texttt{fancyvrb} 4.0+ (\#315, \#316).
 % \item Pygments style names may now contain arbitrary non-whitespace characters.  Previously, style names containing digits and some punctuation characters were incompatible (\#210, \#294, \#299, \#317).  Pygments macros are now only defined just before use locally within \texttt{minted} commands and environments, rather than globally.  Pygments macros now always use a \texttt{\string\PYG} prefix regardless of style, rather than a prefix of the form \texttt{\string\PYG<style>} (for example, what was previously \texttt{\string\PYGdefault} is now simply \texttt{\string\PYG}).

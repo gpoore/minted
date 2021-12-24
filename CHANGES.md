@@ -1,6 +1,37 @@
 # Changes
 
 
+## v2.6 (2021/12/24)
+
+*   `autogobble` automatically uses `python` or `python3` executables,
+    depending on availability, instead of requiring `python`.  A custom
+    executable can be specified by redefining `\MintedPython` (#277, #287).
+
+*   Fixed `autogobble` compatibility with `fancyvrb` 4.0+ (#315, #316).
+
+*   Pygments style names may now contain arbitrary non-whitespace characters.
+    Previously, style names containing digits and some punctuation characters
+    were incompatible (#210, #294, #299, #317).  Pygments macros are now only
+    defined just before use locally within `minted` commands and environments,
+    rather than globally.  Pygments macros now always use a `\PYG` prefix
+    regardless of style, rather than a prefix of the form `\PYG<style>` (for
+    example, what was previously `\PYGdefault` is now simply `\PYG`).
+
+*   Removed Python-based MD5 hashing for XeTeX, which was necessary before
+    XeTeX added `\mdfivesum` in 2017.
+
+*   The default for `stripnl` is now `false`, so that original code is
+    preserved exactly by default (#198).
+
+*   Added support for `fontencoding` option from `fvextra` (#208).
+
+*   Added note to FAQ about getting `texi2pdf` to work with `minted` given
+    `texi2pdf`'s assumptions about temp files (#186).
+
+*   Reimplemented `bgcolor` option to be compatible with `color` package.
+
+
+
 ## v2.5 (2017/07/19)
 
 *  The default placement for the `listing` float is now `tbp` instead of `h`,
@@ -73,7 +104,7 @@
    pdfTeX (#123).
 
 *  Thanks to `fvextra`, `obeytabs` no longer causes lines in multi-line
-   comments or strings to vanish (\#88), and is now compatible with
+   comments or strings to vanish (#88), and is now compatible with
    `breaklines` (#99).  `obeytabs` will now always give correct results with
    tabs used for indentation.  However, tab stops are not guaranteed to be
    correct for tabs in the midst of text.
