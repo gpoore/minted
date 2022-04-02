@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2013-2021 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2013-2022 by Geoffrey M. Poore <gpoore@gmail.com>
 % Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 % ---------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2021/12/24 v2.6 Yet another Pygments shim for LaTeX]
+    [2022/04/02 v2.7dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -224,6 +224,11 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+%
+%
+% \begin{changelog}{v2.7}{2022/??/??}
+% \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.6}{2021/12/24}
@@ -3094,7 +3099,7 @@
     fvstartnum = }\the\numexpr\FancyVerbStartNum\detokenize{;
     fvstopnum = }\the\numexpr\FancyVerbStopNum\detokenize{;
     s = max(0, fvstartnum-1);
-    e = min(s, fvstopnum if fvstopnum > 0 else len(t_opt));
+    e = max(s, fvstopnum) if fvstopnum > 0 else len(t_opt);
     [f.write(textwrap.dedent(\"\".join(x))) for x in (t_opt[0:s], t_opt[s:e], t_opt[e:]) if x and t is not None];
     f.close() if t is not None else os.remove(tmpfname);"}%
     \ifminted@kpsewhich
