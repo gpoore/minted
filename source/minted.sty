@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/04/02 v2.7dev1 Yet another Pygments shim for LaTeX]
+    [2022/09/06 v2.7dev2 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1002,59 +1002,86 @@
   \immediate\openout\minted@code\minted@jobname.pyg\relax
   \immediate\write\minted@code{\detokenize{#1}}%
   \immediate\closeout\minted@code}
-\newrobustcmd{\mintinline}[2][]{%
+\ifcsname FVExtraUnexpandedReadStarOArgMArgBVArg\endcsname
+\else
+  \def\FVExtraUnexpandedReadStarOArgMArgBVArg#1#{%
+    \FV@UnexpandedReadStarOArgMArgBVArg@i{#1}}
+  \def\FV@UnexpandedReadStarOArgMArgBVArg@i#1#2#3{%
+    \FVExtraAlwaysUnexpanded{\FVExtraUnexpandedReadStarOArgMArgBVArg#1{#2}{#3}}}
+  \FVExtrapdfstringdefDisableCommands{%
+    \makeatletter
+    \def\FV@UnexpandedReadStarOArgMArgBVArg@i#1#2#3{%
+      \FVExtraPDFStringVerbatimDetokenize{#3}}%
+    \makeatother}
+\fi
+\ifcsname VerbEnv\endcsname
+\else
+  \def\VerbEnv{%
+    \ifcsname @currenvir\endcsname
+      \ifx\@currenvir\@empty
+        \PackageError{fvextra}{VerbEnv is an environment}{VerbEnv is an environment}%
+      \else
+      \fi
+    \else
+      \PackageError{fvextra}{VerbEnv is an environment}{VerbEnv is an environment}%
+    \fi
+    \FVExtraReadOArgBeforeVEnv{\VerbEnv@i}}
+  \def\VerbEnv@i#1{%
+    \expandafter\VerbEnv@ii\expandafter{\@currenvir}{#1}}
   \begingroup
+  \catcode`\!=0
+  \catcode`\<=1
+  \catcode`\>=2
+  !catcode`!\=12
+  !catcode`!{=12
+  !catcode`!}=12
+  !catcode`!^^M=!active%
+  !gdef!VerbEnv@ii#1#2<%
+    !begingroup%
+    !let!do!@makeother!FVExtraDoSpecials%
+    !catcode`!^^M=!active%
+    !def!VerbEnv@iii##1^^M##2^^M\end{#1}^^M<%
+      !endgroup%
+      !VerbEnv@iv<##1><##2>>%
+    !VerbEnv@iii<#2>>%
+  !endgroup%
+  \def\VerbEnv@iv#1#2{%
+    \Verb[#1]{#2}%
+    \expandafter\end\expandafter{\@currenvir}}
+  \def\endVerbEnv{}
+\fi
+\def\mintinline{%
+  \FVExtraRobustCommand\RobustMintInline\FVExtraUnexpandedReadStarOArgMArgBVArg}
+\FVExtrapdfstringdefDisableCommands{%
+  \def\RobustMintInline{}}
+\newrobustcmd{\RobustMintInline}[2][]{%
+  \begingroup
+  \ifbool{FVExtraRobustCommandExpanded}%
+   {\@ifnextchar\bgroup
+     {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}%
+     {\PackageError{minted}%
+       {Inline delimiters must be paired curly braces in this context}%
+       {Use curly braces as delimiters}}}%
+   {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}}
+\def\RobustMintInlineProcess#1#2#3{%
   \setboolean{minted@isinline}{true}%
   \minted@configlang{#2}%
   \setkeys{minted@opt@cmd}{#1}%
   \minted@fvset
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\{=1
-  \catcode`\}=2
-  \catcode`\^^I=\active
-  \@ifnextchar\bgroup
-    {\minted@inline@iii}%
-    {\catcode`\{=12\catcode`\}=12
-      \minted@inline@i}}
-\def\minted@inline@i#1{%
-  \endgroup
-  \def\minted@inline@ii##1#1{%
-    \minted@inline@iii{##1}}%
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\^^I=\active
-  \minted@inline@ii}
+  \RobustMintInlineProcess@i{#3}}
 \ifthenelse{\boolean{minted@draft}}%
-  {\newcommand{\minted@inline@iii}[1]{%
-    \endgroup
-    \begingroup
-    \minted@defwhitespace@retok
-    \everyeof{\noexpand}%
-    \endlinechar-1\relax
-    \let\do\@makeother\dospecials
-    \catcode`\ =\active
-    \catcode`\^^I=\active
-    \xdef\minted@tmp{\scantokens{#1}}%
-    \endgroup
-    \let\FV@Line\minted@tmp
-    \def\FV@SV@minted@tmp{%
-      \FV@Gobble
-      \expandafter\FV@ProcessLine\expandafter{\FV@Line}}%
-    \ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
-     {\let\FV@BeginVBox\relax
-      \let\FV@EndVBox\relax
-      \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
-      \BUseVerbatim{minted@tmp}}%
-     {\BUseVerbatim{minted@tmp}}%
-    \endgroup}}%
-  {\newcommand{\minted@inline@iii}[1]{%
-    \endgroup
+ {\def\RobustMintInlineProcess@i#1{%
+    \fvset{extra=true}%
+    \Verb{#1}%
+    \endgroup}}
+ {\def\RobustMintInlineProcess@i#1{%
+   \FVExtraDetokenizeVArg{%
+     \FVExtraRetokenizeVArg{\RobustMintInlineProcess@ii}{\FV@CatCodes}}{#1}}
+  \def\RobustMintInlineProcess@ii#1{%
     \minted@writecmdcode{#1}%
-    \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}%
-    \setcounter{minted@FancyVerbLineTemp}{\value{FancyVerbLine}}%
+    \let\Verbatim\VerbEnv
+    \let\endVerbatim\endVerbEnv
     \minted@pygmentize{\minted@lang}%
-    \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}%
     \endgroup}}
 \newrobustcmd{\mint}[2][]{%
   \begingroup
