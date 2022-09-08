@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/09/06 v2.7dev2 Yet another Pygments shim for LaTeX]
+    [2022/09/08 v2.7dev3 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1055,7 +1055,6 @@
 \FVExtrapdfstringdefDisableCommands{%
   \def\RobustMintInline{}}
 \newrobustcmd{\RobustMintInline}[2][]{%
-  \begingroup
   \ifbool{FVExtraRobustCommandExpanded}%
    {\@ifnextchar\bgroup
      {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}%
@@ -1064,6 +1063,7 @@
        {Use curly braces as delimiters}}}%
    {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}}
 \def\RobustMintInlineProcess#1#2#3{%
+  \begingroup
   \setboolean{minted@isinline}{true}%
   \minted@configlang{#2}%
   \setkeys{minted@opt@cmd}{#1}%
@@ -1194,18 +1194,30 @@
   \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
     \inputminted[#3,##1]{#2}{##2}}}
 \newcommand{\newmintinline}[3][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\def\minted@shortname{#2inline}}%
-    {\def\minted@shortname{#1}}%
-    \expandafter\newrobustcmd\csname\minted@shortname\endcsname{%
-      \begingroup
-      \let\do\@makeother\dospecials
-      \catcode`\{=1
-      \catcode`\}=2
-      \@ifnextchar[{\endgroup\minted@inliner[#3][#2]}%
-        {\endgroup\minted@inliner[#3][#2][]}}%
-    \def\minted@inliner[##1][##2][##3]{\mintinline[##1,##3]{##2}}%
-}
+  \if\relax\detokenize{#1}\relax
+    \def\minted@shortname{#2inline}%
+  \else
+    \def\minted@shortname{#1}%
+  \fi
+  \expandafter\newmintinline@i\expandafter{\minted@shortname}{#2}{#3}}
+\def\newmintinline@i#1#2#3{%
+  \expandafter\newcommand\csname#1\endcsname{%
+    \expandafter\FVExtraRobustCommand\csname RobustNewMintInline#1\endcsname
+      \FVExtraUnexpandedReadStarOArgBVArg}%
+  \FVExtrapdfstringdefDisableCommands{%
+    \expandafter\def\csname RobustNewMintInline#1\endcsname{}}%
+  \expandafter\newrobustcmd\csname RobustNewMintInline#1\endcsname{%
+    \FVExtraReadOArgBeforeVArg{\csname RobustNewMintInline#1@i\endcsname}}%
+  \expandafter\def\csname RobustNewMintInline#1@i\endcsname##1{%
+    \ifbool{FVExtraRobustCommandExpanded}%
+     {\@ifnextchar\bgroup
+       {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}%
+       {\PackageError{minted}%
+         {Inline delimiters must be paired curly braces in this context}%
+         {Use curly braces as delimiters}}}%
+     {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}}
+  \expandafter\def\csname RobustNewMintInline#1@ii\endcsname##1##2{%
+    \RobustMintInlineProcess{#3,##1}{#2}{##2}}}
 \ifthenelse{\boolean{minted@newfloat}}%
  {\@ifundefined{minted@float@within}%
     {\DeclareFloatingEnvironment[fileext=lol,placement=tbp]{listing}}%

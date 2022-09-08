@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/09/06 v2.7dev2 Yet another Pygments shim for LaTeX]
+    [2022/09/08 v2.7dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -205,7 +205,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2600}
+% \CheckSum{2628}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -228,6 +228,7 @@
 %
 % \begin{changelog}{v2.7}{2022/??/??}
 % \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s  \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
+% \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
 % \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
 % \end{changelog}
 %
@@ -3313,7 +3314,6 @@
 \FVExtrapdfstringdefDisableCommands{%
   \def\RobustMintInline{}}
 \newrobustcmd{\RobustMintInline}[2][]{%
-  \begingroup
   \ifbool{FVExtraRobustCommandExpanded}%
    {\@ifnextchar\bgroup
      {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}%
@@ -3322,6 +3322,7 @@
        {Use curly braces as delimiters}}}%
    {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}}
 \def\RobustMintInlineProcess#1#2#3{%
+  \begingroup
   \setboolean{minted@isinline}{true}%
   \minted@configlang{#2}%
   \setkeys{minted@opt@cmd}{#1}%
@@ -3545,18 +3546,30 @@
 % As is usual with inline commands, a little catcode trickery must be employed.
 %    \begin{macrocode}
 \newcommand{\newmintinline}[3][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\def\minted@shortname{#2inline}}%
-    {\def\minted@shortname{#1}}%
-    \expandafter\newrobustcmd\csname\minted@shortname\endcsname{%
-      \begingroup
-      \let\do\@makeother\dospecials
-      \catcode`\{=1
-      \catcode`\}=2
-      \@ifnextchar[{\endgroup\minted@inliner[#3][#2]}%
-        {\endgroup\minted@inliner[#3][#2][]}}%
-    \def\minted@inliner[##1][##2][##3]{\mintinline[##1,##3]{##2}}%
-}
+  \if\relax\detokenize{#1}\relax
+    \def\minted@shortname{#2inline}%
+  \else
+    \def\minted@shortname{#1}%
+  \fi
+  \expandafter\newmintinline@i\expandafter{\minted@shortname}{#2}{#3}}
+\def\newmintinline@i#1#2#3{%
+  \expandafter\newcommand\csname#1\endcsname{%
+    \expandafter\FVExtraRobustCommand\csname RobustNewMintInline#1\endcsname
+      \FVExtraUnexpandedReadStarOArgBVArg}%
+  \FVExtrapdfstringdefDisableCommands{%
+    \expandafter\def\csname RobustNewMintInline#1\endcsname{}}%
+  \expandafter\newrobustcmd\csname RobustNewMintInline#1\endcsname{%
+    \FVExtraReadOArgBeforeVArg{\csname RobustNewMintInline#1@i\endcsname}}%
+  \expandafter\def\csname RobustNewMintInline#1@i\endcsname##1{%
+    \ifbool{FVExtraRobustCommandExpanded}%
+     {\@ifnextchar\bgroup
+       {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}%
+       {\PackageError{minted}%
+         {Inline delimiters must be paired curly braces in this context}%
+         {Use curly braces as delimiters}}}%
+     {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}}
+  \expandafter\def\csname RobustNewMintInline#1@ii\endcsname##1##2{%
+    \RobustMintInlineProcess{#3,##1}{#2}{##2}}}
 %    \end{macrocode}
 % \end{macro}
 %
