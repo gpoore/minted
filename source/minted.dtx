@@ -700,9 +700,9 @@
 %   X\mintinline{python}{print(x**2)}X
 % \end{example}
 %
-% The syntax is  \cmd\mintinline\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim}.  The delimiters can be a pair of characters, as for \cmd\mint.  They can also be a matched pair of curly braces, |{}|.
+% The syntax is  \cmd\mintinline\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim}.  The delimiters can be a single repeated character, just like for \cmd{\verb}.  They can also be a pair of curly braces, |{}|.  Curly braces are required when \cmd{\mintinline} is used in a movable argument, such as in a \cmd{\section}.
 %
-% The command has been carefully crafted so that in most cases it will function correctly when used inside other commands.\footnote{For example, \mintinline{latex}{\mintinline} works in footnotes!  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.}
+% \cmd{\mintinline} has been carefully crafted so that in most cases it will function correctly when used inside other commands.  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.  For example, \cmd{\mintinline} works in \cmd{\footnote} and \cmd{\section}!  The code typesetting for \cmd{\mintinline} is based on \texpkg{fvextra}'s \cmd{\Verb}.  See the \href{https://github.com/gpoore/fvextra/}{\texpkg{fvextra} documentation on \cmd{\Verb}} for details about functionality and limitations.
 %
 % \DescribeMacro{\inputminted}
 % Finally, there's the |\inputminted| command to read and format whole files.
@@ -3252,15 +3252,13 @@
 %
 %
 % \begin{macro}{\mintinline}
-% Define an inline command.  This requires some catcode acrobatics.  The typical verbatim methods are not used.  Rather, a different approach is taken that is generally more robust when used within other commands (for example, when used in footnotes).
+% Define an inline command.  This is modeled after the reimplemented |\Verb| from \texpkg{fvextra}.  See the \texpkg{fvextra} documentation for details about expansion handling, argument reading, and (re)tokenization.
 %
-% Pygments saves code wrapped in a |Verbatim| environment.  Getting the inline command to work correctly require redefining |Verbatim| to be |BVerbatim| temporarily.  This approach would break if |BVerbatim| were ever redefined elsewhere.
+% Pygments emits code wrapped in a |Verbatim| environment.  Getting the inline command to work correctly requires redefining |Verbatim| to be \texpkg{fvextra}'s |VerbEnv| temporarily.
 %
 % Everything needs to be within a |\begingroup...\endgroup| to prevent settings from escaping.
 %
-% In the case of |draft| mode, the code is captured and retokenized.  Then the internals of \texpkg{fancyvrb} are used to emulate |SaveVerbatim|, so that |\BUseVerbatim| may be employed.
-%
-% The |FancyVerbLine| counter is altered somehow within |\minted@pygmentize|, so we protect against this.
+% In the case of |draft| mode, \texpkg{fvextra}'s |\Verb| is used directly.
 %    \begin{macrocode}
 \ifcsname FVExtraUnexpandedReadStarOArgMArgBVArg\endcsname
 \else
