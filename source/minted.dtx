@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/09/08 v2.7dev3 Yet another Pygments shim for LaTeX]
+    [2022/09/12 v2.7dev4 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -55,6 +55,7 @@
 \usepackage{multicol}
 \usepackage{hyperref}
 
+\newcommand{\env}[1]{\texttt{#1}}
 
 \makeatletter
 % The typesetting for macrocode doesn't use \@noligs, which upquote modifies.
@@ -205,7 +206,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2628}
+% \CheckSum{2581}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -227,8 +228,9 @@
 %
 %
 % \begin{changelog}{v2.7}{2022/??/??}
-% \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s  \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
+% \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s argument reading and processing macros, and to use \texttt{fvextra}'s \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
 % \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
+% \item Reimplemented \texttt{\string\mint} to use \texttt{fvextra}'s argument reading and processing macros.  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  Fixed a bug that caused a continued paragraph after \texttt{\string\mint} to be indented (\#218).
 % \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
 % \end{changelog}
 %
@@ -3348,60 +3350,57 @@
 %
 % \begin{macro}{\mint}
 %
-% Highlight a small piece of verbatim code (a single line).
-%
-% The |draft| version digs into a good deal of \texpkg{fancyvrb} internals.  We want to employ |\UseVerbatim|, and this requires assembling a macro equivalent to what |SaveVerbatim| would have created.  Actually, this is superior to what |SaveVerbatim| would yield, because line numbering is handled correctly.
+% Highlight a single line of code.  This is essentially a shortcut for the \env{minted} environment when there is only a single line of code.  The implementation follows \cmd{\mintinline} for argument reading and processing, but then typesets the code as an environment rather than command.  The \cmd{\@doendpe} ensures proper paragraph indentation for following text (immediately following text with no intervening blank lines does not begin a new paragraph).
 %    \begin{macrocode}
-\newrobustcmd{\mint}[2][]{%
+\def\mint{%
+  \FVExtraRobustCommand\RobustMint\FVExtraUnexpandedReadStarOArgMArgBVArg}
+\FVExtrapdfstringdefDisableCommands{%
+  \def\RobustMint{}}
+\newrobustcmd{\RobustMint}[2][]{%
+  \ifbool{FVExtraRobustCommandExpanded}%
+   {\@ifnextchar\bgroup
+     {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}%
+     {\PackageError{minted}%
+       {Delimiters must be paired curly braces in this context}%
+       {Use curly braces as delimiters}}}%
+   {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}}
+\def\RobustMintProcess#1#2#3{%
   \begingroup
   \minted@configlang{#2}%
   \setkeys{minted@opt@cmd}{#1}%
   \minted@fvset
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\{=1
-  \catcode`\}=2
-  \catcode`\^^I=\active
-  \@ifnextchar\bgroup
-    {\mint@iii}%
-    {\catcode`\{=12\catcode`\}=12
-      \mint@i}}
-\def\mint@i#1{%
-  \endgroup
-  \def\mint@ii##1#1{%
-    \mint@iii{##1}}%
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\^^I=\active
-  \mint@ii}
-\ifthenelse{\boolean{minted@draft}}%
-  {\newcommand{\mint@iii}[1]{%
-    \endgroup
-    \begingroup
-    \minted@defwhitespace@retok
-    \everyeof{\noexpand}%
-    \endlinechar-1\relax
-    \let\do\@makeother\dospecials
-    \catcode`\ =\active
-    \catcode`\^^I=\active
-    \xdef\minted@tmp{\scantokens{#1}}%
-    \endgroup
-    \let\FV@Line\minted@tmp
-    \def\FV@SV@minted@tmp{%
-      \FV@CodeLineNo=1\FV@StepLineNo
-      \FV@Gobble
-      \expandafter\FV@ProcessLine\expandafter{\FV@Line}}%
-    \minted@langlinenoson
-    \UseVerbatim{minted@tmp}%
-    \minted@langlinenosoff
-    \endgroup}}%
-  {\newcommand{\mint@iii}[1]{%
-    \endgroup
-    \minted@writecmdcode{#1}%
-    \minted@langlinenoson
-    \minted@pygmentize{\minted@lang}%
-    \minted@langlinenosoff
-    \endgroup}}
+  \RobustMintProcess@i{#3}}
+\begingroup
+\catcode`\^^M=\active%
+\catcode`\<=1%
+\catcode`\>=2%
+\catcode`\{=12%
+\catcode`\}=12%
+\catcode`\!=0%
+\catcode`\\=12%
+!ifthenelse<!boolean<minted@draft>>%
+ <!gdef!RobustMintProcess@i#1<%
+    !FVExtraDetokenizeVArg<%
+      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
+  !gdef!RobustMintProcess@ii#1<%
+    !minted@langlinenoson%
+    !scantokens<%
+      \begin{Verbatim}
+      #1
+      \end{Verbatim}
+      !noexpand>%
+    !minted@langlinenosoff%
+    !endgroup!@doendpe>>%
+ <!gdef!RobustMintProcess@i#1<%
+    !FVExtraDetokenizeVArg<%
+      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
+  !gdef!RobustMintProcess@ii#1<%
+    !minted@writecmdcode<#1>%
+    !minted@langlinenoson%
+    !minted@pygmentize<!minted@lang>%
+    !minted@langlinenosoff%
+    !endgroup!@doendpe>>%
+!endgroup
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3542,8 +3541,6 @@
 %
 % \begin{macro}{\newmintinline}
 % Define an alias for |\mintinline|.
-%
-% As is usual with inline commands, a little catcode trickery must be employed.
 %    \begin{macrocode}
 \newcommand{\newmintinline}[3][]{%
   \if\relax\detokenize{#1}\relax

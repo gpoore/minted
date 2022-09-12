@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/09/08 v2.7dev3 Yet another Pygments shim for LaTeX]
+    [2022/09/12 v2.7dev4 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1083,56 +1083,55 @@
     \let\endVerbatim\endVerbEnv
     \minted@pygmentize{\minted@lang}%
     \endgroup}}
-\newrobustcmd{\mint}[2][]{%
+\def\mint{%
+  \FVExtraRobustCommand\RobustMint\FVExtraUnexpandedReadStarOArgMArgBVArg}
+\FVExtrapdfstringdefDisableCommands{%
+  \def\RobustMint{}}
+\newrobustcmd{\RobustMint}[2][]{%
+  \ifbool{FVExtraRobustCommandExpanded}%
+   {\@ifnextchar\bgroup
+     {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}%
+     {\PackageError{minted}%
+       {Delimiters must be paired curly braces in this context}%
+       {Use curly braces as delimiters}}}%
+   {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}}
+\def\RobustMintProcess#1#2#3{%
   \begingroup
   \minted@configlang{#2}%
   \setkeys{minted@opt@cmd}{#1}%
   \minted@fvset
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\{=1
-  \catcode`\}=2
-  \catcode`\^^I=\active
-  \@ifnextchar\bgroup
-    {\mint@iii}%
-    {\catcode`\{=12\catcode`\}=12
-      \mint@i}}
-\def\mint@i#1{%
-  \endgroup
-  \def\mint@ii##1#1{%
-    \mint@iii{##1}}%
-  \begingroup
-  \let\do\@makeother\dospecials
-  \catcode`\^^I=\active
-  \mint@ii}
-\ifthenelse{\boolean{minted@draft}}%
-  {\newcommand{\mint@iii}[1]{%
-    \endgroup
-    \begingroup
-    \minted@defwhitespace@retok
-    \everyeof{\noexpand}%
-    \endlinechar-1\relax
-    \let\do\@makeother\dospecials
-    \catcode`\ =\active
-    \catcode`\^^I=\active
-    \xdef\minted@tmp{\scantokens{#1}}%
-    \endgroup
-    \let\FV@Line\minted@tmp
-    \def\FV@SV@minted@tmp{%
-      \FV@CodeLineNo=1\FV@StepLineNo
-      \FV@Gobble
-      \expandafter\FV@ProcessLine\expandafter{\FV@Line}}%
-    \minted@langlinenoson
-    \UseVerbatim{minted@tmp}%
-    \minted@langlinenosoff
-    \endgroup}}%
-  {\newcommand{\mint@iii}[1]{%
-    \endgroup
-    \minted@writecmdcode{#1}%
-    \minted@langlinenoson
-    \minted@pygmentize{\minted@lang}%
-    \minted@langlinenosoff
-    \endgroup}}
+  \RobustMintProcess@i{#3}}
+\begingroup
+\catcode`\^^M=\active%
+\catcode`\<=1%
+\catcode`\>=2%
+\catcode`\{=12%
+\catcode`\}=12%
+\catcode`\!=0%
+\catcode`\\=12%
+!ifthenelse<!boolean<minted@draft>>%
+ <!gdef!RobustMintProcess@i#1<%
+    !FVExtraDetokenizeVArg<%
+      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
+  !gdef!RobustMintProcess@ii#1<%
+    !minted@langlinenoson%
+    !scantokens<%
+      \begin{Verbatim}
+      #1
+      \end{Verbatim}
+      !noexpand>%
+    !minted@langlinenosoff%
+    !endgroup!@doendpe>>%
+ <!gdef!RobustMintProcess@i#1<%
+    !FVExtraDetokenizeVArg<%
+      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
+  !gdef!RobustMintProcess@ii#1<%
+    !minted@writecmdcode<#1>%
+    !minted@langlinenoson%
+    !minted@pygmentize<!minted@lang>%
+    !minted@langlinenosoff%
+    !endgroup!@doendpe>>%
+!endgroup
 \ifthenelse{\boolean{minted@draft}}%
   {\newenvironment{minted}[2][]
     {\VerbatimEnvironment
