@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/09/12 v2.7dev4 Yet another Pygments shim for LaTeX]
+    [2022/09/12 v2.7dev5 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1180,12 +1180,31 @@
   \newenvironment{\minted@envname *}[1]
     {\VerbatimEnvironment\begin{minted}[#3,##1]{#2}}
     {\end{minted}}}
-\newcommand{\newmint}[3][]{
-  \ifthenelse{\equal{#1}{}}
-    {\def\minted@shortname{#2}}
-    {\def\minted@shortname{#1}}
-  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
-    \mint[#3,##1]{#2}##2}}
+\newcommand{\newmint}[3][]{%
+  \if\relax\detokenize{#1}\relax
+    \def\minted@shortname{#2}%
+  \else
+    \def\minted@shortname{#1}%
+  \fi
+  \expandafter\newmint@i\expandafter{\minted@shortname}{#2}{#3}}
+\def\newmint@i#1#2#3{%
+  \expandafter\newcommand\csname#1\endcsname{%
+    \expandafter\FVExtraRobustCommand\csname RobustNewMint#1\endcsname
+      \FVExtraUnexpandedReadStarOArgBVArg}%
+  \FVExtrapdfstringdefDisableCommands{%
+    \expandafter\def\csname RobustNewMint#1\endcsname{}}%
+  \expandafter\newrobustcmd\csname RobustNewMint#1\endcsname{%
+    \FVExtraReadOArgBeforeVArg{\csname RobustNewMint#1@i\endcsname}}%
+  \expandafter\def\csname RobustNewMint#1@i\endcsname##1{%
+    \ifbool{FVExtraRobustCommandExpanded}%
+     {\@ifnextchar\bgroup
+       {\FVExtraReadVArg{\csname RobustNewMint#1@ii\endcsname{##1}}}%
+       {\PackageError{minted}%
+         {Delimiters must be paired curly braces in this context}%
+         {Use curly braces as delimiters}}}%
+     {\FVExtraReadVArg{\csname RobustNewMint#1@ii\endcsname{##1}}}}
+  \expandafter\def\csname RobustNewMint#1@ii\endcsname##1##2{%
+    \RobustMintProcess{#3,##1}{#2}{##2}}}
 \newcommand{\newmintedfile}[3][]{
   \ifthenelse{\equal{#1}{}}
     {\def\minted@shortname{#2file}}
