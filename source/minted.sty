@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/09/12 v2.7dev5 Yet another Pygments shim for LaTeX]
+    [2022/11/09 v2.7dev6 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -1002,54 +1002,6 @@
   \immediate\openout\minted@code\minted@jobname.pyg\relax
   \immediate\write\minted@code{\detokenize{#1}}%
   \immediate\closeout\minted@code}
-\ifcsname FVExtraUnexpandedReadStarOArgMArgBVArg\endcsname
-\else
-  \def\FVExtraUnexpandedReadStarOArgMArgBVArg#1#{%
-    \FV@UnexpandedReadStarOArgMArgBVArg@i{#1}}
-  \def\FV@UnexpandedReadStarOArgMArgBVArg@i#1#2#3{%
-    \FVExtraAlwaysUnexpanded{\FVExtraUnexpandedReadStarOArgMArgBVArg#1{#2}{#3}}}
-  \FVExtrapdfstringdefDisableCommands{%
-    \makeatletter
-    \def\FV@UnexpandedReadStarOArgMArgBVArg@i#1#2#3{%
-      \FVExtraPDFStringVerbatimDetokenize{#3}}%
-    \makeatother}
-\fi
-\ifcsname VerbEnv\endcsname
-\else
-  \def\VerbEnv{%
-    \ifcsname @currenvir\endcsname
-      \ifx\@currenvir\@empty
-        \PackageError{fvextra}{VerbEnv is an environment}{VerbEnv is an environment}%
-      \else
-      \fi
-    \else
-      \PackageError{fvextra}{VerbEnv is an environment}{VerbEnv is an environment}%
-    \fi
-    \FVExtraReadOArgBeforeVEnv{\VerbEnv@i}}
-  \def\VerbEnv@i#1{%
-    \expandafter\VerbEnv@ii\expandafter{\@currenvir}{#1}}
-  \begingroup
-  \catcode`\!=0
-  \catcode`\<=1
-  \catcode`\>=2
-  !catcode`!\=12
-  !catcode`!{=12
-  !catcode`!}=12
-  !catcode`!^^M=!active%
-  !gdef!VerbEnv@ii#1#2<%
-    !begingroup%
-    !let!do!@makeother!FVExtraDoSpecials%
-    !catcode`!^^M=!active%
-    !def!VerbEnv@iii##1^^M##2^^M\end{#1}^^M<%
-      !endgroup%
-      !VerbEnv@iv<##1><##2>>%
-    !VerbEnv@iii<#2>>%
-  !endgroup%
-  \def\VerbEnv@iv#1#2{%
-    \Verb[#1]{#2}%
-    \expandafter\end\expandafter{\@currenvir}}
-  \def\endVerbEnv{}
-\fi
 \def\mintinline{%
   \FVExtraRobustCommand\RobustMintInline\FVExtraUnexpandedReadStarOArgMArgBVArg}
 \FVExtrapdfstringdefDisableCommands{%
