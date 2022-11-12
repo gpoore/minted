@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/11/09 v2.7dev6 Yet another Pygments shim for LaTeX]
+    [2022/11/12 v2.7dev7 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -552,6 +552,7 @@
   \fi
   \csname minted@PYGdef@\minted@style\endcsname
   \minted@patch@PYGZsq
+  \minted@patch@PYGZhy
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@defstyle}[1]{}}{}
 \newcommand{\minted@patch@PYGZsq}{%
@@ -565,7 +566,13 @@
 \catcode`\'=\active
 \gdef\minted@patch@PYGZsq@i{\gdef\PYGZsq{'}}
 \endgroup
-\ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
+\newcommand{\minted@patch@PYGZhy}{%
+  \ifcsname PYGZhy\endcsname
+    \expandafter\ifdefstring\expandafter{\csname PYGZhy\endcsname}{\char`\-}%
+     {\def\PYGZhy{\mbox{-}}}%
+     {}%
+  \fi
+}
 \newcommand{\minted@def@opt@switch}[2][false]{%
   \define@booleankey{minted@opt@g}{#2}%
     {\@namedef{minted@opt@g:#2}{true}}%

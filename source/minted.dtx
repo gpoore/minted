@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/11/09 v2.7dev6 Yet another Pygments shim for LaTeX]
+    [2022/11/12 v2.7dev7 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -206,7 +206,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2565}
+% \CheckSum{2577}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -227,12 +227,13 @@
 %
 %
 %
-% \begin{changelog}{v2.7}{2022/??/??}
+% \begin{changelog}{v2.7}{2022/11/??}
 % \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s argument reading and processing macros, and to use \texttt{fvextra}'s \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
 % \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
 % \item Reimplemented \texttt{\string\mint} to use \texttt{fvextra}'s argument reading and processing macros.  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  Fixed a bug that caused a continued paragraph after \texttt{\string\mint} to be indented (\#218).
 % \item Reimplemented \texttt{\string\newmint} based on new \texttt{\string\mint}.  Commands created with \texttt{\string\newmint} can now use curly braces as delimiters, just like \texttt{\string\mint} (\#254).
 % \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
+% \item Fixed unintended line breaks after hyphens under LuaTeX (\#263).
 % \end{changelog}
 %
 %
@@ -2550,6 +2551,7 @@
   \fi
   \csname minted@PYGdef@\minted@style\endcsname
   \minted@patch@PYGZsq
+  \minted@patch@PYGZhy
 }
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@defstyle}[1]{}}{}
 %    \end{macrocode}
@@ -2570,9 +2572,22 @@
 \catcode`\'=\active
 \gdef\minted@patch@PYGZsq@i{\gdef\PYGZsq{'}}
 \endgroup
-\ifthenelse{\boolean{minted@draft}}{}{\AtBeginDocument{\minted@patch@PYGZsq}}
 %    \end{macrocode}
 % \end{macro}
+%
+% \begin{macro}{\minted@patch@PYGZhy}
+% Redefine the hyphen under LuaTeX to prevent unintended line breaks.
+%    \begin{macrocode}
+\newcommand{\minted@patch@PYGZhy}{%
+  \ifcsname PYGZhy\endcsname
+    \expandafter\ifdefstring\expandafter{\csname PYGZhy\endcsname}{\char`\-}%
+     {\def\PYGZhy{\mbox{-}}}%
+     {}%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+% 
 %
 %
 % \begin{macro}{\minted@def@opt@switch}
