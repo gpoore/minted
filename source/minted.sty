@@ -194,7 +194,7 @@
     \immediate\closein\minted@appexistsfile
     \DeleteFile{\minted@jobname.aex}%
   \else
-    \ShellEscape{which #1 && touch \minted@jobname.aex}%
+    \ShellEscape{command -v #1 && touch \minted@jobname.aex}%
     \IfFileExists{\minted@jobname.aex}%
       {\AppExiststrue
         \DeleteFile{\minted@jobname.aex}}%
