@@ -1028,7 +1028,7 @@
 %
 %
 %   \item[breakafter (string) (\meta{none})]
-%     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
+%     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.
 %
 % For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
@@ -1050,7 +1050,7 @@
 %     The symbol inserted post-break for breaks inserted by \texttt{breakafter}.
 %
 %   \item[breakanywhere (boolean) (false)]
-%     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
+%     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.
 %
 % \begingroup
 % \fvset{xrightmargin=1em}
@@ -1071,7 +1071,7 @@
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
 %
 %   \item[breakbefore (string) (\meta{none})]
-%     Break lines before specified characters, not just at spaces, when \texttt{breaklines=true}.  Does not apply to |\mintinline|.
+%     Break lines before specified characters, not just at spaces, when \texttt{breaklines=true}.
 %
 % For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
@@ -1111,7 +1111,7 @@
 %   \item[breaklines (boolean) (false)] 
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.
 %
-% By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, \texttt{breakbefore}, and \texttt{breakafter} for more fine-tuned breaking.  Currently, only \texttt{breakbytoken} and \texttt{breakbytokenanywhere} work with |\mintinline|.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
+% By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, \texttt{breakbefore}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
 %
 % \begin{example}
 %   ...text.
@@ -3302,7 +3302,7 @@
  {\def\RobustMintInlineProcess@i#1{%
     \fvset{extra=true}%
     \Verb{#1}%
-    \endgroup}}
+    \endgroup}}%
  {\def\RobustMintInlineProcess@i#1{%
    \FVExtraDetokenizeVArg{%
      \FVExtraRetokenizeVArg{\RobustMintInlineProcess@ii}{\FV@CatCodes}}{#1}}
