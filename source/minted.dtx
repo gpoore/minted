@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/11/12 v2.7dev7 Yet another Pygments shim for LaTeX]
+    [2022/12/06 v2.7dev8 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -208,7 +208,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2577}
+% \CheckSum{2548}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -234,6 +234,7 @@
 % \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
 % \item Reimplemented \texttt{\string\mint} to use \texttt{fvextra}'s argument reading and processing macros.  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  Fixed a bug that caused a continued paragraph after \texttt{\string\mint} to be indented (\#218).
 % \item Reimplemented \texttt{\string\newmint} based on new \texttt{\string\mint}.  Commands created with \texttt{\string\newmint} can now use curly braces as delimiters, just like \texttt{\string\mint} (\#254).
+% \item Settings passed to \Verb{pygmentize} as command-line options are now quoted.  This prevents \Verb{escapeinside} characters from being interpreted as special shell characters (\#179, \#262).
 % \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
 % \item Fixed unintended line breaks after hyphens under LuaTeX (\#263).
 % \item Added warning to documentation of \Verb{\inputminted} regarding filenames and shell command execution (\#338).
@@ -2127,47 +2128,54 @@
 %
 % Options are added to the option lists in such a way that they will be detokenized.  This is necessary since they will ultimately be used in |\write18|.
 %    \begin{macrocode}
-\newcommand{\minted@addto@optlistcl}[2]{%
+\ifwindows
+  \newcommand{\minted@optlistcl@quote}[2]{%
+    \detokenize{#1="#2"}}
+\else
+  \newcommand{\minted@optlistcl@quote}[2]{%
+    \detokenize{#1='#2'}}
+\fi
+\newcommand{\minted@addto@optlistcl}[3]{%
   \expandafter\def\expandafter#1\expandafter{#1%
-    \detokenize{#2}\space}}
-\newcommand{\minted@addto@optlistcl@lang}[2]{%
+    \minted@optlistcl@quote{#2}{#3}\space}}
+\newcommand{\minted@addto@optlistcl@lang}[3]{%
   \expandafter\let\expandafter\minted@tmp\csname #1\endcsname
   \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp%
-    \detokenize{#2}\space}%
+    \minted@optlistcl@quote{#2}{#3}\space}%
   \expandafter\let\csname #1\endcsname\minted@tmp}
 \newcommand{\minted@def@optcl}[4][]{%
   \ifthenelse{\equal{#1}{}}%
     {\define@key{minted@opt@g}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@g}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@g}{#3}{#4}%
         \@namedef{minted@opt@g:#2}{#4}}%
       \define@key{minted@opt@g@i}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3}{#4}%
         \@namedef{minted@opt@g@i:#2}{#4}}%
       \define@key{minted@opt@lang}{#2}{%
-        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3=#4}%
+        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
       \define@key{minted@opt@lang@i}{#2}{%
         \minted@addto@optlistcl@lang{%
-          minted@optlistcl@lang\minted@lang @i}{#3=#4}%
+          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
       \define@key{minted@opt@cmd}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3}{#4}%
         \@namedef{minted@opt@cmd:#2}{#4}}}%
     {\define@key{minted@opt@g}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@g}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@g}{#3}{#4}%
         \@namedef{minted@opt@g:#2}{#4}}%
       \define@key{minted@opt@g@i}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3}{#4}%
         \@namedef{minted@opt@g@i:#2}{#4}}%
       \define@key{minted@opt@lang}{#2}[#1]{%
-        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3=#4}%
+        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
       \define@key{minted@opt@lang@i}{#2}[#1]{%
         \minted@addto@optlistcl@lang{%
-          minted@optlistcl@lang\minted@lang @i}{#3=#4}%
+          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
       \define@key{minted@opt@cmd}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3=#4}%
+        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3}{#4}%
         \@namedef{minted@opt@cmd:#2}{#4}}}%
 }
 %    \end{macrocode}
@@ -2175,88 +2183,78 @@
 %
 % This covers the typical options that must be passed to Pygments.  But some, particularly |escapeinside|, need more work.  Since their arguments may contain escaped characters, expansion rather than detokenization is needed.  Getting expansion to work as desired in a |\write18| context requires the redefinition of some characters.
 %
-% \begin{macro}{\minted@escchars}
-% We need to define versions of common escaped characters that will work correctly under expansion for use in |\write18|.
+% \begin{macro}{\minted@escape}
+% Process (possibly backslash-escaped) characters into a form that will work correctly under expansion for use in |\write18|.  This assumes that only punctuation characters are escaped.  (Otherwise, trailing spaces from |\detokenize| would need to be stripped.)  This is currently only used for |escapeinside|.
 %    \begin{macrocode}
-\edef\minted@hashchar{\string#}
-\edef\minted@dollarchar{\string$}
-\edef\minted@ampchar{\string&}
-\edef\minted@underscorechar{\string_}
-\edef\minted@tildechar{\string~}
-\edef\minted@leftsquarebracket{\string[}
-\edef\minted@rightsquarebracket{\string]}
-\newcommand{\minted@escchars}{%
-  \let\#\minted@hashchar
-  \let\%\@percentchar
-  \let\{\@charlb
-  \let\}\@charrb
-  \let\$\minted@dollarchar
-  \let\&\minted@ampchar
-  \let\_\minted@underscorechar
-  \let\\\@backslashchar
-  \let~\minted@tildechar
-  \let\~\minted@tildechar
-  \let\[\minted@leftsquarebracket
-  \let\]\minted@rightsquarebracket
-} %$ <- highlighting
+\begingroup
+\catcode`\!=0
+!catcode`!\=12
+!gdef!minted@escape#1{%
+  !expandafter!minted@escape@i!detokenize{#1}\!FV@Sentinel}
+!gdef!minted@escape@i#1\#2!FV@Sentinel{%
+  !if!relax!detokenize{#2}!relax
+    !expandafter!@firstoftwo
+  !else
+    !expandafter!@secondoftwo
+  !fi
+  {#1!minted@escape@end\#2!FV@Sentinel}
+  {#1!minted@escape@esc\#2!FV@Sentinel}}
+!gdef!minted@escape@end#1!FV@Sentinel{}
+!gdef!minted@escape@esc\#1#2!FV@Sentinel{%
+  #1!minted@escape@i#2!FV@Sentinel}
+!endgroup
 %    \end{macrocode}
 % \end{macro}
 %
 %
 % \begin{macro}{\minted@def@optcl@e}
-% Now to define options that are expanded.
+% Now to define options that involve backslash escapes.
 %    \begin{macrocode}
-\newcommand{\minted@addto@optlistcl@e}[2]{%
-  \begingroup
-  \minted@escchars
-  \xdef\minted@xtmp{#2}%
-  \endgroup
-  \expandafter\minted@addto@optlistcl@e@i\expandafter{\minted@xtmp}{#1}}
-\def\minted@addto@optlistcl@e@i#1#2{%
-  \expandafter\def\expandafter#2\expandafter{#2#1\space}}
-\newcommand{\minted@addto@optlistcl@lang@e}[2]{%
-  \begingroup
-  \minted@escchars
-  \xdef\minted@xtmp{#2}%
-  \endgroup
-  \expandafter\minted@addto@optlistcl@lang@e@i\expandafter{\minted@xtmp}{#1}}
-\def\minted@addto@optlistcl@lang@e@i#1#2{%
+\newcommand{\minted@addto@optlistcl@e}[3]{%
+  \edef\minted@tmp{\minted@escape{#3}}%
+  \expandafter\minted@addto@optlistcl@e@i\expandafter{\minted@tmp}{#1}{#2}}
+\def\minted@addto@optlistcl@e@i#1#2#3{%
+  \expandafter\def\expandafter#2\expandafter{#2\minted@optlistcl@quote{#3}{#1}\space}}
+\newcommand{\minted@addto@optlistcl@lang@e}[3]{%
+  \edef\minted@tmp{\minted@escape{#3}}%
+  \expandafter\minted@addto@optlistcl@lang@e@i\expandafter{\minted@tmp}{#1}{#2}}
+\def\minted@addto@optlistcl@lang@e@i#1#2#3{%
   \expandafter\let\expandafter\minted@tmp\csname #2\endcsname
-  \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp#1\space}%
+  \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp\minted@optlistcl@quote{#3}{#1}\space}%
   \expandafter\let\csname #2\endcsname\minted@tmp}
 \newcommand{\minted@def@optcl@e}[4][]{%
   \ifthenelse{\equal{#1}{}}%
     {\define@key{minted@opt@g}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3}{#4}%
         \@namedef{minted@opt@g:#2}{#4}}%
       \define@key{minted@opt@g@i}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3}{#4}%
         \@namedef{minted@opt@g@i:#2}{#4}}%
       \define@key{minted@opt@lang}{#2}{%
-        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3=#4}%
+        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
       \define@key{minted@opt@lang@i}{#2}{%
         \minted@addto@optlistcl@lang@e{%
-          minted@optlistcl@lang\minted@lang @i}{#3=#4}%
+          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
       \define@key{minted@opt@cmd}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3}{#4}%
         \@namedef{minted@opt@cmd:#2}{#4}}}%
     {\define@key{minted@opt@g}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3}{#4}%
         \@namedef{minted@opt@g:#2}{#4}}%
       \define@key{minted@opt@g@i}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3}{#4}%
         \@namedef{minted@opt@g@i:#2}{#4}}%
       \define@key{minted@opt@lang}{#2}[#1]{%
-        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3=#4}%
+        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
       \define@key{minted@opt@lang@i}{#2}[#1]{%
         \minted@addto@optlistcl@lang@e{%
-          minted@optlistcl@lang\minted@lang @i}{#3=#4}%
+          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
         \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
       \define@key{minted@opt@cmd}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3=#4}%
+        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3}{#4}%
         \@namedef{minted@opt@cmd:#2}{#4}}}%
 }
 %    \end{macrocode}
@@ -2269,29 +2267,29 @@
 %    \begin{macrocode}
 \newcommand{\minted@def@optcl@switch}[2]{%
   \define@booleankey{minted@opt@g}{#1}%
-    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2=True}%
+    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2}{True}%
       \@namedef{minted@opt@g:#1}{true}}
-    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2=False}%
+    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2}{False}%
       \@namedef{minted@opt@g:#1}{false}}
   \define@booleankey{minted@opt@g@i}{#1}%
-    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2=True}%
+    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2}{True}%
       \@namedef{minted@opt@g@i:#1}{true}}
-    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2=False}%
+    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2}{False}%
       \@namedef{minted@opt@g@i:#1}{false}}
   \define@booleankey{minted@opt@lang}{#1}%
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2=True}%
+    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2}{True}%
       \@namedef{minted@opt@lang\minted@lang:#1}{true}}
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2=False}%
+    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2}{False}%
       \@namedef{minted@opt@lang\minted@lang:#1}{false}}
   \define@booleankey{minted@opt@lang@i}{#1}%
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2=True}%
+    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2}{True}%
       \@namedef{minted@opt@lang\minted@lang @i:#1}{true}}
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2=False}%
+    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2}{False}%
       \@namedef{minted@opt@lang\minted@lang @i:#1}{false}}
   \define@booleankey{minted@opt@cmd}{#1}%
-      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2=True}%
+      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2}{True}%
         \@namedef{minted@opt@cmd:#1}{true}}
-      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2=False}%
+      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2}{False}%
         \@namedef{minted@opt@cmd:#1}{false}}
 }
 %    \end{macrocode}
@@ -2672,7 +2670,7 @@
 %    \begin{macrocode}
 \minted@def@optcl{encoding}{-P encoding}{#1}
 \minted@def@optcl{outencoding}{-P outencoding}{#1}
-\minted@def@optcl@e{escapeinside}{-P "escapeinside}{#1"}
+\minted@def@optcl@e{escapeinside}{-P escapeinside}{#1}
 \minted@def@optcl@switch{stripnl}{-P stripnl}
 \minted@def@optcl@switch{stripall}{-P stripall}
 % Python console
@@ -3002,6 +3000,11 @@
 % At the very beginning, a check is performed to make sure that style macros exist.  This must be done before the highlighted content is generated, so that temp file names can be shared without accidental overwriting.  Styles are generated here, rather than when a style is set, so that creating the style macros is done as late as possible in case a custom |pygmentize| is in use via |\MintedPygmentize|.
 %
 %    \begin{macrocode}
+\ifwindows
+  \def\minted@opt@quote#1{\detokenize{"#1"}}
+\else
+  \def\minted@opt@quote#1{\detokenize{'#1'}}
+\fi
 \newcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
   \minted@defstyle{\minted@get@opt{style}{default}}%
   \stepcounter{minted@pygmentizecounter}%
@@ -3019,7 +3022,7 @@
         \detokenize{for /f "usebackq tokens=*"}\space\@percentchar\detokenize{a in (`kpsewhich}\space\minted@codefile\detokenize{`) do}\space
       \fi
     \fi
-    \MintedPygmentize\space -l #2
+    \MintedPygmentize\space -l \minted@opt@quote{#2}
     -f latex -P commandprefix=PYG -F tokenmerge
     \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
     \minted@optlistcl@inlines
@@ -3315,7 +3318,7 @@
     \minted@writecmdcode{#1}%
     \let\Verbatim\VerbEnv
     \let\endVerbatim\endVerbEnv
-    \minted@pygmentize{\minted@lang}%
+    \expandafter\minted@pygmentize\expandafter{\minted@lang}%
     \endgroup}}
 %    \end{macrocode}
 % \end{macro}
@@ -3370,7 +3373,7 @@
   !gdef!RobustMintProcess@ii#1<%
     !minted@writecmdcode<#1>%
     !minted@langlinenoson%
-    !minted@pygmentize<!minted@lang>%
+    !expandafter!minted@pygmentize!expandafter<!minted@lang>%
     !minted@langlinenosoff%
     !endgroup!@doendpe>>%
 !endgroup
@@ -3402,7 +3405,7 @@
       \begin{VerbatimOut}[codes={\catcode`\^^I=12},firstline,lastline]{\minted@jobname.pyg}}%
     {\end{VerbatimOut}%
         \minted@langlinenoson
-        \minted@pygmentize{\minted@lang}%
+        \expandafter\minted@pygmentize\expandafter{\minted@lang}%
         \minted@langlinenosoff}}
 %    \end{macrocode}
 % \end{environment}
