@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/12/06 v2.7dev8 Yet another Pygments shim for LaTeX]
+    [2022/12/12 v2.7 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -229,7 +229,7 @@
 %
 %
 %
-% \begin{changelog}{v2.7}{2022/12/??}
+% \begin{changelog}{v2.7}{2022/12/12}
 % \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s argument reading and processing macros, and to use \texttt{fvextra}'s \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
 % \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
 % \item Reimplemented \texttt{\string\mint} to use \texttt{fvextra}'s argument reading and processing macros.  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  Fixed a bug that caused a continued paragraph after \texttt{\string\mint} to be indented (\#218).

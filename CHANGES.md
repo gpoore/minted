@@ -1,6 +1,43 @@
 # Changes
 
 
+## v2.7 (2022/12/12)
+
+
+*   Reimplemented `\mintinline` to use `fvextra`'s argument reading and
+    processing macros, and to use `fvextra`'s `\Verb` internally.
+    `\mintinline` now works with all line breaking options supported by
+    `fvextra`'s `\Verb`, including `breakanywhere` (#329, #340).  It now
+    gives better results when used inside other commands, since it uses
+    `fvextra`'s retokenization macros.  It is now compatible with `hyperref`
+    for PDF strings such as bookmarks.
+
+*   Reimplemented `\newmintinline` based on new `\mintinline`.
+
+*   Reimplemented `\mint` to use `fvextra`'s argument reading and processing
+    macros.  It now gives better results when used inside other commands,
+    since it uses `fvextra`'s retokenization macros.  Fixed a bug that caused
+    a continued paragraph after `\mint` to be indented (#218).
+
+*   Reimplemented `\newmint` based on new `\mint`.  Commands created with
+    `\newmint` can now use curly braces as delimiters, just like `\mint`
+    (#254).
+
+*   Settings passed to `pygmentize` as command-line options are now quoted.
+    This prevents `escapeinside` characters from being interpreted as special
+    shell characters (#179, #262).
+
+*   Fixed bug with `autogobble` that produced incorrect dedent when using
+    `lastline` with the lines beyond `lastline` having less indentation than
+    the selected range (#326).
+
+*   Fixed unintended line breaks after hyphens under LuaTeX (#263).
+
+*   Added warning to documentation of `\inputminted` regarding filenames
+    and shell command execution (#338).
+
+
+
 ## v2.6 (2021/12/24)
 
 *   `autogobble` automatically uses `python` or `python3` executables,
