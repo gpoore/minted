@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/13 v2.8-dev2 Yet another Pygments shim for LaTeX]
+    [2023/07/13 v2.8-dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -232,6 +232,7 @@
 % \begin{changelog}{v2.8}{2023/07/??}
 % \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
 % \item Improved and updated Pygments documentation (\#339).
+% \item Improved \Verb{\mintinline} documentation to address packages that redefine \Verb{\section} (\#368).
 % \end{changelog}
 %
 %
@@ -717,7 +718,9 @@
 %
 % The syntax is  \cmd\mintinline\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim}.  The delimiters can be a single repeated character, just like for \cmd{\verb}.  They can also be a pair of curly braces, |{}|.  Curly braces are required when \cmd{\mintinline} is used in a movable argument, such as in a \cmd{\section}.
 %
-% \cmd{\mintinline} has been carefully crafted so that in most cases it will function correctly when used inside other commands.  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.  For example, \cmd{\mintinline} works in \cmd{\footnote} and \cmd{\section}!  The code typesetting for \cmd{\mintinline} is based on \texpkg{fvextra}'s \cmd{\Verb}.  See the \href{https://github.com/gpoore/fvextra/}{\texpkg{fvextra} documentation on \cmd{\Verb}} for details about functionality and limitations.
+% Unlike \cmd{\verb}, \cmd{\mintinline} can usually be used inside other commands.  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.  For example, \cmd{\mintinline} typically works in \cmd{\footnote} and \cmd{\section}!  Note that some document classes or packages, such as \texpkg{memoir}, redefine \cmd{\section} or have options that modify it in ways that are incompatible with \cmd{\mintinline}.  If you use \cmd{\mintinline} inside \cmd{\section} or otherwise in a movable argument, you should experiment to make sure it is compatible with your document configuration.  You may also want to consider \texpkg{fvextra}'s \cmd{\Verb} or \cmd{\EscVerb} as an alternative.
+%
+% The code typesetting for \cmd{\mintinline} is based on \texpkg{fvextra}'s \cmd{\Verb}.  See the \href{https://github.com/gpoore/fvextra/}{\texpkg{fvextra} documentation on \cmd{\Verb}} for additional details about functionality and limitations.
 %
 % \DescribeMacro{\inputminted}
 % Finally, there's the |\inputminted| command to read and format whole files.
