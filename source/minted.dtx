@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/13 v2.8-dev1 Yet another Pygments shim for LaTeX]
+    [2023/07/13 v2.8-dev2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -231,6 +231,7 @@
 %
 % \begin{changelog}{v2.8}{2023/07/??}
 % \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
+% \item Improved and updated Pygments documentation (\#339).
 % \end{changelog}
 %
 %
@@ -734,7 +735,7 @@
 %
 % The full syntax is \cmd\usemintedstyle\oarg{language}\marg{style}.  The style may be set for the document as a whole (no language specified), or only for a particular language.  Note that the style may also be set via \cmd\setminted\ and via the optional argument for each command and environment.\footnote{Version 2.0 added the optional language argument and removed the restriction that the command be used in the preamble.}
 %
-% To get a list of all available stylesheets, see the online demo at the \href{http://pygments.org/demo/}{Pygments website} or execute the following command on the command line:
+% Highlighting styles with examples can be viewed online at \href{https://pygments.org/styles/}{pygments.org/styles}.  It is possible to preview your code with different styles using the online demo at \href{http://pygments.org/demo/}{pygments.org/demo}.  Available styles can also be listed by executing the following command on the command line:
 %
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
 %   \$ pygmentize -L styles
@@ -747,7 +748,7 @@
 %
 % \subsection{Supported languages}
 %
-% \app{Pygments} supports over 300 different programming languages, template languages, and other markup languages.  To see an exhaustive list of the currently supported languages, use the command
+% \app{Pygments} supports hundreds of different programming languages, template languages, and other markup languages.  To see an exhaustive list of the currently supported languages, use the command
 %
 % \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
 %   \$ pygmentize -L lexers
