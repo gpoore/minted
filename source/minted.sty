@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2022/12/12 v2.7 Yet another Pygments shim for LaTeX]
+    [2023/07/13 v2.8-dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -194,7 +194,7 @@
     \immediate\closein\minted@appexistsfile
     \DeleteFile{\minted@jobname.aex}%
   \else
-    \ShellEscape{which #1 && touch \minted@jobname.aex}%
+    \ShellEscape{command -v #1 && touch \minted@jobname.aex}%
     \IfFileExists{\minted@jobname.aex}%
       {\AppExiststrue
         \DeleteFile{\minted@jobname.aex}}%

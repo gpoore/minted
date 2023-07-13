@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2022/12/12 v2.7 Yet another Pygments shim for LaTeX]
+    [2023/07/13 v2.8-dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -227,6 +227,11 @@
 %   Right brace   \}     Tilde         \~}
 %
 %
+%
+%
+% \begin{changelog}{v2.8}{2023/07/??}
+% \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.7}{2022/12/12}
@@ -2009,7 +2014,7 @@
 % On Unix-like systems, we do a straightforward |which| test and create a file upon success, whose existence we can then check.
 %
 %    \begin{macrocode}
-    \ShellEscape{which #1 && touch \minted@jobname.aex}%
+    \ShellEscape{command -v #1 && touch \minted@jobname.aex}%
     \IfFileExists{\minted@jobname.aex}%
       {\AppExiststrue
         \DeleteFile{\minted@jobname.aex}}%
