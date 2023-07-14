@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/13 v2.8-dev3 Yet another Pygments shim for LaTeX]
+    [2023/07/14 v2.8-dev4 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -233,6 +233,7 @@
 % \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
 % \item Improved and updated Pygments documentation (\#339).
 % \item Improved \Verb{\mintinline} documentation to address packages that redefine \Verb{\section} (\#368).
+% \item Added support for \texpkg{fvextra} options \texttt{breakafterinrun} and \texttt{breakbeforeinrun} (\#358).  In \texpkg{fvextra} version 1.5, \texttt{breakaftergroup} and \texttt{breakbeforegroup} were renamed to \texttt{breakafterinrun} and \texttt{breakbeforeinrun} to avoid naming ambiguity with new options.  The old options \texttt{breakaftergroup} and \texttt{breakbeforegroup} are no longer supported.
 % \end{changelog}
 %
 %
@@ -1047,7 +1048,7 @@
 %
 % For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
-% For an alternative, see \texttt{breakbefore}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
+% For an alternative, see \texttt{breakbefore}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 % \begin{longexample}
 %   \begin{minted}[breaklines, breakafter=d]{python}
@@ -1055,8 +1056,8 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakaftergroup] (boolean) (true)
-%     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
+%   \item[breakafterinrun] (boolean) (true)
+%     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 %   \item[breakaftersymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakafter}.
@@ -1090,7 +1091,7 @@
 %
 % For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
-%  For an alternative, see \texttt{breakafter}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
+%  For an alternative, see \texttt{breakafter}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 % \begin{longexample}
 %   \begin{minted}[breaklines, breakbefore=A]{python}
@@ -1098,8 +1099,8 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakbeforegroup] (boolean) (true)
-%     When \texttt{breakbefore} is used, group all adjacent identical characters together, and only allow a break before the first character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforegroup} and \texttt{breakaftergroup} must both have the same setting.
+%   \item[breakbeforeinrun] (boolean) (true)
+%     When \texttt{breakbefore} is used, group all adjacent identical characters together, and only allow a break before the first character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 %   \item[breakbeforesymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakbefore}.
@@ -2773,9 +2774,9 @@
 \minted@def@optfv{breakbefore}
 \minted@def@optfv{breakbeforesymbolpre}
 \minted@def@optfv{breakbeforesymbolpost}
-\minted@def@optfv@switch{breakbeforegroup}
+\minted@def@optfv@switch{breakbeforeinrun}
 \minted@def@optfv{breakafter}
-\minted@def@optfv@switch{breakaftergroup}
+\minted@def@optfv@switch{breakafterinrun}
 \minted@def@optfv{breakaftersymbolpre}
 \minted@def@optfv{breakaftersymbolpost}
 \minted@def@optfv@switch{breakanywhere}
