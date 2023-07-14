@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/14 v2.8-dev4 Yet another Pygments shim for LaTeX]
+    [2023/07/14 v2.8-dev5 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1043,6 +1043,49 @@
 % Give the |<| and |>| characters their normal text meanings when used with |escapeinside| and |texcomments|, so that \texpkg{beamer} overlays of the form |\only<1>{...}| will work.
 %
 %
+%   \item[bgcolor (string) (\meta{none})]
+%     Background color of the listing.  Be aware that this option has several limitations (described below); see ``Framing alternatives'' below for more powerful alternatives.
+%
+%     The value of this option must \emph{not} be a color command. Instead, it must be a color \emph{name}, given as a string, of a previously-defined color:
+%
+% \begin{example}
+%   \definecolor{bg}{rgb}{0.95,0.95,0.95}
+%   \begin{minted}[bgcolor=bg]{php}
+%   <?php
+%     echo "Hello, $x";
+%   ?>
+%   \end{minted}
+% \end{example}
+%
+% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a \texttt{snugshade*} environment from the \texpkg{framed} package, which supports breaks across pages.  (Prior to \texpkg{minted} 2.2, a \texttt{minipage} was used, which prevented page breaks and gave undesirable spacing from surrounding text.)  Be aware that if \texttt{bgcolor} is used with \texttt{breaklines=true}, and a line break occurs just before a page break, then text may extend below the colored background in some instances.  It is best to use a more advanced framing package in those cases; see ``Framing alternatives'' below.
+%
+% This option puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}, which \textbf{does not allow line breaks}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
+%
+% ~
+%
+% \textbf{Framing alternatives}
+%
+% If you want more reliable and advanced options for background colors and framing, you should consider a more advanced framing package such as \texpkg{mdframed} or \texpkg{tcolorbox}.  It is easy to add framing to \texpkg{minted} commands and environments using the \texpkg{etoolbox} package, which is automatically loaded by \texpkg{minted}.  For example, using \texpkg{mdframed}:
+%\begin{Verbatim}
+%\BeforeBeginEnvironment{minted}{\begin{mdframed}}
+%\AfterEndEnvironment{minted}{\end{mdframed}}
+%\end{Verbatim}
+% Some framing packages also provide built-in commands for such purposes.  For example, \texpkg{mdframed} provides a \texttt{\string\surroundwithmdframed} command, which could be used to add a frame to all \texttt{minted} environments:
+%\begin{Verbatim}
+%\surroundwithmdframed{minted}
+%\end{Verbatim}
+% \texpkg{tcolorbox} even provides a built-in framing environment with \texpkg{minted} support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
+%\begin{Verbatim}
+%\begin{tcblisting}{<tcb options>,
+%                   minted language=<language>,
+%                   minted style=<style>,
+%                   minted options={<option list>} }
+%<code>
+%\end{tcblisting}
+%\end{Verbatim}
+% \texpkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
+%
+%
 %   \item[breakafter (string) (\meta{none})]
 %     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.
 %
@@ -1223,48 +1266,6 @@
 % \item[breaksymbolseprightnchars (integer) (2)]
 % Allows |breaksymbolsepright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
-%
-%   \item[bgcolor (string) (\meta{none})]
-%     Background color of the listing.  Be aware that this option has several limitations (described below); see ``Framing alternatives'' below for more powerful alternatives.
-%
-%     The value of this option must \emph{not} be a color command. Instead, it must be a color \emph{name}, given as a string, of a previously-defined color:
-%
-% \begin{example}
-%   \definecolor{bg}{rgb}{0.95,0.95,0.95}
-%   \begin{minted}[bgcolor=bg]{php}
-%   <?php
-%     echo "Hello, $x";
-%   ?>
-%   \end{minted}
-% \end{example}
-%
-% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a \texttt{snugshade*} environment from the \texpkg{framed} package, which supports breaks across pages.  (Prior to \texpkg{minted} 2.2, a \texttt{minipage} was used, which prevented page breaks and gave undesirable spacing from surrounding text.)  Be aware that if \texttt{bgcolor} is used with \texttt{breaklines=true}, and a line break occurs just before a page break, then text may extend below the colored background in some instances.  It is best to use a more advanced framing package in those cases; see ``Framing alternatives'' below.
-%
-% This option puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}, which \textbf{does not allow line breaks}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
-%
-% ~
-%
-% \textbf{Framing alternatives}
-%
-% If you want more reliable and advanced options for background colors and framing, you should consider a more advanced framing package such as \texpkg{mdframed} or \texpkg{tcolorbox}.  It is easy to add framing to \texpkg{minted} commands and environments using the \texpkg{etoolbox} package, which is automatically loaded by \texpkg{minted}.  For example, using \texpkg{mdframed}:
-%\begin{Verbatim}
-%\BeforeBeginEnvironment{minted}{\begin{mdframed}}
-%\AfterEndEnvironment{minted}{\end{mdframed}}
-%\end{Verbatim}
-% Some framing packages also provide built-in commands for such purposes.  For example, \texpkg{mdframed} provides a \texttt{\string\surroundwithmdframed} command, which could be used to add a frame to all \texttt{minted} environments:
-%\begin{Verbatim}
-%\surroundwithmdframed{minted}
-%\end{Verbatim}
-% \texpkg{tcolorbox} even provides a built-in framing environment with \texpkg{minted} support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
-%\begin{Verbatim}
-%\begin{tcblisting}{<tcb options>,
-%                   minted language=<language>,
-%                   minted style=<style>,
-%                   minted options={<option list>} }
-%<code>
-%\end{tcblisting}
-%\end{Verbatim}
-% \texpkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
 %
 %   \item[codetagify (list of strings) (\textrm{highlight \texttt{XXX}, \texttt{TODO}, \texttt{BUG}, and \texttt{NOTE}})]
 %     Highlight special code tags in comments and docstrings.
