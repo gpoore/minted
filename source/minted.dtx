@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/15 v2.8-dev8 Yet another Pygments shim for LaTeX]
+    [2023/07/15 v2.8-dev9 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -238,6 +238,7 @@
 % \item Added \texttt{DEPENDS.txt} (\#331).
 % \item Removed unnecessary dependency on \texpkg{calc} package (\#313).
 % \item Added documentation in FAQ about copy and paste limitations (\#302).
+% \item Added note on \texttt{text} lexer to documentation (\#274).
 % \end{changelog}
 %
 %
@@ -695,6 +696,8 @@
 %
 % Optionally, the environment accepts a number of options in |key=value| notation, which are described
 % in more detail below.
+%
+% To use \texpkg{minted} with a language that is not supported by Pygments, or simply to disable highlighting, set the language to |text|:  |\begin{minted}{text}|.
 %
 %
 % \DescribeMacro{\mint}
