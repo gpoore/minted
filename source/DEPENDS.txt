@@ -1,0 +1,16 @@
+calc
+catchfile
+etoolbox
+float
+framed
+fvextra
+ifplatform
+ifthen
+keyval
+kvoptions
+lineno
+newfloat
+pdftexcmds
+shellesc
+xcolor
+xstring
