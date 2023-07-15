@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/15 v2.8-dev6 Yet another Pygments shim for LaTeX]
+    [2023/07/15 v2.8-dev7 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -50,6 +50,7 @@
 \usepackage{textcomp}
 \usepackage[cache, langlinenos]{minted}
 
+\usepackage{calc}
 \usepackage{environ}
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -208,7 +209,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2548}
+% \CheckSum{2547}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -235,6 +236,7 @@
 % \item Improved \Verb{\mintinline} documentation to address packages that redefine \Verb{\section} (\#368).
 % \item Added support for \texpkg{fvextra} options \texttt{breakafterinrun} and \texttt{breakbeforeinrun} (\#358).  In \texpkg{fvextra} version 1.5, \texttt{breakaftergroup} and \texttt{breakbeforegroup} were renamed to \texttt{breakafterinrun} and \texttt{breakbeforeinrun} to avoid naming ambiguity with new options.  The old options \texttt{breakaftergroup} and \texttt{breakbeforegroup} are no longer supported.
 % \item Added \texttt{DEPENDS.txt} (\#331).
+% \item Removed unnecessary dependency on \textpkg{calc} package (\#313).
 % \end{changelog}
 %
 %
@@ -1655,7 +1657,6 @@
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
 \RequirePackage{ifthen}
-\RequirePackage{calc}
 \IfFileExists{shellesc.sty}
  {\RequirePackage{shellesc}
   \@ifpackagelater{shellesc}{2016/04/29}
