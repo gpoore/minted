@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2023/07/15 v2.8-dev7 Yet another Pygments shim for LaTeX]
+    [2023/09/11 v2.8-dev10 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}
@@ -70,6 +70,7 @@
   \@namedef{minted@outputdir}{#1/}%
   \StrSubstitute{\minted@outputdir}{/}%
     {\@backslashchar}[\minted@outputdir@windows]}
+\DeclareBoolOption{inputlanglinenos}
 \DeclareBoolOption{kpsewhich}
 \DeclareBoolOption{langlinenos}
 \DeclareBoolOption{draft}
@@ -983,10 +984,17 @@
   \setcounter{minted@lang\minted@lang}{\value{FancyVerbLine}}%
   \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}%
 }
-\ifthenelse{\boolean{minted@langlinenos}}{}{%
-  \let\minted@langlinenoson\relax
-  \let\minted@langlinenosoff\relax
+\ifbool{minted@langlinenos}{}{%
+  \ifbool{minted@inputlanglinenos}{}{%
+    \let\minted@langlinenoson\relax
+    \let\minted@langlinenosoff\relax
+  }
 }
+\ifbool{minted@inputlanglinenos}%
+ {\def\minted@inputlanglinenoson{\minted@langlinenoson}%
+  \def\minted@inputlanglinenosoff{\minted@langlinenosoff}}%
+ {\let\minted@inputlanglinenoson\relax
+  \let\minted@inputlanglinenosoff\relax}
 \newcommand{\setminted}[2][]{%
   \ifthenelse{\equal{#1}{}}%
     {\setkeys{minted@opt@g}{#2}}%
@@ -1120,14 +1128,18 @@
     \minted@configlang{#2}%
     \setkeys{minted@opt@cmd}{#1}%
     \minted@fvset
+    \minted@inputlanglinenoson
     \VerbatimInput{#3}%
+    \minted@inputlanglinenosoff
     \endgroup}}%
   {\newcommand{\inputminted}[3][]{%
     \begingroup
     \minted@configlang{#2}%
     \setkeys{minted@opt@cmd}{#1}%
     \minted@fvset
+    \minted@inputlanglinenoson
     \minted@pygmentize[#3]{#2}%
+    \minted@inputlanglinenosoff
     \endgroup}}
 \newcommand{\newminted}[3][]{
   \ifthenelse{\equal{#1}{}}

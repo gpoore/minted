@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2013-2022 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2013-2023 by Geoffrey M. Poore <gpoore@gmail.com>
 % Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 % ---------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/07/15 v2.8-dev9 Yet another Pygments shim for LaTeX]
+    [2023/09/11 v2.8-dev10 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -209,7 +209,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2547}
+% \CheckSum{2565}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -230,8 +230,9 @@
 %
 %
 %
-% \begin{changelog}{v2.8}{2023/07/??}
+% \begin{changelog}{v2.8}{2023/09/??}
 % \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
+% \item Added new package option \Verb{inputlanglinenos}.  This extends the existing \Verb{langlinenos} to cover \Verb{\inputminted} as well (\#361).
 % \item Improved and updated Pygments documentation (\#339).
 % \item Improved \Verb{\mintinline} documentation to address packages that redefine \Verb{\section} (\#368).
 % \item Added support for \texpkg{fvextra} options \texttt{breakafterinrun} and \texttt{breakbeforeinrun} (\#358).  In \texpkg{fvextra} version 1.5, \texttt{breakaftergroup} and \texttt{breakbeforegroup} were renamed to \texttt{breakafterinrun} and \texttt{breakbeforeinrun} to avoid naming ambiguity with new options.  The old options \texttt{breakaftergroup} and \texttt{breakbeforegroup} are no longer supported.
@@ -906,6 +907,12 @@
 % This is the opposite of |draft|; it is equivalent to |draft=false|.  Again, note that |draft| and |final| settings are typically inherited from the document class.
 %
 %
+% \DescribeMacro{inputlanglinenos=\meta{boolean} (default:~false)}
+% This enables |langlinenos| and causes it to apply to |\inputminted| (and custom commands based on it) in addition to |minted| environments and |\mint| commands (and custom environments/commands based on them).
+%
+% The regular |langlinenos| option treats all code within a document's |.tex| files as having one set of line numbering per language, and then treats each inputted source file as having its own separate numbering.  |inputlanglinenos| defines a single numbering per language, regardless of where code originates.
+%
+%
 % \DescribeMacro{kpsewhich=\meta{boolean} (default:~false)}
 % This option uses |kpsewhich| to locate files that are to be highlighted.  Some build tools such as |texi2pdf| function by modifying |TEXINPUTS|; in some cases, users may customize |TEXINPUTS| as well.  The |kpsewhich| option allows \texpkg{minted} to work with such configurations.
 %
@@ -915,6 +922,8 @@
 %
 %
 % \DescribeMacro{langlinenos=\meta{boolean} (default:~false)}
+% This allows all |minted| environments and |\mint| commands (and custom environments/commands based on them) for a given language to share line numbering when |firstnumber=last|, so that each subsequent command/environment has line numbering that continues from the previous one.  This does not apply to |\inputminted| (and custom commands based on it); see the package option |inputlanglinenos| for that.
+%
 % \texpkg{minted} uses the \texpkg{fancyvrb} package behind the scenes for the code typesetting.  \texpkg{fancyvrb} provides an option |firstnumber| that allows the starting line number of an environment to be specified.  For convenience, there is an option |firstnumber=last| that allows line numbering to pick up where it left off.  The |langlinenos| option makes |firstnumber| work for each language individually with all |minted| and |\mint| usages.  For example, consider the code and output below.
 %
 % \begin{VerbatimOut}[gobble=1]{minted.doc.out}
@@ -1766,6 +1775,14 @@
   \@namedef{minted@outputdir}{#1/}%
   \StrSubstitute{\minted@outputdir}{/}%
     {\@backslashchar}[\minted@outputdir@windows]}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{inputlanglinenos}
+% Enable |langlinenos| and make it apply to |\inputminted|.
+%    \begin{macrocode}
+\DeclareBoolOption{inputlanglinenos}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3223,11 +3240,26 @@
 %
 % Disable the language-specific settings if the package option isn't used.
 %    \begin{macrocode}
-\ifthenelse{\boolean{minted@langlinenos}}{}{%
-  \let\minted@langlinenoson\relax
-  \let\minted@langlinenosoff\relax
+\ifbool{minted@langlinenos}{}{%
+  \ifbool{minted@inputlanglinenos}{}{%
+    \let\minted@langlinenoson\relax
+    \let\minted@langlinenosoff\relax
+  }
 }
 %    \end{macrocode}
+%
+% \begin{macro}{\minted@inputlanglinenoson}
+% \begin{macro}{\minted@inputlanglinenosoff}
+% Language-specific settings that apply to |\inputminted| in addition to |minted| and |\mintinline|.
+%    \begin{macrocode}
+\ifbool{minted@inputlanglinenos}%
+ {\def\minted@inputlanglinenoson{\minted@langlinenoson}%
+  \def\minted@inputlanglinenosoff{\minted@langlinenosoff}}%
+ {\let\minted@inputlanglinenoson\relax
+  \let\minted@inputlanglinenosoff\relax}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
 %
 %
 %
@@ -3438,14 +3470,18 @@
     \minted@configlang{#2}%
     \setkeys{minted@opt@cmd}{#1}%
     \minted@fvset
+    \minted@inputlanglinenoson
     \VerbatimInput{#3}%
+    \minted@inputlanglinenosoff
     \endgroup}}%
   {\newcommand{\inputminted}[3][]{%
     \begingroup
     \minted@configlang{#2}%
     \setkeys{minted@opt@cmd}{#1}%
     \minted@fvset
+    \minted@inputlanglinenoson
     \minted@pygmentize[#3]{#2}%
+    \minted@inputlanglinenosoff
     \endgroup}}
 %    \end{macrocode}
 % \end{macro}
