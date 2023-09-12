@@ -38,6 +38,23 @@ This has security implications; it allows LaTeX to run external programs.
 `-shell-escape` should only be used with documents that you trust.
 
 
+## Development status
+
+`minted` version 3.0 is now under development, thanks to a [TeX Development
+Fund grant](https://tug.org/tc/devfund/grants.html) from the [TeX Users
+Group](https://tug.org/).  This will bring a new Python executable that
+replaces `pygmentize`.  The new executable will be compatible with restricted
+shell escape, so no more `-shell-escape` with associated security
+vulnerabilities.  The new executable will also make it possible to extend
+`minted` using Python, not just LaTeX macros.  This will bring official
+support for custom lexers, allow including snippets of external files based on
+regular expressions, and make possible a number of other improvements and
+bugfixes.  For compatibility purposes, the final version of `minted` v2.x will
+be released as the compatibility package `minted2`.  Initial beta versions of
+`minted` v3.0 are expected by early 2024.  A final minted v3.x release
+including all planned features is expected before the end of summer 2024.
+
+
 ## Availability
 
 `minted` is distributed with both TeX Live and MiKTeX. It is also available
