@@ -1,8 +1,36 @@
 # Changes
 
 
-## v2.7 (2022/12/12)
+## v2.8 (2023/09/12)
 
+*   Under non-Windows operating systems, detect executables with `command -v`
+    rather than `which` to provide better cross-platform support (#345).
+
+*   Added new package option `inputlanglinenos`.  This extends the existing
+    `langlinenos` to cover `\inputminted` as well (#361).
+
+*   Improved and updated Pygments documentation (#339).
+
+*   Improved `\mintinline` documentation to address packages that redefine
+    `\section` (#368).
+
+*   Added support for `fvextra` options `breakafterinrun` and
+    `breakbeforeinrun` (#358).  In `fvextra` version 1.5, `breakaftergroup`
+    and `breakbeforegroup` were renamed to `breakafterinrun` and
+    `breakbeforeinrun` to avoid naming ambiguity with new options.  The old
+    options `breakaftergroup` and `breakbeforegroup` are no longer supported.
+
+*   Added `DEPENDS.txt` (#331).
+
+*   Removed unnecessary dependency on `calc` package (#313).
+
+*   Added documentation in FAQ about copy and paste limitations (#302).
+
+*   Added note on `text` lexer to documentation (#274).
+
+
+
+## v2.7 (2022/12/12)
 
 *   Reimplemented `\mintinline` to use `fvextra`'s argument reading and
     processing macros, and to use `fvextra`'s `\Verb` internally.
