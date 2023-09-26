@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/09/12 v2.8 Yet another Pygments shim for LaTeX]
+    [2023/09/26 v2.9dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -229,6 +229,10 @@
 %
 %
 %
+%
+% \begin{changelog}{v2.9}{2023/10/??}
+% \item There is now a warning if \pkg{fvextra} version is less than 1.5.
+% \end{changelog}
 %
 % \begin{changelog}{v2.8}{2023/09/12}
 % \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
@@ -1672,7 +1676,7 @@
 %    \begin{macrocode}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
-\RequirePackage{fvextra}
+\RequirePackage{fvextra}[2022/11/30]
 \RequirePackage{ifthen}
 \IfFileExists{shellesc.sty}
  {\RequirePackage{shellesc}
