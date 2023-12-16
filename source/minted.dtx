@@ -31,12 +31,12 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/09/26 v2.9dev1 Yet another Pygments shim for LaTeX]
+    [2023/12/16 v2.9dev2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
 \EnableCrossrefs
-\CodelineIndex
+%\CodelineIndex
 %\DisableCrossrefs
 %\RecordChanges
 %\OnlyDescription
@@ -110,9 +110,8 @@
     \g@addto@macro\changestext{\end{itemize}}%
 }
 \newcommand{\PrintChangelog}{%
-    \section*{Version History}%
-    \addcontentsline{toc}{section}{Version History}
-    \label{sec:version-history}
+    \section{Changelog}%
+    \label{sec:changelog}
     \begin{description}%
     \changestext
     \end{description}%
@@ -204,7 +203,7 @@
 
 \begin{document}
 \DocInput{minted.dtx}
-\PrintIndex
+% \PrintIndex
 \end{document}
 %</driver>
 % \fi
@@ -230,7 +229,8 @@
 %
 %
 %
-% \begin{changelog}{v2.9}{2023/10/??}
+% \begin{changelog}{v2.9}{2023/12/??}
+% \item This is expected to be the last release of \pkg{minted} v2.x.  If so, it will then become the new package \Verb{minted2} for backward-compatibility.
 % \item There is now a warning if \pkg{fvextra} version is less than 1.5.
 % \end{changelog}
 %
@@ -306,7 +306,7 @@
 % \item \texttt{fvextra} brings the new options \texttt{highlightcolor} and \texttt{highlightlines}, which allow single lines or ranges of lines to be highlighted based on line number (\#124).
 % \item \texttt{fvextra} brings the new options \texttt{numberfirstline}, \texttt{stepnumberfromfirst}, and \texttt{stepnumberoffsetvalues} that provide better control over line numbering when \texttt{stepnumber} is not 1.
 % \item Fixed a bug from v2.2.2 that prevented \texttt{upquote} from working.
-% \end{changelog} 
+% \end{changelog}
 %
 %
 % \begin{changelog}{v2.2.2}{2016/06/21}
@@ -727,7 +727,7 @@
 %
 % \DescribeMacro{\mintinline}
 % Code can be typeset inline:
-% 
+%
 % \begin{example}
 %   X\mintinline{python}{print(x**2)}X
 % \end{example}
@@ -819,7 +819,7 @@
 % \subsection*{Customizing the \texttt{listing} environment}
 % By default, the |listing| environment is created using the \texpkg{float} package.  In that case, the |\listingscaption| and |\listoflistingscaption| macros described below may be used to customize the caption and list of listings.  If \texpkg{minted} is loaded with the |newfloat| option, then the |listing| environment will be created with the more powerful \href{http://www.ctan.org/pkg/newfloat}{\texpkg{newfloat}} package instead.  \texpkg{newfloat} is part of \href{http://www.ctan.org/pkg/caption}{\texpkg{caption}}, which provides many options for customizing captions.
 %
-% When \texpkg{newfloat} is used to create the |listing| environment, customization should be achieved using \texpkg{newfloat}'s |\SetupFloatingEnvironment| command.  For example, the string ``Listing'' in the caption could be changed to ``Program code'' using 
+% When \texpkg{newfloat} is used to create the |listing| environment, customization should be achieved using \texpkg{newfloat}'s |\SetupFloatingEnvironment| command.  For example, the string ``Listing'' in the caption could be changed to ``Program code'' using
 %\begin{verbatim}
 %\SetupFloatingEnvironment{listing}{name=Program code}
 %\end{verbatim}
@@ -891,7 +891,7 @@
 % Use a frozen (static) cache created with the |finalizecache| option.  When |frozencache| is on, |-shell-escape| is not needed, and Python and Pygments are not required.  In addition, any external files accessed through |\inputminted| are no longer necessary.
 %
 % \textbf{This option must be used with care.  A document \emph{must} be in final form, as far as \texpkg{minted} is concerned, \emph{before} \texttt{frozencache} is turned on, and the document \emph{must} have been compiled with \texttt{finalizecache}.   When this option is on, \texpkg{minted} content cannot be modified, except by editing the cache files directly.  Changing any \texpkg{minted} settings that require Pygments or Python is not possible.  If \texpkg{minted} content is incorrectly modified after \texttt{frozencache} is turned on, \texpkg{minted} \emph{cannot} detect the modification.}
-% 
+%
 % If you are using |frozencache|, and want to verify that \texpkg{minted} settings or content have not been modified in an invalid fashion, you can test the cache using the following procedure.
 % \begin{enumerate}
 % \item Obtain a copy of the cache used with |frozencache|.
@@ -1179,7 +1179,7 @@
 %
 %   This is not compatible with \texttt{draft} mode.  A complete list of Pygments tokens is available at \url{http://pygments.org/docs/tokens/}.  If the breaks provided by \texttt{breakbytoken} occur in unexpected locations, it may indicate a bug or shortcoming in the Pygments lexer for the language.
 %
-%   \item[breakbytokenanywhere (boolean) (false)] 
+%   \item[breakbytokenanywhere (boolean) (false)]
 %   Like \texttt{breakbytoken}, but also allows line breaks between immediately adjacent tokens, not just between tokens that are separated by spaces.  Using \texttt{breakbytokenanywhere} with \texttt{breakanywhere} is redundant.
 %
 % \item[breakindent (dimension) (\meta{breakindentnchars})]
@@ -1190,7 +1190,7 @@
 % \item[breakindentnchars (integer) (0)]
 % This allows |breakindent| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
-%   \item[breaklines (boolean) (false)] 
+%   \item[breaklines (boolean) (false)]
 %     Automatically break long lines in \texttt{minted} environments and \texttt{\string\mint} commands, and wrap longer lines in \texttt{\string\mintinline}.
 %
 % By default, automatic breaks occur at space characters.  Use \texttt{breakanywhere} to enable breaking anywhere; use \texttt{breakbytoken}, \texttt{breakbytokenanywhere}, \texttt{breakbefore}, and \texttt{breakafter} for more fine-tuned breaking.  Using \texttt{escapeinside} to escape to \LaTeX\ and then insert a manual break is also an option.  For example, use \texttt{escapeinside=||}, and then insert \texttt{|\textbackslash\textbackslash|} at the appropriate point.  (Note that \texttt{escapeinside} does not work within strings.)
@@ -1277,7 +1277,7 @@
 %
 %
 % \item[breaksymbolsepleft (dimension) (\meta{breaksymbolsepleftnchars})]
-% The separation between the |breaksymbolleft| and the adjacent text. 
+% The separation between the |breaksymbolleft| and the adjacent text.
 %
 % \item[breaksymbolsepleftnchars (integer) (2)]
 % Allows |breaksymbolsepleft| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
@@ -1377,7 +1377,7 @@
 %     firstnumber=11]{python}
 %   def all(iterable):
 %       for i in iterable:
-%           if not i: 
+%           if not i:
 %               return False
 %       return True
 %   \end{minted}
@@ -1623,7 +1623,7 @@
 % \item \textbf{The \texpkg{caption} package produces an error when \texttt{\string\captionof} and other commands are used in combination with \texpkg{minted}.}
 % Load the \texpkg{caption} package with the option |compatibility=false|.  Or better yet, use \texpkg{minted}'s |newfloat| package option, which provides better \texpkg{caption} compatibility.
 %
-% \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example, 
+% \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example,
 %\begin{verbatim}
 %\usepackage{caption}
 %\newenvironment{longlisting}{\captionsetup{type=listing}}{}
@@ -1646,8 +1646,7 @@
 %
 %
 %
-% \section*{Acknowledgements}
-% \addcontentsline{toc}{section}{Acknowledgements}
+% \section{Acknowledgements}
 %
 % \textbf{Konrad Rudolph:}  Special thanks to Philipp Stephani and the rest of the guys from \texttt{comp.text.tex} and \texttt{tex.stackexchange.com}.
 %
@@ -1830,7 +1829,7 @@
 %    \begin{macrocode}
 \ProcessKeyvalOptions*
 \ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{\RequirePackage{float}}
-\ifcsname tikzifexternalizing\endcsname 
+\ifcsname tikzifexternalizing\endcsname
   \tikzifexternalizing{\minted@drafttrue\minted@cachefalse}{}
 \else
   \ifcsname tikzexternalrealjob\endcsname
@@ -1856,15 +1855,15 @@
 %
 %
 % \subsection{Input, caching, and temp files}
-% 
+%
 % \begin{macro}{\minted@input}
 % We need a wrapper for |\input|.  In most cases, |\input| failure will be due to attempts to use |\inputminted| with files that don't exist, but we also want to give informative error messages when |outputdir| is needed or incompatible build tools are used.
 %    \begin{macrocode}
 \newcommand{\minted@input}[1]{%
   \IfFileExists{#1}%
    {\input{#1}}%
-   {\PackageError{minted}{Missing Pygments output; \string\inputminted\space 
-     was^^Jprobably given a file that does not exist--otherwise, you may need 
+   {\PackageError{minted}{Missing Pygments output; \string\inputminted\space
+     was^^Jprobably given a file that does not exist--otherwise, you may need
      ^^Jthe outputdir package option, or may be using an incompatible build
      tool,^^Jor may be using frozencache with a missing file}%
     {This could be caused by using -output-directory or -aux-directory
@@ -2032,7 +2031,7 @@
 %    \begin{macrocode}
     \DeleteFile{\minted@jobname.aex}%
     \ShellEscape{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set > \minted@jobname.aex <nul: /p 
+      do set > \minted@jobname.aex <nul: /p
       x=\string^\@percentchar \string~$PATH:i>> \minted@jobname.aex}%
     %$ <- balance syntax highlighting
     \immediate\openin\minted@appexistsfile\minted@jobname.aex
@@ -2513,13 +2512,13 @@
 %
 %
 % \begin{macro}{\minted@generate@PYGdef}
-% Generate Pygments style definition with |pygmentize| if a cached version does not exist.  Load the style definition into a global macro of the form 
+% Generate Pygments style definition with |pygmentize| if a cached version does not exist.  Load the style definition into a global macro of the form
 %\begin{Verbatim}
 %\csname minted@PYGdef@<style>\endcsname
 %\end{Verbatim}
 % to allow styles to be defined later.  Styles are not defined globally to avoid naming issues with style names that involve punctuation characters and numbers.  Rather, styles are redefined upon every use (within groups), and all styles use macros with a |\PYG| prefix.
 %
-% Takes a single argument that is the detokenized style name.  Getting the detokenized style name here requires expansion (|\edef|) in an earlier macro (currently |\minted@defstyle|) to convert |\minted@get@opt{style}{default}| into detokenized text.  The |style| value is always wrapped in |\detokenize| when it is set, so expansion automatically detokenizes.  Detokenization can be important depending on active characters.  Expansion is important because the style name may be used with caching, so we need the current value retrieved by |\minted@get@opt|, not the value at the end of the document when cache data is written to the |.aux| file.  
+% Takes a single argument that is the detokenized style name.  Getting the detokenized style name here requires expansion (|\edef|) in an earlier macro (currently |\minted@defstyle|) to convert |\minted@get@opt{style}{default}| into detokenized text.  The |style| value is always wrapped in |\detokenize| when it is set, so expansion automatically detokenizes.  Detokenization can be important depending on active characters.  Expansion is important because the style name may be used with caching, so we need the current value retrieved by |\minted@get@opt|, not the value at the end of the document when cache data is written to the |.aux| file.
 %
 % Certain catcodes are required when loading Pygments style definitions from file.
 % \begin{itemize}
@@ -2550,7 +2549,7 @@
        {Missing style definition for #1 with frozencache}}%
      {}%
     \ShellEscape{%
-      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG 
+      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG
       > \minted@pygstylepath@save
     }%
    }%
@@ -2566,7 +2565,7 @@
        {Outdated style definition for #1 with frozencache}}%
      {}%
     \ShellEscape{%
-      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG 
+      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG
       > \minted@pygstylepath@save
     }%
     \CatchFileDef{\minted@tmp@filecontents}%
@@ -2579,8 +2578,8 @@
     \fi
   \fi
   \expandafter\global\expandafter\let\csname minted@PYGdef@#1\endcsname%
-    \minted@tmp@filecontents    
-  \endgroup  
+    \minted@tmp@filecontents
+  \endgroup
 }
 %    \end{macrocode}
 % \end{macro}
@@ -2632,7 +2631,7 @@
 }
 %    \end{macrocode}
 % \end{macro}
-% 
+%
 %
 %
 % \begin{macro}{\minted@def@opt@switch}
@@ -2845,10 +2844,10 @@
 % Define a custom version of \texpkg{framed}'s |snugshade*| that takes a color as argument.  This avoids the need to redefine |shadecolor|.
 %    \begin{macrocode}
 \newenvironment{minted@snugshade*}[1]{%
-  \def\FrameCommand##1{\hskip\@totalleftmargin 
+  \def\FrameCommand##1{\hskip\@totalleftmargin
     \colorbox{#1}{##1}%
     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
-  \MakeFramed{\advance\hsize-\width 
+  \MakeFramed{\advance\hsize-\width
     \@totalleftmargin\z@ \linewidth\hsize
     \advance\labelsep\fboxsep
     \@setminipage}%
@@ -3003,7 +3002,7 @@
         \ifAppExists
           \expandafter\global\expandafter\let%
             \csname minted@MintedPython@\MintedPython\endcsname\relax
-        \else      
+        \else
           \TestAppExists{\minted@altpython}%
           \ifAppExists
             \expandafter\global\expandafter\let%
@@ -3073,7 +3072,7 @@
       \ifwindows
         \@percentchar\detokenize{a}%
       \else
-        \detokenize{`}kpsewhich \minted@codefile\space 
+        \detokenize{`}kpsewhich \minted@codefile\space
           \detokenize{||} \minted@codefile\detokenize{`}%
       \fi
     \else
@@ -3150,7 +3149,7 @@
       \ifwindows
         \detokenize{for /f "usebackq tokens=*" }\@percentchar\detokenize{a in (`kpsewhich} #1\detokenize{`) do}\space
       \fi
-    \fi    
+    \fi
     \MintedPython\detokenize{ -c "import sys; import os;
     import textwrap;
     from io import open;
@@ -3235,7 +3234,7 @@
 % \end{macro}
 %
 % \begin{macro}{\minted@langlinenosoff}
-% 
+%
 %    \begin{macrocode}
 \newcommand{\minted@langlinenosoff}{%
   \setcounter{minted@lang\minted@lang}{\value{FancyVerbLine}}%
@@ -3542,7 +3541,7 @@
     \def\minted@shortname{#2}%
   \else
     \def\minted@shortname{#1}%
-  \fi    
+  \fi
   \expandafter\newmint@i\expandafter{\minted@shortname}{#2}{#3}}
 \def\newmint@i#1#2#3{%
   \expandafter\newcommand\csname#1\endcsname{%
