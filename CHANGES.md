@@ -1,6 +1,21 @@
 # Changes
 
 
+## v2.9 (2023/12/18)
+
+*  This is expected to be the last release of `minted` v2.x.  If so, it will
+   then become the new package `minted2` for backward compatibility.
+
+*  Added new option `ignorelexererrors`.  When lexer errors are shown in
+   highlighted output (default), they are typically displayed as red boxes
+   that surround the relevant text.  When lexer errors are ignored, the
+   literal text that caused lexer errors is shown but there is no indication
+   that it caused errors (#374).
+
+*  There is now a warning if `fvextra` version is less than 1.5.
+
+
+
 ## v2.8 (2023/09/12)
 
 *   Under non-Windows operating systems, detect executables with `command -v`
