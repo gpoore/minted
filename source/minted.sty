@@ -27,7 +27,7 @@
 %% and the derived file minted.sty.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2023/09/26 v2.9dev1 Yet another Pygments shim for LaTeX]
+    [2023/12/17 v2.9dev3 Yet another Pygments shim for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{fvextra}[2022/11/30]
@@ -550,7 +550,8 @@
   \csname minted@PYGdef@\minted@style\endcsname
   \minted@patch@PYGZsq
   \minted@patch@PYGZhy
-}
+  \ifthenelse{\equal{\minted@get@opt{ignorelexererrors}{true}}{true}}%
+   {\let\PYG@tok@err\relax}{}}
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@defstyle}[1]{}}{}
 \newcommand{\minted@patch@PYGZsq}{%
   \ifcsname PYGZsq\endcsname
@@ -716,6 +717,7 @@
 \minted@def@optfv{fontencoding}
 \minted@def@opt{bgcolor}
 \minted@def@opt@switch{autogobble}
+\minted@def@opt@switch{ignorelexererrors}
 \newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
 \newenvironment{minted@snugshade*}[1]{%
   \def\FrameCommand##1{\hskip\@totalleftmargin

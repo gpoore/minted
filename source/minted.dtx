@@ -31,7 +31,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/12/16 v2.9dev2 Yet another Pygments shim for LaTeX]
+    [2023/12/17 v2.9dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -208,7 +208,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{2565}
+% \CheckSum{2572}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -230,7 +230,8 @@
 %
 %
 % \begin{changelog}{v2.9}{2023/12/??}
-% \item This is expected to be the last release of \pkg{minted} v2.x.  If so, it will then become the new package \Verb{minted2} for backward-compatibility.
+% \item This is expected to be the last release of \pkg{minted} v2.x.  If so, it will then become the new package \Verb{minted2} for backward compatibility.
+% \item Added new option \Verb{ignorelexererrors}.  When lexer errors are shown in highlighted output (default), they are typically displayed as red boxes that surround the relevant text.  When lexer errors are ignored, the literal text that caused lexer errors is shown but there is no indication that it caused errors (\#374).
 % \item There is now a warning if \pkg{fvextra} version is less than 1.5.
 % \end{changelog}
 %
@@ -1410,6 +1411,20 @@
 %     The color of the frame.
 %   \item[samepage (boolean) (false)]
 %     Forces the whole listing to appear on the same page, even if it doesn't fit.
+%   \item[ignorelexererrors (boolean) (false)]
+%     When lexer errors are shown in highlighted output (default), they are typically displayed as red boxes that surround the relevant text.  When lexer errors are ignored, the literal text that caused lexer errors is shown but there is no indication that it caused errors.
+%
+%   \begin{longexample}
+%   \begin{minted}{python}
+%   variable = !!!
+%   \end{minted}
+%   \end{longexample}
+%
+%   \begin{longexample}
+%   \begin{minted}[ignorelexererrors=true]{python}
+%   variable = !!!
+%   \end{minted}
+%   \end{longexample}
 %   \item[showspaces (boolean) (false)]
 %     Enables visible spaces: \verb*/visible spaces/.
 %   \item[showtabs (boolean) (false)]
@@ -2596,7 +2611,8 @@
   \csname minted@PYGdef@\minted@style\endcsname
   \minted@patch@PYGZsq
   \minted@patch@PYGZhy
-}
+  \ifthenelse{\equal{\minted@get@opt{ignorelexererrors}{true}}{true}}%
+   {\let\PYG@tok@err\relax}{}}
 \ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@defstyle}[1]{}}{}
 %    \end{macrocode}
 % \end{macro}
@@ -2826,6 +2842,11 @@
 % Autogobble.  We create an option that governs when Python's |textwrap.dedent()| is used to autogobble code.
 %    \begin{macrocode}
 \minted@def@opt@switch{autogobble}
+%    \end{macrocode}
+%
+% Whether lexer errors are shown.
+%    \begin{macrocode}
+\minted@def@opt@switch{ignorelexererrors}
 %    \end{macrocode}
 %
 % \begin{macro}{\minted@encoding}
