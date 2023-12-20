@@ -1,4 +1,4 @@
-# Changes
+# Changelog
 
 
 ## v2.9 (2023/12/18)
@@ -518,3 +518,52 @@
 
 *  `xcolor` is only loaded if `color` isn’t, preventing potential
    package clashes.
+
+
+
+## v1.7 (2011/09/17)
+
+*  Options for float placement added [2011/09/12]
+
+*  Fixed `tabsize` option [2011/08/30]
+
+*  More robust detection of the `-shell-escape` option [2011/01/21]
+
+*  Added the `label` option [2011/01/04]
+
+*  Installation instructions added [2010/03/16]
+
+*  Minimal working example added [2010/03/16]
+
+*  Added PHP-specific options [2010/03/14]
+
+*  Removed unportable flag from Unix shell command [2010/02/16]
+
+
+## v1.6 (2010/01/31)
+
+*  Added font-related options [2010/01/27]
+
+*  Windows support added [2010/01/27]
+
+*  Added command shortcuts [2010/01/22]
+
+*  Simpler versioning scheme [2010/01/22]
+
+
+
+## v0.1.5 (2010/01/13)
+
+*  Added `fillcolor` option [2010/01/10]
+
+*  Added float support [2010/01/10]
+
+*  Fixed `firstnumber` option [2010/01/10]
+
+* Removed `caption` option [2010/01/10]
+
+
+
+## v0.0.4 (2010/01/08)
+
+*  Initial version [2010/01/08]

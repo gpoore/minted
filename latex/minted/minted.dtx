@@ -21,7 +21,6 @@
 % This work consists of the files minted.dtx and minted.ins
 % and the derived file minted.sty.
 %
-%
 % \fi
 %
 % \iffalse
@@ -31,7 +30,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2023/12/18 v2.9 Yet another Pygments shim for LaTeX]
+    [2023/12/20 v3.0.0dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -51,7 +50,6 @@
 \usepackage[cache, langlinenos]{minted}
 
 \usepackage{calc}
-\usepackage{environ}
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{hyperref}
@@ -102,20 +100,6 @@
   \endgroup}
 \AtBeginDocument{\let|\pipe@active@verbatim}
 \endgroup
-
-\newcommand{\changestext}{}
-\NewEnviron{changelog}[2]{%
-    \g@addto@macro\changestext{\item[#1] (#2) \begin{itemize}}%
-    \expandafter\g@addto@macro\expandafter\changestext\expandafter{\BODY}%
-    \g@addto@macro\changestext{\end{itemize}}%
-}
-\newcommand{\PrintChangelog}{%
-    \section{Changelog}%
-    \label{sec:changelog}
-    \begin{description}%
-    \changestext
-    \end{description}%
-}
 
 \def\MacroFont{%
   \fontencoding\encodingdefault%
@@ -207,235 +191,6 @@
 \end{document}
 %</driver>
 % \fi
-%
-%
-% \begin{changelog}{v2.9}{2023/12/18}
-% \item This is expected to be the last release of \pkg{minted} v2.x.  If so, it will then become the new package \Verb{minted2} for backward compatibility.
-% \item Added new option \Verb{ignorelexererrors}.  When lexer errors are shown in highlighted output (default), they are typically displayed as red boxes that surround the relevant text.  When lexer errors are ignored, the literal text that caused lexer errors is shown but there is no indication that it caused errors (\#374).
-% \item There is now a warning if \pkg{fvextra} version is less than 1.5.
-% \end{changelog}
-%
-% \begin{changelog}{v2.8}{2023/09/12}
-% \item Under non-Windows operating systems, detect executables with \Verb{command -v} rather than \Verb{which} to provide better cross-platform support (\#345).
-% \item Added new package option \Verb{inputlanglinenos}.  This extends the existing \Verb{langlinenos} to cover \Verb{\inputminted} as well (\#361).
-% \item Improved and updated Pygments documentation (\#339).
-% \item Improved \Verb{\mintinline} documentation to address packages that redefine \Verb{\section} (\#368).
-% \item Added support for \texpkg{fvextra} options \texttt{breakafterinrun} and \texttt{breakbeforeinrun} (\#358).  In \texpkg{fvextra} version 1.5, \texttt{breakaftergroup} and \texttt{breakbeforegroup} were renamed to \texttt{breakafterinrun} and \texttt{breakbeforeinrun} to avoid naming ambiguity with new options.  The old options \texttt{breakaftergroup} and \texttt{breakbeforegroup} are no longer supported.
-% \item Added \texttt{DEPENDS.txt} (\#331).
-% \item Removed unnecessary dependency on \texpkg{calc} package (\#313).
-% \item Added documentation in FAQ about copy and paste limitations (\#302).
-% \item Added note on \texttt{text} lexer to documentation (\#274).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.7}{2022/12/12}
-% \item Reimplemented \texttt{\string\mintinline} to use \texttt{fvextra}'s argument reading and processing macros, and to use \texttt{fvextra}'s \texttt{\string\Verb} internally.  \texttt{\string\mintinline} now works with all line breaking options supported by \texttt{fvextra}'s \texttt{\string\Verb}, including \texttt{breakanywhere} (\#329, \#340).  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  It is now compatible with \texttt{hyperref} for PDF strings such as bookmarks.
-% \item Reimplemented \texttt{\string\newmintinline} based on new \texttt{\string\mintinline}.
-% \item Reimplemented \texttt{\string\mint} to use \texttt{fvextra}'s argument reading and processing macros.  It now gives better results when used inside other commands, since it uses \texttt{fvextra}'s retokenization macros.  Fixed a bug that caused a continued paragraph after \texttt{\string\mint} to be indented (\#218).
-% \item Reimplemented \texttt{\string\newmint} based on new \texttt{\string\mint}.  Commands created with \texttt{\string\newmint} can now use curly braces as delimiters, just like \texttt{\string\mint} (\#254).
-% \item Settings passed to \Verb{pygmentize} as command-line options are now quoted.  This prevents \Verb{escapeinside} characters from being interpreted as special shell characters (\#179, \#262).
-% \item Fixed bug with \texttt{autogobble} that produced incorrect dedent when using \texttt{lastline} with the lines beyond \texttt{lastline} having less indentation than the selected range (\#326).
-% \item Fixed unintended line breaks after hyphens under LuaTeX (\#263).
-% \item Added warning to documentation of \Verb{\inputminted} regarding filenames and shell command execution (\#338).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.6}{2021/12/24}
-% \item \texttt{autogobble} automatically uses \texttt{python} or \texttt{python3} executables, depending on availability, instead of requiring \texttt{python}.  A custom executable can be specified by redefining \texttt{\string\MintedPython} (\#277, \#287).
-% \item Fixed \texttt{autogobble} compatibility with \texttt{fancyvrb} 4.0+ (\#315, \#316).
-% \item Pygments style names may now contain arbitrary non-whitespace characters.  Previously, style names containing digits and some punctuation characters were incompatible (\#210, \#294, \#299, \#317).  Pygments macros are now only defined just before use locally within \texttt{minted} commands and environments, rather than globally.  Pygments macros now always use a \texttt{\string\PYG} prefix regardless of style, rather than a prefix of the form \texttt{\string\PYG<style>} (for example, what was previously \texttt{\string\PYGdefault} is now simply \texttt{\string\PYG}).
-% \item Removed Python-based MD5 hashing for XeTeX, which was necessary before XeTeX added \texttt{\string\mdfivesum} in 2017.
-% \item The default for \texttt{stripnl} is now \texttt{false}, so that original code is preserved exactly by default (\#198).
-% \item Added support for \texttt{fontencoding} option from \texttt{fvextra} (\#208).
-% \item Added note to FAQ about getting \texttt{texi2pdf} to work with \texttt{minted} given \texttt{texi2pdf}'s assumptions about temp files (\#186).
-% \item Reimplemented \texttt{bgcolor} option to be compatible with \texttt{color} package.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.5}{2017/07/19}
-% \item The default placement for the \texttt{listing} float is now \texttt{tbp} instead of \texttt{h}, to parallel \texttt{figure} and \texttt{table} and also avoid warnings caused by \texttt{h} (\#165).  The documentation now contains information about changing default placement.  The \texttt{float} package is no longer loaded when the \texttt{newfloat} package option is used.
-% \item Added support for \texttt{*nchars} options from \texttt{fvextra} v1.3 that allow setting \texttt{breaklines}-related indentation in terms of a number of characters, rather than as a fixed dimension.
-% \item Fixed incompatibility with \texttt{babel magyar} (\#158).
-% \item Added support for \texttt{beamer} overlays with \texttt{beameroverlays} option (\#155).
-% \item Comments in the Pygments \LaTeX\ style files no longer appear as literal text when \texttt{minted} is used in \texttt{.dtx} files (\#161).
-% \item \texttt{autogobble} now works with package option \texttt{kpsewhich} (\#151).  Under Windows, the \texttt{kpsewhich} option no longer requires PowerShell.
-% \item Fixed a bug that prevented \texttt{finalizecache} from working with \texttt{outputdir} (\#149).
-% \item Fixed a bug with \texttt{firstline} and \texttt{lastline} that prevented them from working with the \texttt{minted} environment (\#145).
-% \item Added note on \texttt{breqn} conflicts to FAQ (\#163).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.4.1}{2016/10/31}
-% \item Single quotation marks in \texttt{\string\jobname} are now replaced with underscores in \texttt{\string\minted@jobname} to prevent quoting errors (\#137).
-% \item The \texttt{autogobble} option now takes \texttt{firstline} and \texttt{lastline} into account (\#130).
-% \item Fixed \texttt{numberblanklines}, which had been lost in the transition to v2.0+ (\#135).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.4}{2016/07/20}
-% \item Line breaking and all associated options are now completely delegated to \texttt{fvextra}.
-% \item Fixed a bug from v2.2 that could cause the first command or environment to vanish when \texttt{cache=false} (related to work on \texttt{\string\MintedPygmentize}).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.3}{2016/07/14}
-% \item The \texttt{fvextra} package is now required.  \texttt{fvextra} extends and patches \texttt{fancyvrb}, and includes improved versions of \texttt{fancyvrb} extensions that were formerly in \texttt{minted}.
-% \item As part of \texttt{fvextra}, the \texttt{upquote} package is always loaded.  \texttt{fvextra} brings the new option \texttt{curlyquotes}, which allows curly single quotation marks instead of the literal backtick and typewriter single quotation mark produced by \texttt{upquote}.  This allows the default \texttt{upquote} behavior to be disabled when desired.
-% \item Thanks to \texttt{fvextra}, the options \texttt{breakbefore}, \texttt{breakafter}, and \texttt{breakanywhere} are now compatible with non-ASCII characters under pdfTeX (\#123).
-% \item Thanks to \texttt{fvextra}, \texttt{obeytabs} no longer causes lines in multi-line comments or strings to vanish (\#88), and is now compatible with \texttt{breaklines} (\#99).  \texttt{obeytabs} will now always give correct results with tabs used for indentation.  However, tab stops are not guaranteed to be correct for tabs in the midst of text.
-% \item \texttt{fvextra} brings the new options \texttt{space}, \texttt{spacecolor}, \texttt{tab}, and \texttt{tabcolor} that allow these characters and their colors to be redefined (\#98).  The tab may now be redefined to a flexible-width character such as \texttt{\string\rightarrowfill}.  The visible tab will now always be black by default, instead of changing colors depending on whether it is part of indentation for a multiline string or comment.
-% \item \texttt{fvextra} brings the new options \texttt{highlightcolor} and \texttt{highlightlines}, which allow single lines or ranges of lines to be highlighted based on line number (\#124).
-% \item \texttt{fvextra} brings the new options \texttt{numberfirstline}, \texttt{stepnumberfromfirst}, and \texttt{stepnumberoffsetvalues} that provide better control over line numbering when \texttt{stepnumber} is not 1.
-% \item Fixed a bug from v2.2.2 that prevented \texttt{upquote} from working.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.2.2}{2016/06/21}
-% \item Fixed a bug introduced in v2.2 that prevented setting the Pygments style in the preamble.  Style definitions are now more compatible with using \texttt{\string\MintedPygmentize} to call a custom \texttt{pygmentize}.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.2.1}{2016/06/15}
-% \item The \texttt{shellesc} package is loaded before \texttt{ifplatform} and other packages that might invoke \texttt{\string\write18} (\#112).
-% \item When caching is enabled, XeTeX uses the new \texttt{\string\mdfivesum} macro from TeX Live 2016 to hash cache content, rather than using \texttt{\string\ShellEscape} with Python to perform hashing.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.2}{2016/06/08}
-% \item All uses of \texttt{\string\ShellEscape} (\texttt{\string\write18}) no longer wrap file names and paths with double quotes.  This allows a cache directory to be specified relative to a user's home directory, for example, \texttt{\string~/minted\_cache}.  \texttt{cachedir} and \texttt{outputdir} paths containing spaces will now require explicit quoting of the parts of the paths that contain spaces, since \texttt{minted} no longer supplies quoting.  See the updated documentation for examples (\#89).
-% \item Added \texttt{breakbefore}, \texttt{breakbeforegroup}, \texttt{breakbeforesymbolpre}, and \texttt{breakbeforesymbolpost}.  These parallel \texttt{breakafter*}.  It is possible to use \texttt{breakbefore} and \texttt{breakafter} for the same character, so long as \texttt{breakbeforegroup} and \texttt{breakaftergroup} have the same setting (\#117).
-% \item Added package options \texttt{finalizecache} and \texttt{frozencache}.  These allow the cache to be prepared for (\texttt{finalizecache}) and then used (\texttt{frozencache}) in an environment in which \texttt{-shell-escape}, Python, and/or Pygments are not available.  Note that this only works if \texttt{minted} content does not need to be modified, and if no settings that depend on Pygments or Python need to be changed (\#113).
-% \item Style names containing hyphens and underscores (\texttt{paraiso-light}, \texttt{paraiso-dark}, \texttt{algol\_nu}) now work (\#111).
-% \item The \texttt{shellesc} package is now loaded, when available, for compatibility with LuaTeX 0.87+ (TeX Live 2016+, etc.).  \texttt{\string\ShellEscape} is now used everywhere instead of \texttt{\string\immediate\string\write18}.  If \texttt{shellesc} is not available, then a \texttt{\string\ShellEscape} macro is created.  When \texttt{shellesc} is loaded, there is a check for versions before v0.01c to patch a bug in v0.01b (present in TeX Live 2015) (\#112).
-% \item The \texttt{bgcolor} option now uses the \texttt{snugshade*} environment from the \texttt{framed} package, so \texttt{bgcolor} is now compatible with page breaks.  When \texttt{bgcolor} is in use, immediately preceding text will no longer push the \texttt{minted} environment into the margin, and there is now adequate spacing from surrounding text (\#121).
-% \item Added missing support for \texttt{fancyvrb}'s \texttt{labelposition} (\#102).
-% \item Improved fix for TikZ externalization, thanks to Patrick Vogt (\#73).
-% \item Fixed \texttt{breakautoindent}; it was disabled in version 2.1 due to a bug in \texttt{breakanywhere}.
-% \item Properly fixed handling of \texttt{\string\MintedPygmentize} (\#62).
-% \item Added note on incompatibility of \texttt{breaklines} and \texttt{obeytabs} options.  Trying to use these together will now result in a package error (\#99).  Added note on issues with \texttt{obeytabs} and multiline comments (\#88).  Due to the various \texttt{obeytabs} issues, the docs now discourage using \texttt{obeytabs}.
-% \item Added note to FAQ on \texttt{fancybox} and \texttt{fancyvrb} conflict (\#87).
-% \item Added note to docs on the need for \texttt{\string\VerbatimEnvironment} in environment definitions based on \texttt{minted} environments.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.1}{2015/09/09}
-% \item Changing the highlighting style now no longer involves re-highlighing code.  Style may be changed with almost no overhead.
-% \item Improved control of automatic line breaks.  New option \texttt{breakanywhere} allows line breaks anywhere when \texttt{breaklines=true}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakanywheresymbolpre} and \texttt{breakanywheresymbolpost} (\#79).  New option \texttt{breakafter} allows specifying characters after which line breaks are allowed.  Breaks between adjacent, identical characters may be controlled with \texttt{breakaftergroup}.  The pre-break and post-break symbols for these types of breaks may be set with \texttt{breakaftersymbolpre} and \texttt{breakaftersymbolpost}.
-% \item \texttt{breakbytoken} now only breaks lines between tokens that are separated by spaces, matching the documentation.  The new option \texttt{breakbytokenanywhere} allows for breaking between tokens that are immediately adjacent.  Fixed a bug in \texttt{\string\mintinline} that produced a following linebreak when \texttt{\string\mintinline} was the first thing in a paragraph and \texttt{breakbytoken} was true (\#77).
-% \item Fixed a bug in draft mode option handling for \texttt{\string\inputminted} (\#75).
-% \item Fixed a bug with \texttt{\string\MintedPygmentize} when a custom \texttt{pygmentize} was specified and there was no \texttt{pygmentize} on the default path (\#62).
-% \item Added note to docs on caching large numbers of code blocks under OS~X (\#78).
-% \item Added discussion of current limitations of \texttt{texcomments} (\#66) and \texttt{escapeinside} (\#70).
-% \item PGF/Ti\textit{k}Z externalization is automatically detected and supported (\#73).
-% \item The package is now compatible with \LaTeX\ files whose names contain spaces (\#85).
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.0}{2015/01/31}
-% \item Added the compatibility package \texttt{minted1}, which provides the \texpkg{minted} 1.7 code.  This may be loaded when 1.7 compatibility is required.  This package works with other packages that \texttt{\string\RequirePackage\{minted\}}, so long as it is loaded first.
-% \item Moved all old \texttt{\string\changes} into \texttt{changelog}.
-% \end{changelog}
-%
-%
-% \begin{changelog}{Development releases for 2.0}{2014--January 2015}
-% \item Caching is now on by default.
-% \item Fixed a bug that prevented compiling under Windows when file names contained commas.
-% \item Added \texttt{breaksymbolleft}, \texttt{breaksymbolsepleft}, \texttt{breaksymbolindentleft}, \texttt{breaksymbolright}, \texttt{breaksymbolsepright}, and \texttt{breaksymbolindentright} options.  \texttt{breaksymbol}, \texttt{breaksymbolsep}, and \texttt{breaksymbolindent} are now aliases for the correspondent \texttt{*left} options.
-% \item Added \texttt{kpsewhich} package option. This uses \texttt{kpsewhich} to locate the files that are to be highlighted. This provides compatibility with build tools like \texttt{texi2pdf} that function by modifying \texttt{TEXINPUTS} (\#25).
-% \item Fixed a bug that prevented \texttt{\string\inputminted} from working with \texttt{outputdir}.
-% \item Added informative error messages when Pygments output is missing.
-% \item Added \texttt{final} package option (opposite of \texttt{draft}).
-% \item Renamed the default cache directory to \texttt{\_minted-<jobname>} (replaced leading period with underscore).  The leading period caused the cache directory to be hidden on many systems, which was a potential source of confusion.
-% \item \texttt{breaklines} and \texttt{breakbytoken} now work with \texttt{\string\mintinline} (\#31).
-% \item \texttt{bgcolor} may now be set through \texttt{\string\setminted} and \texttt{\string\setmintedinline}.
-% \item When math is enabled via \texttt{texcomments}, \texttt{mathescape}, or \texttt{escapeinside}, space characters now behave as in normal math by vanishing, instead of appearing as literal spaces.  Math need no longer be specially formatted to avoid undesired spaces.
-% \item In default value of \texttt{\string\listoflistingscaption}, capitalized ``Listings'' so that capitalization is consistent with default values for other lists (figures, tables, algorithms, etc.).
-% \item Added \texttt{newfloat} package option that creates the \texttt{listing} environment using \texttt{newfloat} rather than \texttt{float}, thus providing better compatibility with the \texttt{caption} package (\#12).
-% \item Added support for Pygments option \texttt{stripall}.
-% \item Added \texttt{breakbytoken} option that prevents \texttt{breaklines} from breaking lines within Pygments tokens.
-% \item \texttt{\string\mintinline} uses a \texttt{\string\colorbox} when \texttt{bgcolor} is set, to give more reasonable behavior (\#57).
-% \item For PHP, \texttt{\string\mintinline} automatically begins with \texttt{startinline=true} (\#23).
-% \item Fixed a bug that threw off line numbering in \texttt{minted} when \texttt{langlinenos=false} and \texttt{firstnumber=last}.  Fixed a bug in \texttt{\string\mintinline} that threw off subsequent line numbering when \texttt{langlinenos=false} and \texttt{firstnumber=last}.
-% \item Improved behavior of \texttt{\string\mint} and \texttt{\string\mintinline} in \texttt{draft} mode.
-% \item The \texttt{\string\mint} command now has the additional capability to take code delimited by paired curly braces \texttt{\{\}}.
-% \item It is now possible to set options only for \texttt{\string\mintinline} using the new \texttt{\string\setmintedinline} command.  Inline options override options specified via \texttt{\string\setminted}.
-% \item Completely rewrote option handling.  \texpkg{fancyvrb} options are now handled on the \LaTeX\ side directly, rather than being passed to Pygments and then returned.  This makes caching more efficient, since code is no longer rehighlighted just because \texpkg{fancyvrb} options changed.
-% \item Fixed buffer size error caused by using \texttt{cache} with a very large number of files (\#61).
-% \item Fixed \texttt{autogobble} bug that caused failure under some operating systems.
-% \item Added support for \texttt{escapeinside} (requires Pygments 2.0+; \#38).
-% \item Fixed issues with XeTeX and caching (\#40).
-% \item The \texttt{upquote} package now works correctly with single quotes when using Pygments 1.6+ (\#34).
-% \item Fixed caching incompatibility with Linux and OS X under xelatex (\#18 and \#42).
-% \item Fixed \texttt{autogobble} incompatibility with Linux and OS X.
-% \item \texttt{\string\mintinline} and derived commands are now robust, via \texttt{\string\newrobustcmd} from \texttt{etoolbox}.
-% \item Unused styles are now cleaned up when caching.
-% \item Fixed a bug that could interfere with caching (\#24).
-% \item Added \texttt{draft} package option (\#39).  This typesets all code using \texttt{fancyvrb}; Pygments is not used.  This trades syntax highlighting for maximum speed in compiling.
-% \item Added automatic line breaking with \texttt{breaklines} and related options (\#1).
-% \item Fixed a bug with boolean options that needed a False argument to cooperate with \texttt{\string\setminted} (\#48).
-% \end{changelog}
-%
-% \begin{changelog}{v2.0-alpha3}{2013/12/21}
-% \item Added \texttt{autogobble} option.  This sends code through Python's \texttt{textwrap.dedent()} to remove common leading whitespace.
-% \item Added package option \texttt{cachedir}.  This allows the directory in which cached content is saved to be specified.
-% \item Added package option \texttt{outputdir}.  This allows an output directory for temporary files to be specified, so that the package can work with LaTeX's \texttt{-output-directory} command-line option.
-% \item The \texttt{kvoptions} package is now required.  It is needed to process key-value package options, such as the new \texttt{cachedir} option.
-% \item Many small improvements, including better handling of paths under Windows and improved key system.
-% \end{changelog}
-%
-% \begin{changelog}{v2.0-alpha2}{2013/08/21}
-% \item \texttt{\string\DeleteFile} now only deletes files if they do indeed exist.  This eliminates warning messages due to missing files.
-% \item Fixed a bug in the definition of \texttt{\string\DeleteFile} for non-Windows systems.
-% \item Added support for Pygments option \texttt{stripnl}.
-% \item Settings macros that were previously defined globally are now defined locally, so that \texttt{\string\setminted} may be confined by \texttt{\string\begingroup...\string\endgroup} as expected.
-% \item Macro definitions for a given style are now loaded only once per document, rather than once per command/environment.  This works even without caching.
-% \item A custom script/executable may now be substituted for \texttt{pygmentize} by redefining \texttt{\string\MintedPygmentize}.
-% \end{changelog}
-%
-%
-% \begin{changelog}{v2.0alpha}{2013/07/30}
-% \item Added the package option \texttt{cache}.  This significantly increases compilation speed by caching old output.  For example, compiling the documentation is around 5x faster.
-% \item New inline command \texttt{\string\mintinline}.  Custom versions can be created via \texttt{\string\newmintinline}.  The command works inside other commands (for example, footnotes) in most situations, so long as the percent and hash characters are avoided.
-% \item The new \texttt{\string\setminted} command allows options to be specified at the document and language levels.
-% \item All extended characters (Unicode, etc.) supported by \texttt{inputenc} now work under the pdfTeX engine.  This involved using \texttt{\string\detokenize} on everything prior to saving.
-% \item New package option \texttt{langlinenos} allows line numbering to pick up where it left off for a given language when \texttt{firstnumber=last}.
-% \item New options, including \texttt{style}, \texttt{encoding}, \texttt{outencoding}, \texttt{codetagify}, \texttt{keywordcase}, \texttt{texcomments} (same as \texttt{texcl}), \texttt{python3} (for the \texttt{PythonConsoleLexer}), and \texttt{numbers}.
-% \item \texttt{\string\usemintedstyle} now takes an optional argument to specify the style for a particular language, and works anywhere in the document.
-% \item \texttt{xcolor} is only loaded if \texttt{color} isn't, preventing potential package clashes.
-% \end{changelog}
-%
-%
-% \begin{changelog}{1.7}{2011/09/17}
-% \item Options for float placement added [2011/09/12]
-% \item Fixed \texttt{tabsize} option [2011/08/30]
-% \item More robust detection of the \texttt{-shell-escape} option [2011/01/21]
-% \item Added the \texttt{label} option [2011/01/04]
-% \item Installation instructions added [2010/03/16]
-% \item Minimal working example added [2010/03/16]
-% \item Added PHP-specific options [2010/03/14]
-% \item Removed unportable flag from Unix shell command [2010/02/16]
-% \end{changelog}
-%
-%
-% \begin{changelog}{1.6}{2010/01/31}
-% \item Added font-related options [2010/01/27]
-% \item Windows support added [2010/01/27]
-% \item Added command shortcuts [2010/01/22]
-% \item Simpler versioning scheme [2010/01/22]
-% \end{changelog}
-%
-%
-% \begin{changelog}{0.1.5}{2010/01/13}
-% \item Added \texttt{fillcolor} option [2010/01/10]
-% \item Added float support [2010/01/10]
-% \item Fixed \texttt{firstnumber} option [2010/01/10]
-% \item Removed \texttt{caption} option [2010/01/10]
-% \end{changelog}
-%
-%
-% \begin{changelog}{0.0.4}{2010/01/08}
-% \item Initial version [2010/01/08]
-% \end{changelog}
 %
 %
 % %\DoNotIndex{\newcommand,\newenvironment}
@@ -1652,8 +1407,6 @@
 % \item Thanks to \textsf{@muzimuzhi} for assistance with GitHub issues.
 % \item Thanks to \textsf{@jfbu} for suggestions and discussion regarding support for arbitrary Pygments style names (\#210, \#294, \#299, \#317), and for debugging assistance.
 % \end{itemize}
-%
-% \PrintChangelog
 %
 % \StopEventually{} %\StopEventually{\PrintIndex}
 %
