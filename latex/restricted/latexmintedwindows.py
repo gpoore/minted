@@ -46,7 +46,7 @@ try:
 except ImportError:
     pass
 else:
-    main(latexmintedwin=__version__)
+    main(latexmintedwindows=__version__)
     sys.exit()
 
 

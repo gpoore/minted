@@ -39,8 +39,8 @@ Steps for installing the current beta version:
 3.  Under Windows, an additional step is required.  The following description
     is for TeX Live; an equivalent process is needed for MiKTeX.  Within the
     TeX installation under `bin/windows/`, create a copy of `runscript.exe`
-    and then rename the copy to `latexmintedwin.exe`.  Then copy the file
-    `latexmintedwin.py` (under `latex/restricted/` in this repository) to
+    and then rename the copy to `latexmintedwindows.exe`.  Then copy the file
+    `latexmintedwindows.py` (under `latex/restricted/` in this repository) to
     `texmf-dist/scripts/minted`.  Finally, run `texhash` to update TeX's
     index.
 

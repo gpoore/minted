@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/05/25 v3.0.0beta2 Yet another Pygments shim for LaTeX]
+    [2024/05/25 v3.0.0beta3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1509,15 +1509,15 @@
 %
 %
 % \begin{macro}{\MintedExecutable}
-% Name of \mintedpkg\ Python executable.  If full shell escape is enabled, use |latexminted|, which is created when the \texpkg{latexminted} Python package is installed.  If only restricted shell escape is enabled (|\c_sys_shell_escape_int=2|), then use |latexmintedwin| under Windows.  |latexmintedwin| is included as part of the \texpkg{minted} \LaTeX\ package and is separate from the Python package (but does need to import the Python package).
+% Name of \mintedpkg\ Python executable.  If full shell escape is enabled, use |latexminted|, which is created when the \texpkg{latexminted} Python package is installed.  If only restricted shell escape is enabled (|\c_sys_shell_escape_int=2|), then use |latexmintedwindows| under Windows.  |latexmintedwindows| is included as part of the \texpkg{minted} \LaTeX\ package and is separate from the Python package (but does need to import the Python package).
 %
-% |latexmintedwin| is provided for compatibility with \href{https://tug.org/texlive/}{\TeX\ Live} security.  Under Windows with restricted shell escape, \TeX\ Live interprets executables without a full path as being executables within the \TeX\ Live |bin/windows/| directory (\href{https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/ChangeLog#L820}{ChangeLog}, \href{https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/texmfmp.c#L534}{code}).  Otherwise, Windows could run an executable with the same name that is located in the current working directory, which is typically writable by \LaTeX.  As a byproduct, this effectively limits restricted shell escape executables to those within the \TeX\ Live |bin/windows/| directory.  It is only possible to use executables in other locations if the full path is included in \href{https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634}{|texmf.cnf|} under |shell_escape_commands| and the full path is also given when the executable is invoked via |\ShellEscape|.  However, this is not very practical because both could become outdated whenever the executable is updated.
+% |latexmintedwindows| is provided for compatibility with \href{https://tug.org/texlive/}{\TeX\ Live} security.  Under Windows with restricted shell escape, \TeX\ Live interprets executables without a full path as being executables within the \TeX\ Live |bin/windows/| directory (\href{https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/ChangeLog#L820}{ChangeLog}, \href{https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/texmfmp.c#L534}{code}).  Otherwise, Windows could run an executable with the same name that is located in the current working directory, which is typically writable by \LaTeX.  As a byproduct, this effectively limits restricted shell escape executables to those within the \TeX\ Live |bin/windows/| directory.  It is only possible to use executables in other locations if the full path is included in \href{https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634}{|texmf.cnf|} under |shell_escape_commands| and the full path is also given when the executable is invoked via |\ShellEscape|.  However, this is not very practical because both could become outdated whenever the executable is updated.
 %
-% The |latexmintedwin| executable is included as part of the \texpkg{minted} \LaTeX\ package, so it will be present in \TeX\ Live's |bin/windows/| and is thus compatible with \TeX\ Live's restricted shell escape.  However, |latexmintedwin| can be less efficient that the |latexminted| executable.  |latexminted| is created when the Python package is installed, and when it runs it automatically uses the correct Python interpreter that has the necessary libraries installed.  When |latexmintedwin| runs, it will use the first Python interpreter on PATH, which may not be the interpreter that has the necessary libraries installed.  In that case, it will securely locate and run |latexminted|, which incurs extra overhead.
+% The |latexmintedwindows| executable is included as part of the \texpkg{minted} \LaTeX\ package, so it will be present in \TeX\ Live's |bin/windows/| and is thus compatible with \TeX\ Live's restricted shell escape.  However, |latexmintedwindows| can be less efficient that the |latexminted| executable.  |latexminted| is created when the Python package is installed, and when it runs it automatically uses the correct Python interpreter that has the necessary libraries installed.  When |latexmintedwindows| runs, it will use the first Python interpreter on PATH, which may not be the interpreter that has the necessary libraries installed.  In that case, it will securely locate and run |latexminted|, which incurs extra overhead.
 %    \begin{macrocode}
 \ifnum\csname c_sys_shell_escape_int\endcsname=2\relax
   \expandafter\IfFileExists\expandafter{\detokenize{nul:}}%
-   {\edef\MintedExecutable{\detokenize{latexmintedwin}}}%
+   {\edef\MintedExecutable{\detokenize{latexmintedwindows}}}%
    {\edef\MintedExecutable{\detokenize{latexminted}}}
 \else
   \edef\MintedExecutable{\detokenize{latexminted}}

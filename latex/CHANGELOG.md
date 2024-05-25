@@ -34,7 +34,7 @@ released.
    `latexminted` executable uses Pygments internally to perform syntax
    highlighting while also providing several additional features.
 
-   There is also a short wrapper script `latexmintedwin` under the `latex/`
+   There is also a short wrapper script `latexmintedwindows` under the `latex/`
    directory in the `minted` repository to provide Windows compatibility under
    restricted shell escape with TeX Live.  This is designed to be installed
    within the `texmf-dist/scripts` directory of a TeX Live installation.
@@ -49,13 +49,13 @@ released.
      distribution `texmf.cnf` (typically something like
      `<tex_distro>/texmf-dist/web2c/texmf.cnf`) into the user `texmf.cnf`
      (typically something like `<tex_distro>/texmf.cnf`), and then add
-     `latexminted` and (if applicable) `latexmintedwin` to the end of the
+     `latexminted` and (if applicable) `latexmintedwindows` to the end of the
      `shell_escape_commands` list.  The location of the `texmf.cnf` files can
      be determined by running `kpsewhich -all texmf.cnf`.
 
    - MiKTeX:  Add a line `AllowedShellCommands[] = latexminted` to the
      existing list of allowed commands in `miktex.ini`.  Under Windows, you
-     may also need `AllowedShellCommands[] = latexmintedwin`.  You may want
+     may also need `AllowedShellCommands[] = latexmintedwindows`.  You may want
      to modify the user-scoped configuration instead of the system-wide
      configuration.  See the
      [MiKTeX documentation](https://docs.miktex.org/manual/miktex.ini.html)

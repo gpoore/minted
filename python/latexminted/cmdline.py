@@ -30,10 +30,10 @@ from .messages import Messages
 
 
 
-def main(latexmintedwin=None):
+def main(latexmintedwindows=None):
     parser = argparse.ArgumentParser(prog='latexminted', allow_abbrev=False)
     parser.set_defaults(func=lambda **x: parser.print_help())
-    if latexmintedwin is None:
+    if latexmintedwindows is None:
         library_version = ', '.join([
             f'latex2pydata {latex2pydata_version}',
             f'pygments {pygments_version}'
@@ -45,7 +45,7 @@ def main(latexmintedwin=None):
             f'latex2pydata {latex2pydata_version}',
             f'pygments {pygments_version}',
         ])
-        version = f'latexmintedwin {latexmintedwin} (libraries: {library_version})'
+        version = f'latexmintedwindows {latexmintedwindows} (libraries: {library_version})'
     parser.add_argument('--version', action='version', version=version)
     subparsers = parser.add_subparsers(dest='subparser_name')
 

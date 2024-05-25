@@ -59,7 +59,7 @@ implications that are different from any other package that can write or read
 files, except for running the `latexminted` Python executable.
 
 
-## `latexmintedwin` executable
+## `latexmintedwindows` executable
 
 Under Windows with restricted shell escape, TeX Live interprets executables without a full path as being executables within the TeX Live `bin/windows/` directory.
 
@@ -75,37 +75,37 @@ byproduct, this effectively limits restricted shell escape executables to
 those within the TeX Live `bin/windows/` directory.
 
 To work within these constraints, the `minted` LaTeX package includes a Python
-executable `latexmintedwin` that is intended for installation within TeX
-distributions.  `latexmintedwin` is separate from the `latexminted` Python
+executable `latexmintedwindows` that is intended for installation within TeX
+distributions.  `latexmintedwindows` is separate from the `latexminted` Python
 package and its executable, which are intended for installation as part of a
 Python distribution outside of LaTeX.
 
-In TeX Live, an executable wrapper `latexmintedwin.exe` is created in
+In TeX Live, an executable wrapper `latexmintedwindows.exe` is created in
 `bin/windows/` by creating a copy of `runscript.exe` and then renaming it to
-`latexmintedwin.exe`.  Then the file `latexmintedwin.py` is placed in
-`texmf-dist/scripts/minted`.  When `latexmintedwin.exe` runs, it will
-automatically locate and invoke `latexmintedwin.py`.
+`latexmintedwindows.exe`.  Then the file `latexmintedwindows.py` is placed in
+`texmf-dist/scripts/minted`.  When `latexmintedwindows.exe` runs, it will
+automatically locate and invoke `latexmintedwindows.py`.
 
-`latexmintedwin` can run in two separate modes:
+`latexmintedwindows` can run in two separate modes:
 
 1.  The current default Python installation is used by `runscript.exe` to
-    execute `latexmintedwin.py`.  If this Python installation has the
+    execute `latexmintedwindows.py`.  If this Python installation has the
     `latexminted` Python library installed, then the `main()` function is
     imported from this library and executed.  In this case, there are no
     security implications beyond those in the `latexminted` Python library
     itself.
 
 2.  If the current default Python installation does not have the
-    `latexminted` Python library, then `latexmintedwin.py` looks for
+    `latexminted` Python library, then `latexmintedwindows.py` looks for
     `latexminted.exe` on PATH.  It is possible that `latexminted` is
     installed elsewhere, in a different Python installation.  If
     `latexminted.exe` is found, outside of all locations writable by LaTeX
     and within a Python installation, then it is executed in a subprocess.
-    See `latexmintedwin.py` for the full details of safely locating and
+    See `latexmintedwindows.py` for the full details of safely locating and
     running `latexminted.exe`.
 
 Unlike the `minted.sty` part of the package that essentially inherits security
-from LaTeX, `latexmintedwin` has significant security implications.  As a
+from LaTeX, `latexmintedwindows` has significant security implications.  As a
 result, it is in a separate `restricted/` directory in this repository, so
 that it is easier to see whether commits modify any code with security
 implications.
