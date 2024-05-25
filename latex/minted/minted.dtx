@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/05/25 v3.0.0beta1 Yet another Pygments shim for LaTeX]
+    [2024/05/25 v3.0.0beta2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1581,11 +1581,14 @@
 %    \begin{macrocode}
 \begingroup
 \catcode`\-=12
+\catcode`\+=12
 \catcode`\:=12
 \def\minted@creationdatetotimestamp#1{%
-  \expandafter\minted@creationdatetotimestamp@i#1\relax}
+  \expandafter\minted@creationdatetotimestamp@i#1-\relax}
 \def\minted@creationdatetotimestamp@i#1:#2-#3\relax{%
-  #2}
+  \minted@creationdatetotimestamp@ii#2+\relax}
+\def\minted@creationdatetotimestamp@ii#1+#2\relax{%
+  #1}
 \expandafter\ifx\csname pdftexversion\endcsname\relax
 \else
   \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdfcreationdate}}
