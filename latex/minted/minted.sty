@@ -5,19 +5,17 @@
 %% The original source files were:
 %%
 %% minted.dtx  (with options: `package')
-%% Copyright 2013--2022 Geoffrey M. Poore
-%% Copyright 2010--2011 Konrad Rudolph
 %% 
+%% Copyright (C) 2013-2024 by Geoffrey M. Poore <gpoore@gmail.com>
+%% Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
+%% --------------------------------------------------------------------------
 %% This work may be distributed and/or modified under the
-%% conditions of the LaTeX Project Public License, either version 1.3
+%% conditions of the LaTeX Project Public License, either version 1.3c
 %% of this license or (at your option) any later version.
 %% The latest version of this license is in
-%%   http://www.latex-project.org/lppl.txt
-%% and version 1.3 or later is part of all distributions of LaTeX
-%% version 2005/12/01 or later.
-%% 
-%% Additionally, the project may be distributed under the terms of the new BSD
-%% license.
+%%   https://www.latex-project.org/lppl.txt
+%% and version 1.3c or later is part of all distributions of LaTeX
+%% version 2008/05/04 or later.
 %% 
 %% This work has the LPPL maintenance status `maintained'.
 %% 
@@ -25,1001 +23,1428 @@
 %% 
 %% This work consists of the files minted.dtx and minted.ins
 %% and the derived file minted.sty.
+%% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2023/12/18 v2.9 Yet another Pygments shim for LaTeX]
-\RequirePackage{keyval}
-\RequirePackage{kvoptions}
-\RequirePackage{fvextra}[2022/11/30]
-\RequirePackage{ifthen}
-\IfFileExists{shellesc.sty}
- {\RequirePackage{shellesc}
-  \@ifpackagelater{shellesc}{2016/04/29}
-   {}
-   {\protected\def\ShellEscape{\immediate\write18 }}}
- {\protected\def\ShellEscape{\immediate\write18 }}
-\RequirePackage{ifplatform}
-\RequirePackage{pdftexcmds}
-\RequirePackage{etoolbox}
-\RequirePackage{xstring}
-\RequirePackage{lineno}
-\RequirePackage{framed}
+    [2024/05/25 v3.0.0beta1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
+\RequirePackage{etoolbox}
+\RequirePackage{framed}
+\RequirePackage{fvextra}[2024/05/16]
+\RequirePackage{latex2pydata}[2024/05/16]
+\RequirePackage{pdftexcmds}
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+\RequirePackage{shellesc}
 \AtEndPreamble{%
-  \@ifpackageloaded{color}{}{%
-    \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}}%
-}
-\DeclareVoidOption{chapter}{\def\minted@float@within{chapter}}
-\DeclareVoidOption{section}{\def\minted@float@within{section}}
-\DeclareBoolOption{newfloat}
-\DeclareBoolOption[true]{cache}
-\StrSubstitute{\jobname}{ }{_}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{*}{_}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{"}{}[\minted@jobname]
-\StrSubstitute{\minted@jobname}{'}{_}[\minted@jobname]
-\newcommand{\minted@cachedir}{\detokenize{_}minted-\minted@jobname}
-\let\minted@cachedir@windows\minted@cachedir
-\define@key{minted}{cachedir}{%
-  \@namedef{minted@cachedir}{#1}%
-  \StrSubstitute{\minted@cachedir}{/}{\@backslashchar}[\minted@cachedir@windows]}
-\DeclareBoolOption{finalizecache}
-\DeclareBoolOption{frozencache}
-\let\minted@outputdir\@empty
-\let\minted@outputdir@windows\@empty
-\define@key{minted}{outputdir}{%
-  \@namedef{minted@outputdir}{#1/}%
-  \StrSubstitute{\minted@outputdir}{/}%
-    {\@backslashchar}[\minted@outputdir@windows]}
-\DeclareBoolOption{inputlanglinenos}
-\DeclareBoolOption{kpsewhich}
-\DeclareBoolOption{langlinenos}
-\DeclareBoolOption{draft}
-\DeclareComplementaryOption{final}{draft}
-\ProcessKeyvalOptions*
-\ifthenelse{\boolean{minted@newfloat}}{\RequirePackage{newfloat}}{\RequirePackage{float}}
-\ifcsname tikzifexternalizing\endcsname
-  \tikzifexternalizing{\minted@drafttrue\minted@cachefalse}{}
-\else
-  \ifcsname tikzexternalrealjob\endcsname
-    \minted@drafttrue
-    \minted@cachefalse
-  \else
-  \fi
-\fi
-\ifthenelse{\boolean{minted@finalizecache}}%
- {\ifthenelse{\boolean{minted@frozencache}}%
-   {\PackageError{minted}%
-     {Options "finalizecache" and "frozencache" are not compatible}%
-     {Options "finalizecache" and "frozencache" are not compatible}}%
-   {}}%
- {}
-\ifthenelse{\boolean{minted@cache}}%
- {\ifthenelse{\boolean{minted@frozencache}}%
+  \IfPackageLoadedTF{color}%
    {}%
-   {\AtEndOfPackage{\ProvideDirectory{\minted@outputdir\minted@cachedir}}}}%
- {}
-\newcommand{\minted@input}[1]{%
-  \IfFileExists{#1}%
-   {\input{#1}}%
-   {\PackageError{minted}{Missing Pygments output; \string\inputminted\space
-     was^^Jprobably given a file that does not exist--otherwise, you may need
-     ^^Jthe outputdir package option, or may be using an incompatible build
-     tool,^^Jor may be using frozencache with a missing file}%
-    {This could be caused by using -output-directory or -aux-directory
-     ^^Jwithout setting minted's outputdir, or by using a build tool that
-     ^^Jchanges paths in ways minted cannot detect,
-     ^^Jor using frozencache with a missing file.}}%
-}
-\newcommand{\minted@infile}{\minted@jobname.out.pyg}
-\newcommand{\minted@cachelist}{}
-\newcommand{\minted@addcachefile}[1]{%
-  \expandafter\long\expandafter\gdef\expandafter\minted@cachelist\expandafter{%
-    \minted@cachelist,^^J%
-    \space\space#1}%
-  \expandafter\gdef\csname minted@cached@#1\endcsname{}%
-}
-\newcommand{\minted@savecachelist}{%
-  \ifdefempty{\minted@cachelist}{}{%
-    \immediate\write\@mainaux{%
-      \string\gdef\string\minted@oldcachelist\string{%
-        \minted@cachelist\string}}%
-  }%
-}
-\newcommand{\minted@cleancache}{%
-  \ifcsname minted@oldcachelist\endcsname
-    \def\do##1{%
-      \ifthenelse{\equal{##1}{}}{}{%
-        \ifcsname minted@cached@##1\endcsname\else
-          \DeleteFile[\minted@outputdir\minted@cachedir]{##1}%
-        \fi
-      }%
-    }%
-    \expandafter\docsvlist\expandafter{\minted@oldcachelist}%
-  \else
-  \fi
-}
-\ifthenelse{\boolean{minted@draft}}%
- {\AtEndDocument{%
-    \ifcsname minted@oldcachelist\endcsname
-      \StrSubstitute{\minted@oldcachelist}{,}{,^^J }[\minted@cachelist]
-      \minted@savecachelist
-    \fi}}%
- {\ifthenelse{\boolean{minted@frozencache}}%
-   {\AtEndDocument{%
-      \ifcsname minted@oldcachelist\endcsname
-        \StrSubstitute{\minted@oldcachelist}{,}{,^^J }[\minted@cachelist]
-        \minted@savecachelist
-      \fi}}%
-   {\AtEndDocument{%
-    \minted@savecachelist
-    \minted@cleancache}}}%
-\ifwindows
-  \providecommand{\DeleteFile}[2][]{%
-    \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\ShellEscape{del #2}}{}}%
-      {\IfFileExists{#1/#2}{%
-        \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-        \ShellEscape{del \minted@windir\@backslashchar #2}}{}}}
+   {\IfPackageLoadedTF{xcolor}{}{\RequirePackage{xcolor}}}}
+\def\minted@error#1{\PackageError{minted}{#1}{}}
+\def\minted@fatalerror#1{%
+  \minted@error{#1}%
+  \batchmode\read -1 to \minted@fatalerror@exitnow}
+\def\minted@warning#1{\PackageWarning{minted}{#1}}
+\ifnum\csname c_sys_shell_escape_int\endcsname=2\relax
+  \expandafter\IfFileExists\expandafter{\detokenize{nul:}}%
+   {\edef\MintedExecutable{\detokenize{latexmintedwin}}}%
+   {\edef\MintedExecutable{\detokenize{latexminted}}}
 \else
-  \providecommand{\DeleteFile}[2][]{%
-    \ifthenelse{\equal{#1}{}}%
-      {\IfFileExists{#2}{\ShellEscape{rm #2}}{}}%
-      {\IfFileExists{#1/#2}{\ShellEscape{rm #1/#2}}{}}}
+  \edef\MintedExecutable{\detokenize{latexminted}}
 \fi
-\ifwindows
-  \newcommand{\ProvideDirectory}[1]{%
-    \StrSubstitute{#1}{/}{\@backslashchar}[\minted@windir]
-    \ShellEscape{if not exist \minted@windir\space mkdir \minted@windir}}
-\else
-  \newcommand{\ProvideDirectory}[1]{%
-    \ShellEscape{mkdir -p #1}}
-\fi
-\newboolean{AppExists}
-\newread\minted@appexistsfile
-\newcommand{\TestAppExists}[1]{%
-  \ifwindows
-    \DeleteFile{\minted@jobname.aex}%
-    \ShellEscape{for \string^\@percentchar i in (#1.exe #1.bat #1.cmd)
-      do set > \minted@jobname.aex <nul: /p
-      x=\string^\@percentchar \string~$PATH:i>> \minted@jobname.aex}%
-    %$ <- balance syntax highlighting
-    \immediate\openin\minted@appexistsfile\minted@jobname.aex
-    \expandafter\def\expandafter\@tmp@cr\expandafter{\the\endlinechar}%
-    \endlinechar=-1\relax
-    \readline\minted@appexistsfile to \minted@apppathifexists
-    \endlinechar=\@tmp@cr
-    \ifthenelse{\equal{\minted@apppathifexists}{}}%
-     {\AppExistsfalse}%
-     {\AppExiststrue}%
-    \immediate\closein\minted@appexistsfile
-    \DeleteFile{\minted@jobname.aex}%
-  \else
-    \ShellEscape{command -v #1 && touch \minted@jobname.aex}%
-    \IfFileExists{\minted@jobname.aex}%
-      {\AppExiststrue
-        \DeleteFile{\minted@jobname.aex}}%
-      {\AppExistsfalse}%
-  \fi
-}
-\newcommand{\minted@optlistcl@g}{}
-\newcommand{\minted@optlistcl@g@i}{}
-\let\minted@lang\@empty
-\newcommand{\minted@optlistcl@lang}{}
-\newcommand{\minted@optlistcl@lang@i}{}
-\newcommand{\minted@optlistcl@cmd}{}
-\newcommand{\minted@optlistfv@g}{}
-\newcommand{\minted@optlistfv@g@i}{}
-\newcommand{\minted@optlistfv@lang}{}
-\newcommand{\minted@optlistfv@lang@i}{}
-\newcommand{\minted@optlistfv@cmd}{}
-\newcommand{\minted@configlang}[1]{%
-  \def\minted@lang{#1}%
-  \ifcsname minted@optlistcl@lang\minted@lang\endcsname\else
-    \expandafter\gdef\csname minted@optlistcl@lang\minted@lang\endcsname{}%
-  \fi
-  \ifcsname minted@optlistcl@lang\minted@lang @i\endcsname\else
-    \expandafter\gdef\csname minted@optlistcl@lang\minted@lang @i\endcsname{}%
-  \fi
-  \ifcsname minted@optlistfv@lang\minted@lang\endcsname\else
-    \expandafter\gdef\csname minted@optlistfv@lang\minted@lang\endcsname{}%
-  \fi
-  \ifcsname minted@optlistfv@lang\minted@lang @i\endcsname\else
-    \expandafter\gdef\csname minted@optlistfv@lang\minted@lang @i\endcsname{}%
-  \fi
-}
-\ifwindows
-  \newcommand{\minted@optlistcl@quote}[2]{%
-    \detokenize{#1="#2"}}
-\else
-  \newcommand{\minted@optlistcl@quote}[2]{%
-    \detokenize{#1='#2'}}
-\fi
-\newcommand{\minted@addto@optlistcl}[3]{%
-  \expandafter\def\expandafter#1\expandafter{#1%
-    \minted@optlistcl@quote{#2}{#3}\space}}
-\newcommand{\minted@addto@optlistcl@lang}[3]{%
-  \expandafter\let\expandafter\minted@tmp\csname #1\endcsname
-  \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp%
-    \minted@optlistcl@quote{#2}{#3}\space}%
-  \expandafter\let\csname #1\endcsname\minted@tmp}
-\newcommand{\minted@def@optcl}[4][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\define@key{minted@opt@g}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@g}{#3}{#4}%
-        \@namedef{minted@opt@g:#2}{#4}}%
-      \define@key{minted@opt@g@i}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3}{#4}%
-        \@namedef{minted@opt@g@i:#2}{#4}}%
-      \define@key{minted@opt@lang}{#2}{%
-        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
-      \define@key{minted@opt@lang@i}{#2}{%
-        \minted@addto@optlistcl@lang{%
-          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
-      \define@key{minted@opt@cmd}{#2}{%
-        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3}{#4}%
-        \@namedef{minted@opt@cmd:#2}{#4}}}%
-    {\define@key{minted@opt@g}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@g}{#3}{#4}%
-        \@namedef{minted@opt@g:#2}{#4}}%
-      \define@key{minted@opt@g@i}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@g@i}{#3}{#4}%
-        \@namedef{minted@opt@g@i:#2}{#4}}%
-      \define@key{minted@opt@lang}{#2}[#1]{%
-        \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
-      \define@key{minted@opt@lang@i}{#2}[#1]{%
-        \minted@addto@optlistcl@lang{%
-          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
-      \define@key{minted@opt@cmd}{#2}[#1]{%
-        \minted@addto@optlistcl{\minted@optlistcl@cmd}{#3}{#4}%
-        \@namedef{minted@opt@cmd:#2}{#4}}}%
-}
+\edef\minted@executable@minversion{\detokenize{0.1.0}}
+\def\minted@executable@setminversioncomponents{%
+  \expandafter\minted@executable@setminversioncomponents@i
+    \minted@executable@minversion\relax}
 \begingroup
-\catcode`\!=0
-!catcode`!\=12
-!gdef!minted@escape#1{%
-  !expandafter!minted@escape@i!detokenize{#1}\!FV@Sentinel}
-!gdef!minted@escape@i#1\#2!FV@Sentinel{%
-  !if!relax!detokenize{#2}!relax
-    !expandafter!@firstoftwo
-  !else
-    !expandafter!@secondoftwo
-  !fi
-  {#1!minted@escape@end\#2!FV@Sentinel}
-  {#1!minted@escape@esc\#2!FV@Sentinel}}
-!gdef!minted@escape@end#1!FV@Sentinel{}
-!gdef!minted@escape@esc\#1#2!FV@Sentinel{%
-  #1!minted@escape@i#2!FV@Sentinel}
-!endgroup
-\newcommand{\minted@addto@optlistcl@e}[3]{%
-  \edef\minted@tmp{\minted@escape{#3}}%
-  \expandafter\minted@addto@optlistcl@e@i\expandafter{\minted@tmp}{#1}{#2}}
-\def\minted@addto@optlistcl@e@i#1#2#3{%
-  \expandafter\def\expandafter#2\expandafter{#2\minted@optlistcl@quote{#3}{#1}\space}}
-\newcommand{\minted@addto@optlistcl@lang@e}[3]{%
-  \edef\minted@tmp{\minted@escape{#3}}%
-  \expandafter\minted@addto@optlistcl@lang@e@i\expandafter{\minted@tmp}{#1}{#2}}
-\def\minted@addto@optlistcl@lang@e@i#1#2#3{%
-  \expandafter\let\expandafter\minted@tmp\csname #2\endcsname
-  \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp\minted@optlistcl@quote{#3}{#1}\space}%
-  \expandafter\let\csname #2\endcsname\minted@tmp}
-\newcommand{\minted@def@optcl@e}[4][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\define@key{minted@opt@g}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3}{#4}%
-        \@namedef{minted@opt@g:#2}{#4}}%
-      \define@key{minted@opt@g@i}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3}{#4}%
-        \@namedef{minted@opt@g@i:#2}{#4}}%
-      \define@key{minted@opt@lang}{#2}{%
-        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
-      \define@key{minted@opt@lang@i}{#2}{%
-        \minted@addto@optlistcl@lang@e{%
-          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
-      \define@key{minted@opt@cmd}{#2}{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3}{#4}%
-        \@namedef{minted@opt@cmd:#2}{#4}}}%
-    {\define@key{minted@opt@g}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g}{#3}{#4}%
-        \@namedef{minted@opt@g:#2}{#4}}%
-      \define@key{minted@opt@g@i}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@g@i}{#3}{#4}%
-        \@namedef{minted@opt@g@i:#2}{#4}}%
-      \define@key{minted@opt@lang}{#2}[#1]{%
-        \minted@addto@optlistcl@lang@e{minted@optlistcl@lang\minted@lang}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang:#2}{#4}}%
-      \define@key{minted@opt@lang@i}{#2}[#1]{%
-        \minted@addto@optlistcl@lang@e{%
-          minted@optlistcl@lang\minted@lang @i}{#3}{#4}%
-        \@namedef{minted@opt@lang\minted@lang @i:#2}{#4}}%
-      \define@key{minted@opt@cmd}{#2}[#1]{%
-        \minted@addto@optlistcl@e{\minted@optlistcl@cmd}{#3}{#4}%
-        \@namedef{minted@opt@cmd:#2}{#4}}}%
-}
-\newcommand{\minted@def@optcl@switch}[2]{%
-  \define@booleankey{minted@opt@g}{#1}%
-    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2}{True}%
-      \@namedef{minted@opt@g:#1}{true}}
-    {\minted@addto@optlistcl{\minted@optlistcl@g}{#2}{False}%
-      \@namedef{minted@opt@g:#1}{false}}
-  \define@booleankey{minted@opt@g@i}{#1}%
-    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2}{True}%
-      \@namedef{minted@opt@g@i:#1}{true}}
-    {\minted@addto@optlistcl{\minted@optlistcl@g@i}{#2}{False}%
-      \@namedef{minted@opt@g@i:#1}{false}}
-  \define@booleankey{minted@opt@lang}{#1}%
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2}{True}%
-      \@namedef{minted@opt@lang\minted@lang:#1}{true}}
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2}{False}%
-      \@namedef{minted@opt@lang\minted@lang:#1}{false}}
-  \define@booleankey{minted@opt@lang@i}{#1}%
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2}{True}%
-      \@namedef{minted@opt@lang\minted@lang @i:#1}{true}}
-    {\minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang @i}{#2}{False}%
-      \@namedef{minted@opt@lang\minted@lang @i:#1}{false}}
-  \define@booleankey{minted@opt@cmd}{#1}%
-      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2}{True}%
-        \@namedef{minted@opt@cmd:#1}{true}}
-      {\minted@addto@optlistcl{\minted@optlistcl@cmd}{#2}{False}%
-        \@namedef{minted@opt@cmd:#1}{false}}
-}
-\newcommand{\minted@def@optfv}[1]{%
-  \define@key{minted@opt@g}{#1}{%
-    \expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1={##1},}%
-    \@namedef{minted@opt@g:#1}{##1}}
-  \define@key{minted@opt@g@i}{#1}{%
-    \expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1={##1},}%
-    \@namedef{minted@opt@g@i:#1}{##1}}
-  \define@key{minted@opt@lang}{#1}{%
-    \expandafter\let\expandafter\minted@tmp%
-      \csname minted@optlistfv@lang\minted@lang\endcsname
-    \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1={##1},}%
-    \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-      \minted@tmp
-    \@namedef{minted@opt@lang\minted@lang:#1}{##1}}
-  \define@key{minted@opt@lang@i}{#1}{%
-    \expandafter\let\expandafter\minted@tmp%
-      \csname minted@optlistfv@lang\minted@lang @i\endcsname
-    \expandafter\def\expandafter\minted@tmp\expandafter{%
-      \minted@tmp#1={##1},}%
-    \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-      \minted@tmp
-    \@namedef{minted@opt@lang\minted@lang @i:#1}{##1}}
-  \define@key{minted@opt@cmd}{#1}{%
-    \expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1={##1},}%
-    \@namedef{minted@opt@cmd:#1}{##1}}
-}
-\newcommand{\minted@def@optfv@switch}[1]{%
-  \define@booleankey{minted@opt@g}{#1}%
-    {\expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=true,}%
-     \@namedef{minted@opt@g:#1}{true}}%
-    {\expandafter\def\expandafter\minted@optlistfv@g\expandafter{%
-      \minted@optlistfv@g#1=false,}%
-     \@namedef{minted@opt@g:#1}{false}}%
-  \define@booleankey{minted@opt@g@i}{#1}%
-    {\expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=true,}%
-     \@namedef{minted@opt@g@i:#1}{true}}%
-    {\expandafter\def\expandafter\minted@optlistfv@g@i\expandafter{%
-      \minted@optlistfv@g@i#1=false,}%
-     \@namedef{minted@opt@g@i:#1}{false}}%
-  \define@booleankey{minted@opt@lang}{#1}%
-    {\expandafter\let\expandafter\minted@tmp%
-        \csname minted@optlistfv@lang\minted@lang\endcsname
-      \expandafter\def\expandafter\minted@tmp\expandafter{%
-        \minted@tmp#1=true,}%
-      \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-        \minted@tmp
-     \@namedef{minted@opt@lang\minted@lang:#1}{true}}%
-    {\expandafter\let\expandafter\minted@tmp%
-        \csname minted@optlistfv@lang\minted@lang\endcsname
-      \expandafter\def\expandafter\minted@tmp\expandafter{%
-        \minted@tmp#1=false,}%
-      \expandafter\let\csname minted@optlistfv@lang\minted@lang\endcsname%
-        \minted@tmp
-     \@namedef{minted@opt@lang\minted@lang:#1}{false}}%
-  \define@booleankey{minted@opt@lang@i}{#1}%
-    {\expandafter\let\expandafter\minted@tmp%
-        \csname minted@optlistfv@lang\minted@lang @i\endcsname
-      \expandafter\def\expandafter\minted@tmp\expandafter{%
-        \minted@tmp#1=true,}%
-      \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-        \minted@tmp
-     \@namedef{minted@opt@lang\minted@lang @i:#1}{true}}%
-    {\expandafter\let\expandafter\minted@tmp%
-        \csname minted@optlistfv@lang\minted@lang @i\endcsname
-      \expandafter\def\expandafter\minted@tmp\expandafter{%
-        \minted@tmp#1=false,}%
-      \expandafter\let\csname minted@optlistfv@lang\minted@lang @i\endcsname%
-        \minted@tmp
-     \@namedef{minted@opt@lang\minted@lang @i:#1}{false}}%
-  \define@booleankey{minted@opt@cmd}{#1}%
-    {\expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=true,}%
-     \@namedef{minted@opt@cmd:#1}{true}}%
-    {\expandafter\def\expandafter\minted@optlistfv@cmd\expandafter{%
-      \minted@optlistfv@cmd#1=false,}%
-     \@namedef{minted@opt@cmd:#1}{false}}%
-}
-\newboolean{minted@isinline}
-\newcommand{\minted@fvset}{%
-  \expandafter\fvset\expandafter{\minted@optlistfv@g}%
-  \expandafter\let\expandafter\minted@tmp%
-    \csname minted@optlistfv@lang\minted@lang\endcsname
-  \expandafter\fvset\expandafter{\minted@tmp}%
-  \ifthenelse{\boolean{minted@isinline}}%
-   {\expandafter\fvset\expandafter{\minted@optlistfv@g@i}%
-    \expandafter\let\expandafter\minted@tmp%
-      \csname minted@optlistfv@lang\minted@lang @i\endcsname
-    \expandafter\fvset\expandafter{\minted@tmp}}%
-   {}%
-  \expandafter\fvset\expandafter{\minted@optlistfv@cmd}%
-}
-\newcommand{\minted@def@opt}[2][]{%
-  \define@key{minted@opt@g}{#2}{%
-    \@namedef{minted@opt@g:#2}{##1}}
-  \define@key{minted@opt@g@i}{#2}{%
-    \@namedef{minted@opt@g@i:#2}{##1}}
-  \define@key{minted@opt@lang}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang:#2}{##1}}
-  \define@key{minted@opt@lang@i}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang @i:#2}{##1}}
-  \define@key{minted@opt@cmd}{#2}{%
-    \@namedef{minted@opt@cmd:#2}{##1}}
-  \ifstrempty{#1}{}{\@namedef{minted@opt@g:#2}{#1}}%
-}
-\newcommand{\minted@def@opt@detok}[2][]{%
-  \define@key{minted@opt@g}{#2}{%
-    \@namedef{minted@opt@g:#2}{\detokenize{##1}}}
-  \define@key{minted@opt@g@i}{#2}{%
-    \@namedef{minted@opt@g@i:#2}{\detokenize{##1}}}
-  \define@key{minted@opt@lang}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang:#2}{\detokenize{##1}}}
-  \define@key{minted@opt@lang@i}{#2}{%
-    \@namedef{minted@opt@lang\minted@lang @i:#2}{\detokenize{##1}}}
-  \define@key{minted@opt@cmd}{#2}{%
-    \@namedef{minted@opt@cmd:#2}{\detokenize{##1}}}
-  \ifstrempty{#1}{}{\@namedef{minted@opt@g:#2}{\detokenize{#1}}}%
-}
-\newcommand{\minted@generate@PYGdef}[1]{%
-  \ifthenelse{\boolean{minted@cache}}%
-   {\def\minted@pygstylepath@load{\minted@outputdir\minted@cachedir/#1.pygstyle}%
-    \minted@addcachefile{#1.pygstyle}}%
-   {\def\minted@pygstylepath@load{\minted@outputdir\minted@jobname.out.pyg}}%
-  \ifwindows
-    \StrSubstitute{\minted@pygstylepath@load}%
-      {/}{\@backslashchar}[\minted@pygstylepath@save]%
-  \else
-    \let\minted@pygstylepath@save\minted@pygstylepath@load
-  \fi
-  \IfFileExists{\minted@pygstylepath@load}%
-   {}%
-   {\ifthenelse{\boolean{minted@frozencache}}%
-     {\PackageError{minted}%
-       {Missing style definition for #1 with frozencache}%
-       {Missing style definition for #1 with frozencache}}%
-     {}%
-    \ShellEscape{%
-      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG
-      > \minted@pygstylepath@save
-    }%
-   }%
-  \CatchFileDef{\minted@tmp@filecontents}%
-   {\minted@pygstylepath@load}{\catcode`@=11\catcode`\%=14\catcode``=12\endlinechar=-1}%
+\catcode`\.=12
+\gdef\minted@executable@setminversioncomponents@i#1.#2.#3\relax{%
+  \def\minted@executable@minmajor{#1}%
+  \def\minted@executable@minminor{#2}%
+  \def\minted@executable@minpatch{#3}}
+\endgroup
+\minted@executable@setminversioncomponents
+\let\minted@executable@version\relax
+\newbool{minted@executable@exists}
+\newbool{minted@executable@issupported}
+\begingroup
+\catcode`\-=12
+\catcode`\:=12
+\def\minted@creationdatetotimestamp#1{%
+  \expandafter\minted@creationdatetotimestamp@i#1\relax}
+\def\minted@creationdatetotimestamp@i#1:#2-#3\relax{%
+  #2}
+\expandafter\ifx\csname pdftexversion\endcsname\relax
+\else
+  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdfcreationdate}}
+\fi
+\expandafter\ifx\csname directlua\endcsname\relax
+\else
+  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdffeedback creationdate}}
+\fi
+\endgroup
+\ifcsname minted@timestamp\endcsname
+\else
   \begingroup
-  \let\PYG\relax
-  \minted@tmp@filecontents
-  \ifx\PYG\relax
-    \ifthenelse{\boolean{minted@frozencache}}%
-     {\PackageError{minted}%
-       {Outdated style definition for #1 with frozencache}%
-       {Outdated style definition for #1 with frozencache}}%
-     {}%
-    \ShellEscape{%
-      \MintedPygmentize\space -S #1 -f latex -P commandprefix=PYG
-      > \minted@pygstylepath@save
-    }%
-    \CatchFileDef{\minted@tmp@filecontents}%
-     {\minted@pygstylepath@load}{\catcode`@=11\catcode`\%=14\catcode``=12\endlinechar=-1}%
-    \minted@tmp@filecontents
-    \ifx\PYG\relax
-      \PackageError{minted}%
-       {Cannot find Pygments style #1}%
-       {Cannot find Pygments style #1}%
-    \fi
-  \fi
-  \expandafter\global\expandafter\let\csname minted@PYGdef@#1\endcsname%
-    \minted@tmp@filecontents
+  \newcounter{minted@timestamp@hr}
+  \newcounter{minted@timestamp@min}
+  \setcounter{minted@timestamp@min}{\number\time}
+  \loop\unless\ifnum\value{minted@timestamp@min}<60\relax
+    \addtocounter{minted@timestamp@hr}{1}
+    \addtocounter{minted@timestamp@min}{-60}
+  \repeat
+  \xdef\minted@timestamp{%
+    \the\year
+    \ifnum\month<10 0\fi\the\month
+    \ifnum\day<10 0\fi\the\day
+    \ifnum\value{minted@timestamp@hr}<10 0\fi\theminted@timestamp@hr
+    \ifnum\value{minted@timestamp@min}<10 0\fi\theminted@timestamp@min}
   \endgroup
-}
-\newcommand{\minted@defstyle}[1]{%
-  \edef\minted@style{#1}%
-  \ifcsname minted@PYGdef@\minted@style\endcsname\else
-    \expandafter\minted@generate@PYGdef\expandafter{\minted@style}%
+\fi
+\begingroup
+\catcode`\"=12
+\catcode`\'=12
+\gdef\minted@setjobnamemdfive#1#2\FV@Sentinel{%
+  \ifx#1"\relax
+    \let\minted@next\minted@setjobnamemdfive@dquoted
+  \else\ifx#1'\relax
+    \let\minted@next\minted@setjobnamemdfive@squoted
+  \else
+    \let\minted@next\minted@setjobnamemdfive@uquoted
+  \fi\fi
+  \minted@next#1#2\FV@Sentinel}
+\gdef\minted@setjobnamemdfive@dquoted#1#2\FV@Sentinel{%
+  \minted@setjobnamemdfive@dquoted@i#2"\FV@Sentinel}
+\gdef\minted@setjobnamemdfive@dquoted@i#1"#2\FV@Sentinel{%
+  \if\relax\detokenize{#2}\relax
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+  \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+  \else
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+  \fi\fi}
+\gdef\minted@setjobnamemdfive@squoted#1#2\FV@Sentinel{%
+  \minted@setjobnamemdfive@squoted@i#2'\FV@Sentinel}
+\gdef\minted@setjobnamemdfive@squoted@i#1'#2\FV@Sentinel{%
+  \if\relax\detokenize{#2}\relax
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+  \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+  \else
+    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+  \fi\fi}
+\gdef\minted@setjobnamemdfive@uquoted#1\FV@Sentinel{%
+  \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}}
+\endgroup
+\expandafter\minted@setjobnamemdfive\jobname\FV@Sentinel
+\edef\MintedCacheIndexFilename{%
+  \detokenize{_}\MintedJobnameMdfive\detokenize{.index.minted}}
+\edef\MintedConfigFilename{%
+  \detokenize{_}\MintedJobnameMdfive\detokenize{.config.minted}}
+\edef\MintedDataFilename{%
+  \detokenize{_}\MintedJobnameMdfive\detokenize{.data.minted}}
+\edef\MintedErrlogFilename{%
+  \detokenize{_}\MintedJobnameMdfive\detokenize{.errlog.minted}}
+\edef\MintedMessageFilename{%
+  \detokenize{_}\MintedJobnameMdfive\detokenize{.message.minted}}
+\def\minted@two@fallback{%
+  \global\let\minted@executable@version\relax
+  \global\let\minted@config@timestamp\relax
+  \global\let\minted@config@cachepath\relax
+  \pydatasetfilename{\MintedDataFilename}%
+  \pydatawritedictopen
+  \pydatawritekeyvalue{command}{config}%
+  \pydatawritekeyedefvalue{jobname}{\jobname}%
+  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
+  \pydatawritekeyvalue{cachedir}{}%
+  \pydatawritedictclose
+  \pydataclosefilename{\MintedDataFilename}%
+  \ShellEscape{%
+    \MintedExecutable
+    \detokenize{ config --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}%
+  \InputIfFileExists{\MintedConfigFilename}{}{}%
+  \ifx\minted@executable@version\relax
+    \expandafter\minted@two@fallback@noexecutable
+  \else
+    \expandafter\minted@two@fallback@i
+  \fi}
+\def\minted@two@fallback@noexecutable{%
+  \minted@warning{minted v3+ Python executable is not installed or is not added to PATH;
+    falling back to minted v2 (install executable, or switch to package minted2)}%
+  \expandafter\let\expandafter\minted@two@opt\csname opt@minted.sty\endcsname
+  \expandafter\let\csname ver@minted.sty\endcsname\relax
+  \expandafter\RequirePackage\expandafter[\minted@two@opt]{minted2}%
+  \DeleteFile[\minted@outputdir]{\MintedDataFilename}%
+  \endinput}
+\def\minted@two@fallback@i{%
+  \ifx\minted@timestamp\minted@config@timestamp
+    \global\let\minted@executable@version\relax
+    \global\let\minted@executable@timestamp\relax
+    \global\let\minted@config@timestamp\relax
+    \global\let\minted@config@cachepath\relax
+    \ShellEscape{\MintedExecutable\detokenize{ delete }\MintedDataFilename}%
+    \ShellEscape{\MintedExecutable\detokenize{ delete }\MintedConfigFilename}%
+  \else
+    \expandafter\minted@two@fallback@wrongtimestamp
+  \fi}
+\def\minted@two@fallback@wrongtimestamp{%
+  \ifx\minted@timestamp\minted@executable@timestamp
+    \minted@warning{minted v3+ Python executable could not find output directory;
+      falling back to minted v2 (upgrade to TeX distribution that supports
+      \detokenize{TEXMF_OUTPUT_DIRECTORY}, set environement variable
+      \detokenize{TEXMF_OUTPUT_DIRECTORY} manually, or switch to package minted2)}%
+  \else
+    \minted@warning{minted v3+ Python executable is not installed or is not added to PATH;
+    falling back to minted v2 (install executable, or switch to package minted2)}%
   \fi
-  \csname minted@PYGdef@\minted@style\endcsname
-  \minted@patch@PYGZsq
-  \minted@patch@PYGZhy
-  \ifthenelse{\equal{\minted@get@opt{ignorelexererrors}{true}}{true}}%
-   {\let\PYG@tok@err\relax}{}}
-\ifthenelse{\boolean{minted@draft}}{\renewcommand{\minted@defstyle}[1]{}}{}
-\newcommand{\minted@patch@PYGZsq}{%
-  \ifcsname PYGZsq\endcsname
-    \expandafter\ifdefstring\expandafter{\csname PYGZsq\endcsname}{\char`\'}%
-     {\minted@patch@PYGZsq@i}%
-     {}%
-  \fi
+  \global\let\minted@executable@version\relax
+  \global\let\minted@executable@timestamp\relax
+  \global\let\minted@config@timestamp\relax
+  \global\let\minted@config@cachepath\relax
+  \expandafter\let\expandafter\minted@two@opt\csname opt@minted.sty\endcsname
+  \expandafter\let\csname ver@minted.sty\endcsname\relax
+  \expandafter\RequirePackage\expandafter[\minted@two@opt]{minted2}%
+  \DeleteFile[]{\MintedConfigFilename}%
+  \endinput}
+\ifnum\csname c_sys_shell_escape_int\endcsname=1\relax
+  \expandafter\minted@two@fallback
+\fi
+\def\minted@pgfopts#1{%
+  \pgfkeys{/minted/pkg/.cd,#1}}
+\minted@pgfopts{
+  chapter/.code=\def\minted@float@within{chapter},
+  chapter/.value forbidden,
+  section/.code=\def\minted@float@within{section},
+  section/.value forbidden,
 }
+\newbool{minted@newfloat}
+\minted@pgfopts{
+  newfloat/.is if=minted@newfloat,
+}
+\newbool{minted@cache}
+\booltrue{minted@cache}
+\minted@pgfopts{
+  cache/.is if=minted@cache,
+}
+\edef\minted@cachedir{\detokenize{_minted}}
+\minted@pgfopts{
+  cachedir/.estore in=\minted@cachedir,
+}
+\newbool{minted@frozencache}
+\minted@pgfopts{
+  frozencache/.is if=minted@frozencache,
+}
+\newbool{minted@lexerlinenos}
+\minted@pgfopts{
+  lexerlinenos/.is if=minted@lexerlinenos,
+  langlinenos/.is if=minted@lexerlinenos,
+}
+\newbool{minted@inputlexerlinenos}
+\minted@pgfopts{
+  inputlexerlinenos/.is if=minted@inputlexerlinenos,
+  inputlanglinenos/.is if=minted@inputlexerlinenos,
+}
+\newbool{minted@placeholder}
+\minted@pgfopts{
+  placeholder/.is if=minted@placeholder,
+}
+\gdef\minted@insertplaceholder{%
+  \ifbool{minted@isinline}%
+   {\begingroup
+    \fvset{extra=true}\Verb[formatcom=\color{red}\bfseries]{<MINTED>}%
+    \endgroup}%
+   {\begingroup
+    \par\noindent
+    \fvset{extra=true}\Verb[formatcom=\color{red}\bfseries]{<MINTED>}%
+    \par
+    \endgroup}}%
+\newbool{minted@verbatim}
+\minted@pgfopts{
+  verbatim/.is if=minted@verbatim,
+}
+\newbool{minted@fasthighlightmode}
+\newbool{minted@fasthighlightmode@open}
+\minted@pgfopts{
+  highlightmode/.is choice,
+  highlightmode/fast/.code=
+    \let\minted@highlightmode@init\minted@highlightmode@init@fast,
+  highlightmode/fastfirst/.code=
+    \let\minted@highlightmode@init\minted@highlightmode@init@fastfirst,
+  highlightmode/immediate/.code=
+    \let\minted@highlightmode@init\minted@highlightmode@init@immediate,
+}
+\def\minted@highlightmode@init@fast{%
+  \global\booltrue{minted@fasthighlightmode}}
+\def\minted@highlightmode@init@fastfirst{%
+  \IfFileExists{\minted@cachepath\MintedCacheIndexFilename}%
+   {\global\boolfalse{minted@fasthighlightmode}}
+   {\global\booltrue{minted@fasthighlightmode}}}
+\def\minted@highlightmode@init@immediate{%
+  \global\boolfalse{minted@fasthighlightmode}}
+\let\minted@highlightmode@init\minted@highlightmode@init@fastfirst
+\def\minted@fasthighlightmode@checkstart{%
+  \ifbool{minted@fasthighlightmode}%
+   {\pydatawritelistopen
+    \global\booltrue{minted@fasthighlightmode@open}}%
+   {}%
+  \global\let\minted@fasthighlightmode@checkstart\relax}
+\def\minted@fasthighlightmode@checkend{%
+  \ifbool{minted@fasthighlightmode@open}%
+   {\pydatasetfilename{\MintedDataFilename}%
+    \pydatawritelistclose
+    \pydataclosefilename{\MintedDataFilename}%
+    \global\boolfalse{minted@fasthighlightmode@open}%
+    \global\boolfalse{minted@fasthighlightmode}%
+    \begingroup
+    \minted@exec@batch
+    \ifx\minted@exec@warning\relax
+    \else
+      \expandafter\minted@exec@warning
+    \fi
+    \ifx\minted@exec@error\relax
+    \else
+      \expandafter\minted@exec@error
+    \fi
+    \endgroup
+    \global\boolfalse{minted@canexec}}%
+   {}%
+  \global\let\minted@fasthighlightmode@checkend\relax}
+\minted@pgfopts{
+  finalizecache/.code=\minted@error{%
+    Package option "finalizecache" is no longer needed with minted v3+},
+}
+\minted@pgfopts{
+  kpsewhich/.code=\minted@error{%
+    Package option "kpsewhich" is no longer needed with minted v3+},
+}
+\minted@pgfopts{
+  outputdir/.code=\minted@error{%
+    Package option "outputdir" is no longer needed with minted v3+;
+    the output directory is automatically detected for TeX Live 2024+,
+    and the environment variable \detokenize{TEXMF_OUTPUT_DIRECTORY}
+    can be set manually in other cases},
+}
+\minted@pgfopts{
+  draft/.code=\minted@warning{%
+    Package option "draft" no longer has any effect with minted v3+},
+}
+\minted@pgfopts{
+  final/.code=\minted@warning{%
+    Package option "final" no longer has any effect with minted v3+},
+}
+\ProcessPgfOptions{/minted/pkg}
+\ifbool{minted@cache}{}{\def\minted@cachedir{}}%
+\ifbool{minted@newfloat}{\RequirePackage{newfloat}}{\RequirePackage{float}}
+\ifcsname tikzifexternalizing\endcsname
+  \ifx\tikzifexternalizing\relax
+  \else
+    \tikzifexternalizing{\booltrue{minted@placeholder}}{}
+  \fi
+\fi
+\def\minted@styleprefix{PYG}
+\newcounter{minted@tmpcnt}
+\def\minted@forcsvlist#1#2{%
+  \if\relax\detokenize\expandafter{\@gobble#2}\relax
+    \expandafter\minted@forcsvlist@exp
+  \else
+    \expandafter\minted@forcsvlist@i
+  \fi
+  {#2}{#1}}
+\def\minted@forcsvlist@exp#1#2{%
+  \expandafter\minted@forcsvlist@i\expandafter{#1}{#2}}
+\def\minted@forcsvlist@i#1#2{%
+  \forcsvlist{#2}{#1}}
+\def\minted@apptoprovidecs#1#2{%
+  \ifcsname#1\endcsname
+  \else
+    \expandafter\def\csname#1\endcsname{}%
+  \fi
+  \expandafter\let\expandafter\minted@tmp\csname#1\endcsname
+  \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp#2}%
+  \expandafter\let\csname#1\endcsname\minted@tmp}
+\def\minted@const@pgfkeysnovalue{\pgfkeysnovalue}
+\def\minted@ensureatletter#1{%
+  \edef\minted@tmpatcat{\the\catcode`\@}%
+  \catcode`\@=11\relax
+  #1%
+  \catcode`\@=\minted@tmpatcat\relax}
+\setcounter{minted@tmpcnt}{48}
+\loop\unless\ifnum\value{minted@tmpcnt}>57\relax
+  \expandafter\let\csname minted@isnum\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let
+    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
+  \stepcounter{minted@tmpcnt}
+\repeat
+\setcounter{minted@tmpcnt}{65}
+\loop\unless\ifnum\value{minted@tmpcnt}>90\relax
+  \expandafter\let\csname minted@isalpha\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let
+    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
+  \stepcounter{minted@tmpcnt}
+\repeat
+\setcounter{minted@tmpcnt}{97}
+\loop\unless\ifnum\value{minted@tmpcnt}>122\relax
+  \expandafter\let\csname minted@isalpha\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+  \expandafter\let
+    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
+  \stepcounter{minted@tmpcnt}
+\repeat
+\expandafter\let\csname minted@isalphanumhyphenunderscore45\endcsname\relax
+\expandafter\let\csname minted@isalphanumhyphenunderscore95\endcsname\relax
+\def\minted@ifalphanumhyphenunderscore#1#2#3{%
+  \if\relax\detokenize{#1}\relax
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {#3}%
+  {\expandafter\minted@ifalphanumhyphenunderscore@i\detokenize{#1}\FV@Sentinel{#2}{#3}}}
+\def\minted@ifalphanumhyphenunderscore@i#1#2\FV@Sentinel{%
+  \if\relax#2\relax
+    \expandafter\minted@ifalphanumhyphenunderscore@iii
+  \else
+    \expandafter\minted@ifalphanumhyphenunderscore@ii
+  \fi
+  #1#2\FV@Sentinel}
+\def\minted@ifalphanumhyphenunderscore@ii#1#2\FV@Sentinel{%
+  \ifcsname minted@isalphanumhyphenunderscore\number`#1\endcsname
+    \expandafter\minted@ifalphanumhyphenunderscore@i
+  \else
+    \expandafter\minted@ifalphanumhyphenunderscore@false
+  \fi
+  #2\FV@Sentinel}
+\def\minted@ifalphanumhyphenunderscore@iii#1\FV@Sentinel{%
+  \ifcsname minted@isalphanumhyphenunderscore\number`#1\endcsname
+    \expandafter\minted@ifalphanumhyphenunderscore@true
+  \else
+    \expandafter\minted@ifalphanumhyphenunderscore@false
+  \fi
+  \FV@Sentinel}
+\def\minted@ifalphanumhyphenunderscore@true\FV@Sentinel#1#2{#1}
+\def\minted@ifalphanumhyphenunderscore@false#1\FV@Sentinel#2#3{#3}
+\let\minted@lexer\@empty
+\newbool{minted@isinline}
+\newcounter{minted@tmpcodebufferlength}
+\newbool{minted@canexec}
+\booltrue{minted@canexec}
+\ifnum\csname c_sys_shell_escape_int\endcsname=0\relax
+  \boolfalse{minted@canexec}
+\fi
+\ifbool{minted@frozencache}{\boolfalse{minted@canexec}}{}
+\ifbool{minted@placeholder}{\boolfalse{minted@canexec}}{}
+\ifbool{minted@verbatim}{\boolfalse{minted@canexec}}{}
+\def\minted@ShellEscapeMaybeMessages#1{%
+  \let\minted@exec@warning\relax
+  \let\minted@exec@error\relax
+  \ifbool{minted@canexec}{\ShellEscape{#1}\minted@inputexecmessages}{}}
+\def\minted@ShellEscapeNoMessages#1{%
+  \ifbool{minted@canexec}{\ShellEscape{#1}}{}}
+\def\minted@exec@delete#1{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable\detokenize{ delete }#1}}
+\def\minted@inputexecmessages{%
+  \minted@ensureatletter{\InputIfFileExists{\MintedMessageFilename}{}{}}}
+\def\minted@exec@batch{%
+  \minted@ShellEscapeMaybeMessages{%
+    \MintedExecutable
+    \detokenize{ batch --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}}
+\def\minted@exec@config{%
+  \minted@ShellEscapeMaybeMessages{%
+    \MintedExecutable
+    \detokenize{ config --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}}
+\gdef\minted@exec@styledef{%
+  \minted@ShellEscapeMaybeMessages{%
+    \MintedExecutable
+    \detokenize{ styledef --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}}
+\def\minted@exec@highlight{%
+  \minted@ShellEscapeMaybeMessages{%
+    \MintedExecutable
+    \detokenize{ highlight --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}}
+\def\minted@exec@clean{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable
+    \detokenize{ clean --timestamp }\minted@timestamp\detokenize{ }%
+    \MintedJobnameMdfive}}
+\newbool{minted@diddetectconfig}
+\def\minted@detectconfig{%
+  \ifbool{minted@diddetectconfig}%
+   {}%
+   {\ifbool{minted@canexec}{\begingroup\minted@detectconfig@i\endgroup}{}%
+    \global\booltrue{minted@diddetectconfig}}}
+\def\minted@detectconfig@i{%
+  \ifx\minted@cachedir\@empty
+    \gdef\minted@cachepath{}%
+  \else
+    \gdef\minted@cachepath{\minted@cachedir/}%
+  \fi
+  \global\let\minted@executable@version\relax
+  \global\let\minted@executable@timestamp\relax
+  \global\let\minted@config@timestamp\relax
+  \pydatasetfilename{\MintedDataFilename}%
+  \pydatawritedictopen
+  \pydatawritekeyvalue{command}{config}%
+  \pydatawritekeyedefvalue{jobname}{\jobname}%
+  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
+  \pydatawritekeyedefvalue{cachedir}{\minted@cachedir}%
+  \pydatawritedictclose
+  \pydataclosefilename{\MintedDataFilename}%
+  \minted@exec@config
+  \minted@ensureatletter{%
+    \InputIfFileExists{\MintedConfigFilename}{}{}}%
+  \ifx\minted@executable@version\relax
+    \expandafter\minted@detectconfig@noexecutable
+  \else
+    \expandafter\minted@detectconfig@ii
+  \fi}
+\def\minted@detectconfig@noexecutable{%
+  \global\boolfalse{minted@canexec}%
+  \ifnum\csname c_sys_shell_escape_int\endcsname=1\relax
+    \minted@error{minted v3+ executable is not installed or is not added to PATH}%
+  \else
+    \minted@error{minted v3+ executable is not installed, is not added to PATH,
+      or is not permitted with restricted shell escape}%
+  \fi}
+\def\minted@detectconfig@ii{%
+  \ifx\minted@timestamp\minted@config@timestamp
+    \expandafter\minted@detectconfig@iii
+  \else
+    \expandafter\minted@detectconfig@wrongtimestamp
+  \fi}
+\def\minted@detectconfig@wrongtimestamp{%
+  \ifx\minted@timestamp\minted@executable@timestamp
+    \minted@exec@delete{\MintedConfigFilename}%
+    \global\boolfalse{minted@canexec}%
+    \minted@error{minted v3 Python executable could not find output directory;
+      upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
+      or set environment variable \detokenize{TEXMF_OUTPUT_DIRECTORY} manually)}%
+  \else
+    \expandafter\minted@detectconfig@noexecutable
+  \fi}
+\def\minted@detectconfig@iii{%
+  \minted@exec@delete{\MintedConfigFilename}%
+  \ifx\minted@exec@warning\relax
+  \else
+    \expandafter\minted@exec@warning
+  \fi
+  \ifx\minted@exec@error\relax
+    \expandafter\minted@detectconfig@iv
+  \else
+    \expandafter\minted@detectconfig@error
+  \fi}
+\def\minted@detectconfig@error{%
+  \global\boolfalse{minted@canexec}%
+  \minted@exec@error}
+\def\minted@detectconfig@iv{%
+  \expandafter\minted@detectconfig@v\minted@executable@version\relax}
+\begingroup
+\catcode`\.=12
+\gdef\minted@detectconfig@v#1.#2.#3\relax{%
+  \def\minted@executable@major{#1}%
+  \def\minted@executable@minor{#2}%
+  \def\minted@executable@patch{#3}%
+  \minted@detectconfig@vi}
+\endgroup
+\def\minted@detectconfig@vi{%
+  \ifnum\minted@executable@major>\minted@executable@minmajor\relax
+    \global\booltrue{minted@executable@issupported}%
+  \else\ifnum\minted@executable@major=\minted@executable@minmajor\relax
+    \ifnum\minted@executable@minor>\minted@executable@minminor\relax
+      \global\booltrue{minted@executable@issupported}%
+    \else\ifnum\minted@executable@minor=\minted@executable@minminor\relax
+      \ifnum\minted@executable@patch<\minted@executable@minpatch\relax
+      \else
+        \global\booltrue{minted@executable@issupported}%
+      \fi
+    \fi\fi
+  \fi\fi
+  \ifbool{minted@executable@issupported}%
+   {\ifx\minted@config@cachepath\relax
+      \expandafter\@firstoftwo
+    \else
+      \expandafter\@secondoftwo
+    \fi
+    {\global\boolfalse{minted@canexec}%
+      \minted@error{minted Python executable returned incomplete configuration data;
+        this may indicate a bug in minted or file corruption}}%
+    {\global\let\minted@cachepath\minted@config@cachepath
+     \minted@highlightmode@init}}%
+   {\global\boolfalse{minted@canexec}%
+    \minted@error{minted Python executable is version \minted@executable@version,
+      but version \minted@executable@minversion+ is required}}}
+\begingroup
+\catcode`\,=12
+\gdef\minted@optcats{fv,py,tex}
+\endgroup
+\def\minted@do#1{\expandafter\def\csname minted@optkeyslist@#1\endcsname{}}
+\minted@forcsvlist{\minted@do}{\minted@optcats}
+\begingroup
+\catcode`\,=12
+\gdef\minted@optscopes{global,lexer,globalinline,lexerinline,cmd}
+\gdef\minted@optscopes@onlyblock{global,lexer,cmd}
+\endgroup
+\let\minted@iflexerscope@lexer\relax
+\let\minted@iflexerscope@lexerinline\relax
+\def\minted@iflexerscope#1#2#3{%
+  \ifcsname minted@iflexerscope@#1\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {#2}{#3}}
+\def\minted@addoptkey#1#2{%
+  \ifcsname minted@optkeyslist@#1\endcsname
+  \else
+    \minted@fatalerror{Defining options under category "#1" is not supported}%
+  \fi
+  \expandafter\let\expandafter\minted@tmp\csname minted@optkeyslist@#1\endcsname
+  \ifx\minted@tmp\@empty
+    \def\minted@tmp{#2}%
+  \else
+    \expandafter\def\expandafter\minted@tmp\expandafter{\minted@tmp,#2}%
+  \fi
+  \expandafter\let\csname minted@optkeyslist@#1\endcsname\minted@tmp}
+\newcommand*{\mintedpgfkeyscreate}[3][]{%
+  \mintedpgfkeyscreate@i{#1}{#2}{#3}}
+\begingroup
+\catcode`\==12
+\gdef\mintedpgfkeyscreate@i#1#2#3{%
+  \def\minted@do##1{%
+    \minted@do@i##1=\FV@Sentinel}%
+  \def\minted@do@i##1=##2\FV@Sentinel{%
+    \minted@do@ii##1<>\FV@Sentinel}%
+  \def\minted@do@ii##1<##2>##3\FV@Sentinel{%
+    \minted@addoptkey{#2}{##1}}%
+  \minted@forcsvlist{\minted@do}{#3}%
+  \csname minted@pgfkeyscreate@#2\endcsname{#1}{#3}}
+\endgroup
+\def\minted@pgfkeyscreate@fv#1#2{%
+  \if\relax\detokenize{#1}\relax
+  \else
+    \minted@fatalerror{Processor macros are not supported in defining fancyvrb options}%
+  \fi
+  \minted@forcsvlist{\minted@pgfkeycreate@fv}{#2}}
+\begingroup
+\catcode`\==12
+\gdef\minted@pgfkeycreate@fv#1{%
+  \minted@pgfkeycreate@fv@i#1=\FV@Sentinel}
+\gdef\minted@pgfkeycreate@fv@i#1=#2\FV@Sentinel{%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\minted@pgfkeycreate@fv@ii
+  \else
+    \expandafter\minted@pgfkeycreate@fv@iii
+  \fi
+  {#1}#2\FV@Sentinel}
+\gdef\minted@pgfkeycreate@fv@ii#1\FV@Sentinel{%
+  \minted@pgfkeycreate@fv@iv{#1}{\minted@const@pgfkeysnovalue}}
+\gdef\minted@pgfkeycreate@fv@iii#1#2=\FV@Sentinel{%
+  \minted@pgfkeycreate@fv@iv{#1}{#2}}
+\endgroup
+\def\minted@pgfkeycreate@fv@iv#1#2{%
+  \def\minted@do##1{%
+    \minted@iflexerscope{##1}%
+     {\minted@do@i{##1}{@\minted@lexer}}%
+     {\minted@do@i{##1}{}}}%
+  \def\minted@do@i##1##2{%
+    \pgfkeys{%
+      /minted/##1/.cd,
+      #1/.code=
+        \def\minted@tmp{####1}%
+        \ifx\minted@tmp\minted@const@pgfkeysnovalue
+          \begingroup\fvset{#1}\endgroup
+          \minted@apptoprovidecs{minted@fvoptlist@##1##2}{#1,}%
+        \else
+          \begingroup\fvset{#1=####1}\endgroup
+          \minted@apptoprovidecs{minted@fvoptlist@##1##2}{#1=####1,}%
+        \fi,
+    }%
+  }%
+  \minted@forcsvlist{\minted@do}{\minted@optscopes}%
+  \ifx\minted@const@pgfkeysnovalue#2\relax
+  \else
+    \pgfkeys{%
+      /minted/global/.cd,
+      #1=#2,
+    }%
+  \fi}
+\def\minted@usefvopts{%
+  \ifbool{minted@isinline}%
+   {\minted@forcsvlist{\minted@usefvopts@do}{\minted@optscopes}}%
+   {\minted@forcsvlist{\minted@usefvopts@do}{\minted@optscopes@onlyblock}}}
+\def\minted@usefvopts@do#1{%
+  \minted@iflexerscope{#1}%
+   {\ifcsname minted@fvoptlist@#1@\minted@lexer\endcsname
+    \expandafter
+      \let\expandafter\minted@tmp\csname minted@fvoptlist@#1@\minted@lexer\endcsname
+    \expandafter\fvset\expandafter{\minted@tmp}%
+    \fi}%
+   {\ifcsname minted@fvoptlist@#1\endcsname
+    \expandafter
+      \let\expandafter\minted@tmp\csname minted@fvoptlist@#1\endcsname
+    \expandafter\fvset\expandafter{\minted@tmp}%
+    \fi}}
+\def\minted@useadditionalfvoptsnopy{%
+  \edef\minted@tmp{\mintedpyoptvalueof{gobble}}%
+  \ifx\minted@tmp\minted@const@pgfkeysnovalue
+  \else
+    \expandafter\minted@useadditionalfvoptsnopy@fvsetvk
+      \expandafter{\minted@tmp}{gobble}%
+  \fi
+  \edef\minted@tmp{\mintedpyoptvalueof{mathescape}}%
+  \ifx\minted@tmp\minted@const@pgfkeysnovalue
+  \else
+    \expandafter\minted@useadditionalfvoptsnopy@fvsetvk
+      \expandafter{\minted@tmp}{mathescape}%
+  \fi}
+\def\minted@useadditionalfvoptsnopy@fvsetvk#1#2{%
+  \fvset{#2=#1}}
+\def\minted@pgfkeyscreate@py#1#2{%
+  \minted@forcsvlist{\minted@pgfkeycreate@py{#1}}{#2}}
+\begingroup
+\catcode`\==12
+\catcode`\<=12
+\catcode`\>=12
+\gdef\minted@pgfkeycreate@py#1#2{%
+  \minted@pgfkeycreate@py@i{#1}#2=\FV@Sentinel}
+\gdef\minted@pgfkeycreate@py@i#1#2=#3\FV@Sentinel{%
+  \if\relax\detokenize{#3}\relax
+    \expandafter\minted@pgfkeycreate@py@ii
+  \else
+    \expandafter\minted@pgfkeycreate@py@iii
+  \fi
+  {#1}{#2}#3\FV@Sentinel}
+\gdef\minted@pgfkeycreate@py@ii#1#2\FV@Sentinel{%
+  \minted@pgfkeycreate@py@iv{#1}{\pgfkeysnovalue}#2<>\FV@Sentinel}
+\gdef\minted@pgfkeycreate@py@iii#1#2#3=\FV@Sentinel{%
+  \minted@pgfkeycreate@py@iv{#1}{#3}#2<>\FV@Sentinel}
+\gdef\minted@pgfkeycreate@py@iv#1#2#3<#4>#5\FV@Sentinel{%
+  \if\relax\detokenize{#4}\relax
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {\minted@pgfkeycreate@py@v{#1}{#3}{#2}{\minted@const@pgfkeysnovalue}}%
+  {\minted@pgfkeycreate@py@v{#1}{#3}{#2}{#4}}}
+\endgroup
+\def\minted@pgfkeycreate@py@v#1#2#3#4{%
+  \def\minted@do##1{%
+    \minted@iflexerscope{##1}%
+     {\minted@do@i{##1}{@\minted@lexer}}%
+     {\minted@do@i{##1}{}}}
+  \def\minted@do@i##1##2{%
+    \if\relax\detokenize{#1}\relax
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.code=\expandafter\def\csname minted@pyopt@##1##2@#2\endcsname{####1},
+      }%
+    \else
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.code=
+          \def\minted@tmp{####1}%
+          \ifx\minted@tmp\minted@const@pgfkeysnovalue
+            \expandafter\let\csname minted@pyopt@##1##2@#2\endcsname\minted@tmp
+          \else\ifcsname minted@opthandler@immediate@\string#1\endcsname
+            #1{minted@pyopt@##1##2@#2}{####1}%
+          \else
+            \expandafter\def\csname minted@pyopt@##1##2@#2\endcsname{#1{####1}}%
+          \fi\fi,
+      }%
+    \fi
+    \ifx\minted@const@pgfkeysnovalue#4\relax
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.value required,
+      }%
+    \else
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.default=#4,
+      }%
+    \fi
+  }%
+  \minted@forcsvlist{\minted@do}{\minted@optscopes}%
+  \pgfkeys{%
+    /minted/global/.cd,
+    #2=#3,
+  }}
+\def\mintedpyoptvalueof#1{%
+  \ifbool{minted@isinline}%
+   {\minted@pyoptvalueof@inline{#1}}%
+   {\minted@pyoptvalueof@block{#1}}}
+\def\minted@pyoptvalueof@inline#1{%
+  \ifcsname minted@pyopt@cmd@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@cmd@#1\endcsname}%
+  \else\ifcsname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname}%
+  \else\ifcsname minted@pyopt@inline@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@inline@#1\endcsname}%
+  \else\ifcsname minted@pyopt@lexer@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@lexer@\minted@lexer @#1\endcsname}%
+  \else
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@global@#1\endcsname}%
+  \fi\fi\fi\fi}
+\def\minted@pyoptvalueof@block#1{%
+  \ifcsname minted@pyopt@cmd@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@cmd@#1\endcsname}%
+  \else\ifcsname minted@pyopt@lexer@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@lexer@\minted@lexer @#1\endcsname}%
+  \else
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@pyopt@global@#1\endcsname}%
+  \fi\fi}
+\def\minted@pgfkeyscreate@tex#1#2{%
+  \minted@forcsvlist{\minted@pgfkeycreate@tex{#1}}{#2}}
+\begingroup
+\catcode`\==12
+\gdef\minted@pgfkeycreate@tex#1#2{%
+  \minted@pgfkeycreate@tex@i{#1}#2=\FV@Sentinel}
+\gdef\minted@pgfkeycreate@tex@i#1#2=#3\FV@Sentinel{%
+  \if\relax\detokenize{#3}\relax
+    \expandafter\minted@pgfkeycreate@tex@ii
+  \else
+    \expandafter\minted@pgfkeycreate@tex@iii
+  \fi
+  {#1}{#2}#3\FV@Sentinel}
+\gdef\minted@pgfkeycreate@tex@ii#1#2\FV@Sentinel{%
+  \minted@pgfkeycreate@tex@iv{#1}{#2}{\pgfkeysnovalue}}
+\gdef\minted@pgfkeycreate@tex@iii#1#2#3=\FV@Sentinel{%
+  \minted@pgfkeycreate@tex@iv{#1}{#2}{#3}}
+\endgroup
+\def\minted@pgfkeycreate@tex@iv#1#2#3{%
+  \def\minted@do##1{%
+    \minted@iflexerscope{##1}%
+     {\minted@do@i{##1}{@\minted@lexer}}%
+     {\minted@do@i{##1}{}}}
+  \def\minted@do@i##1##2{%
+    \if\relax\detokenize{#1}\relax
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.code=\expandafter\def\csname minted@texopt@##1##2@#2\endcsname{####1},
+        #2/.value required,
+      }%
+    \else
+      \pgfkeys{%
+        /minted/##1/.cd,
+        #2/.code=
+          \def\minted@tmp{####1}%
+          \ifx\minted@tmp\minted@const@pgfkeysnovalue
+            \expandafter\let\csname minted@texopt@##1##2@#2\endcsname\minted@tmp
+          \else\ifcsname minted@opthandler@immediate@\string#1\endcsname
+            #1{minted@texopt@##1##2@#2}{####1}%
+          \else
+            \expandafter\def\csname minted@texopt@##1##2@#2\endcsname{#1{####1}}%
+          \fi\fi,
+        #2/.value required,
+      }%
+    \fi
+  }%
+  \minted@forcsvlist{\minted@do}{\minted@optscopes}%
+  \pgfkeys{%
+    /minted/global/.cd,
+    #2=#3,
+  }}
+\def\mintedtexoptvalueof#1{%
+  \ifbool{minted@isinline}%
+   {\minted@texoptvalueof@inline{#1}}%
+   {\minted@texoptvalueof@block{#1}}}
+\def\minted@texoptvalueof@inline#1{%
+  \ifcsname minted@texopt@cmd@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@cmd@#1\endcsname}%
+  \else\ifcsname minted@texopt@lexerinline@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@lexerinline@\minted@lexer @#1\endcsname}%
+  \else\ifcsname minted@texopt@inline@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@inline@#1\endcsname}%
+  \else\ifcsname minted@texopt@lexer@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@lexer@\minted@lexer @#1\endcsname}%
+  \else
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@global@#1\endcsname}%
+  \fi\fi\fi\fi}
+\def\minted@texoptvalueof@block#1{%
+  \ifcsname minted@texopt@cmd@#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@cmd@#1\endcsname}%
+  \else\ifcsname minted@texopt@lexer@\minted@lexer @#1\endcsname
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@lexer@\minted@lexer @#1\endcsname}%
+  \else
+    \unexpanded\expandafter\expandafter\expandafter{%
+      \csname minted@texopt@global@#1\endcsname}%
+  \fi\fi}
+\def\minted@opthandler@deforrestrictedescape#1#2{%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\def\csname#1\endcsname{#2}%
+  \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
+    \ifcat\relax\noexpand#2%
+      \expandafter\expandafter\expandafter\minted@opthandler@deforrestrictedescape@i
+        \expandafter\@gobble\string#1\FV@Sentinel{#1}{#2}%
+    \else
+      \FVExtraDetokenizeREscVArg{\expandafter\def\csname#1\endcsname}{#2}%
+    \fi
+  \else
+    \FVExtraDetokenizeREscVArg{\expandafter\def\csname#1\endcsname}{#2}%
+  \fi\fi}
+\def\minted@opthandler@deforrestrictedescape@i#1#2\FV@Sentinel#3#4{%
+  \ifcsname minted@isalpha\number`#1\endcsname
+    \expandafter\def\csname#3\endcsname{#4}%
+  \else
+    \FVExtraDetokenizeREscVArg{\expandafter\def\csname#3\endcsname}{#4}%
+  \fi}
+\expandafter\let\csname
+  minted@opthandler@immediate@\string\minted@opthandler@deforrestrictedescape
+  \endcsname\relax
+\mintedpgfkeyscreate{fv}{
+  baselinestretch,
+  beameroverlays,
+  breakafter,
+  breakafterinrun,
+  breakaftersymbolpost,
+  breakaftersymbolpre,
+  breakanywhere,
+  breakanywheresymbolpost,
+  breakanywheresymbolpre,
+  breakautoindent,
+  breakbefore,
+  breakbeforeinrun,
+  breakbeforesymbolpost,
+  breakbeforesymbolpre,
+  breakbytoken,
+  breakbytokenanywhere,
+  breakindent,
+  breakindentnchars,
+  breaklines,
+  breaksymbol,
+  breaksymbolindent,
+  breaksymbolindentleft,
+  breaksymbolindentleftnchars,
+  breaksymbolindentnchars,
+  breaksymbolindentright,
+  breaksymbolindentrightnchars,
+  breaksymbolleft,
+  breaksymbolright,
+  breaksymbolsep,
+  breaksymbolsepleft,
+  breaksymbolsepleftnchars,
+  breaksymbolsepnchars,
+  breaksymbolsepright,
+  breaksymbolseprightnchars,
+  curlyquotes,
+  fillcolor,
+  firstline,
+  firstnumber,
+  fontencoding,
+  fontfamily,
+  fontseries,
+  fontshape,
+  fontsize,
+  formatcom,
+  frame,
+  framerule,
+  framesep,
+  highlightcolor,
+  highlightlines,
+  label,
+  labelposition,
+  lastline,
+  linenos,
+  numberblanklines,
+  numberfirstline,
+  numbers,
+  numbersep,
+  obeytabs,
+  resetmargins,
+  rulecolor,
+  samepage,
+  showspaces,
+  showtabs,
+  space,
+  spacecolor,
+  stepnumber,
+  stepnumberfromfirst,
+  stepnumberoffsetvalues,
+  tab,
+  tabcolor=black,
+  tabsize,
+  xleftmargin,
+  xrightmargin,
+}
+\mintedpgfkeyscreate{py}{
+  autogobble<true>=false,
+  codetagify<true>=true,
+  encoding=utf8,
+  funcnamehighlighting<true>=true,
+  gobble=0,
+  keywordcase=lower,
+  mathescape<true>=false,
+  python3<true>=true,
+  startinline<true>=false,
+  stripall<true>=false,
+  stripnl<true>=false,
+  texcl<true>=false,
+  texcomments<true>=false,
+}
+\mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
+  escapeinside=,
+  rangestartstring=,
+  rangestartafterstring=,
+  rangestopstring=,
+  rangestopbeforestring=,
+  rangeregex=,
+  rangeregexmatchnumber=1,
+  rangeregexdotall=false,
+  rangeregexmultiline=false,
+}
+\let\minted@tmplexer\minted@lexer
+\def\minted@lexer{php}
+\pgfkeys{
+  /minted/lexerinline/.cd,
+  startinline=true,
+}
+\let\minted@lexer\minted@tmplexer
+\mintedpgfkeyscreate{tex}{
+  style=default,
+  bgcolor=,
+  ignorelexererrors=false,
+}
+\newcounter{minted@numcachefiles}
+\def\minted@addcachefilename#1{%
+  \ifbool{minted@canexec}%
+   {\stepcounter{minted@numcachefiles}%
+    \expandafter
+      \xdef\csname minted@cachefile\arabic{minted@numcachefiles}\endcsname{#1}}%
+   {}}
+\def\minted@clean{%
+  \ifbool{minted@canexec}%
+   {\ifbool{minted@diddetectconfig}{\minted@clean@i}{}}%
+   {}}
+\def\minted@clean@i{%
+  \ifnum\value{minted@numcachefiles}>0\relax
+    \expandafter\minted@savecachelist
+  \fi
+  \ifbool{minted@fasthighlightmode}%
+   {}%
+   {\minted@exec@clean
+    \global\boolfalse{minted@canexec}}}
+\def\minted@savecachelist{%
+  \pydatasetfilename{\MintedDataFilename}%
+  \minted@fasthighlightmode@checkstart
+  \pydatawritedictopen
+  \pydatawritekeyvalue{command}{clean}%
+  \pydatawritekeyedefvalue{jobname}{\jobname}%
+  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
+  \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
+  \pydatawritekey{cachefiles}%
+  \pydatawritemlvaluestart
+  \pydatawritemlvalueline{[}%
+  \setcounter{minted@tmpcnt}{1}%
+  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@numcachefiles}\relax
+    \expandafter\minted@savecachelist@writecachefile\expandafter{%
+      \csname minted@cachefile\arabic{minted@tmpcnt}\endcsname}%
+    \expandafter\global\expandafter
+      \let\csname minted@cachefile\arabic{minted@tmpcnt}\endcsname\minted@undefined
+    \stepcounter{minted@tmpcnt}%
+  \repeat
+  \setcounter{minted@numcachefiles}{0}%
+  \pydatawritemlvalueline{]}%
+  \pydatawritemlvalueend
+  \pydatawritedictclose
+  \ifbool{minted@fasthighlightmode}{}{\pydataclosefilename{\MintedDataFilename}}}
+\begingroup
+\catcode`\"=12
+\catcode`\,=12
+\gdef\minted@savecachelist@writecachefile#1{%
+  \expandafter\pydatawritemlvalueline\expandafter{\expandafter"#1",}}
+\endgroup
+\AfterEndDocument{%
+  \minted@clean
+  \minted@fasthighlightmode@checkend}
+\def\minted@patch@PygmentsZsq{%
+  \ifcsname\minted@styleprefix Zsq\endcsname
+    \ifcsstring{\minted@styleprefix Zsq}{\char`\'}{\minted@patch@PygmentsZsq@i}{}%
+  \fi}
 \begingroup
 \catcode`\'=\active
-\gdef\minted@patch@PYGZsq@i{\gdef\PYGZsq{'}}
+\gdef\minted@patch@PygmentsZsq@i{\def\PYGZsq{'}}
 \endgroup
-\newcommand{\minted@patch@PYGZhy}{%
-  \ifcsname PYGZhy\endcsname
-    \expandafter\ifdefstring\expandafter{\csname PYGZhy\endcsname}{\char`\-}%
-     {\def\PYGZhy{\mbox{-}}}%
-     {}%
-  \fi
-}
-\newcommand{\minted@def@opt@switch}[2][false]{%
-  \define@booleankey{minted@opt@g}{#2}%
-    {\@namedef{minted@opt@g:#2}{true}}%
-    {\@namedef{minted@opt@g:#2}{false}}
-  \define@booleankey{minted@opt@g@i}{#2}%
-    {\@namedef{minted@opt@g@i:#2}{true}}%
-    {\@namedef{minted@opt@g@i:#2}{false}}
-  \define@booleankey{minted@opt@lang}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang:#2}{false}}
-  \define@booleankey{minted@opt@lang@i}{#2}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{true}}%
-    {\@namedef{minted@opt@lang\minted@lang @i:#2}{false}}
-  \define@booleankey{minted@opt@cmd}{#2}%
-    {\@namedef{minted@opt@cmd:#2}{true}}%
-    {\@namedef{minted@opt@cmd:#2}{false}}%
-  \@namedef{minted@opt@g:#2}{#1}%
-}
-\def\minted@get@opt#1#2{%
-  \ifcsname minted@opt@cmd:#1\endcsname
-    \csname minted@opt@cmd:#1\endcsname
+\def\minted@patch@PygmentsZhy{%
+  \ifcsname\minted@styleprefix Zhy\endcsname
+    \ifcsstring{\minted@styleprefix Zhy}{\char`\-}{\def\PYGZhy{\mbox{-}}}{}%
+  \fi}
+\def\minted@patch@ignorelexererrors{%
+  \edef\minted@tmp{\mintedtexoptvalueof{ignorelexererrors}}%
+  \ifdefstring{\minted@tmp}{true}%
+   {\expandafter\let\csname\minted@styleprefix @tok@err\endcsname\relax}%
+   {}}
+\def\minted@patch@PygmentsStyledef{%
+  \minted@patch@PygmentsZsq
+  \minted@patch@PygmentsZhy
+  \minted@patch@ignorelexererrors}
+\def\minted@VerbatimPygments{%
+  \expandafter\minted@VerbatimPygments@i\expandafter{\csname\minted@styleprefix\endcsname}}
+\def\minted@VerbatimPygments@i#1{%
+  \VerbatimPygments{#1}{#1}}
+\def\minted@defstyle{%
+  \edef\minted@tmp{\mintedtexoptvalueof{style}}%
+  \expandafter\minted@defstyle@i\expandafter{\minted@tmp}}
+\def\minted@defstyle@i#1{%
+  \minted@ifalphanumhyphenunderscore{#1}%
+   {\minted@defstyle@ii{#1}}%
+   {\minted@error{Highlighting style is set to "#1" but only style names with
+      alphanumeric characters, hyphens, and underscores are supported;
+      falling back to default style}%
+    \minted@defstyle@ii{default}}}
+\def\minted@defstyle@ii#1{%
+  \ifcsname minted@styledef@#1\endcsname
+    \expandafter\@firstoftwo
   \else
-    \ifminted@isinline
-      \ifcsname minted@opt@lang\minted@lang @i:#1\endcsname
-        \csname minted@opt@lang\minted@lang @i:#1\endcsname
-      \else
-        \ifcsname minted@opt@g@i:#1\endcsname
-          \csname minted@opt@g@i:#1\endcsname
-        \else
-          \ifcsname minted@opt@lang\minted@lang:#1\endcsname
-            \csname minted@opt@lang\minted@lang:#1\endcsname
-          \else
-            \ifcsname minted@opt@g:#1\endcsname
-              \csname minted@opt@g:#1\endcsname
-            \else
-              #2%
-            \fi
-          \fi
-        \fi
-      \fi
-    \else
-      \ifcsname minted@opt@lang\minted@lang:#1\endcsname
-        \csname minted@opt@lang\minted@lang:#1\endcsname
-      \else
-        \ifcsname minted@opt@g:#1\endcsname
-          \csname minted@opt@g:#1\endcsname
-        \else
-          #2%
-        \fi
-      \fi
-    \fi
+    \expandafter\@secondoftwo
   \fi
-}%
-\minted@def@optcl{encoding}{-P encoding}{#1}
-\minted@def@optcl{outencoding}{-P outencoding}{#1}
-\minted@def@optcl@e{escapeinside}{-P escapeinside}{#1}
-\minted@def@optcl@switch{stripnl}{-P stripnl}
-\minted@def@optcl@switch{stripall}{-P stripall}
-\minted@def@optcl@switch{python3}{-P python3}
-\minted@def@optcl@switch{funcnamehighlighting}{-P funcnamehighlighting}
-\minted@def@optcl@switch{startinline}{-P startinline}
-\ifthenelse{\boolean{minted@draft}}%
-  {\minted@def@optfv{gobble}}%
-  {\minted@def@optcl{gobble}{-F gobble:n}{#1}}
-\minted@def@optcl{codetagify}{-F codetagify:codetags}{#1}
-\minted@def@optcl{keywordcase}{-F keywordcase:case}{#1}
-\minted@def@optcl@switch{texcl}{-P texcomments}
-\minted@def@optcl@switch{texcomments}{-P texcomments}
-\minted@def@optcl@switch{mathescape}{-P mathescape}
-\minted@def@optfv@switch{linenos}
-\minted@def@opt@detok{style}
-\minted@def@optfv{frame}
-\minted@def@optfv{framesep}
-\minted@def@optfv{framerule}
-\minted@def@optfv{rulecolor}
-\minted@def@optfv{numbersep}
-\minted@def@optfv{numbers}
-\minted@def@optfv{firstnumber}
-\minted@def@optfv{stepnumber}
-\minted@def@optfv{firstline}
-\minted@def@optfv{lastline}
-\minted@def@optfv{baselinestretch}
-\minted@def@optfv{xleftmargin}
-\minted@def@optfv{xrightmargin}
-\minted@def@optfv{fillcolor}
-\minted@def@optfv{tabsize}
-\minted@def@optfv{fontfamily}
-\minted@def@optfv{fontsize}
-\minted@def@optfv{fontshape}
-\minted@def@optfv{fontseries}
-\minted@def@optfv{formatcom}
-\minted@def@optfv{label}
-\minted@def@optfv{labelposition}
-\minted@def@optfv{highlightlines}
-\minted@def@optfv{highlightcolor}
-\minted@def@optfv{space}
-\minted@def@optfv{spacecolor}
-\minted@def@optfv{tab}
-\minted@def@optfv{tabcolor}
-\minted@def@optfv{highlightcolor}
-\minted@def@optfv@switch{beameroverlays}
-\minted@def@optfv@switch{curlyquotes}
-\minted@def@optfv@switch{numberfirstline}
-\minted@def@optfv@switch{numberblanklines}
-\minted@def@optfv@switch{stepnumberfromfirst}
-\minted@def@optfv@switch{stepnumberoffsetvalues}
-\minted@def@optfv@switch{showspaces}
-\minted@def@optfv@switch{resetmargins}
-\minted@def@optfv@switch{samepage}
-\minted@def@optfv@switch{showtabs}
-\minted@def@optfv@switch{obeytabs}
-\minted@def@optfv@switch{breaklines}
-\minted@def@optfv@switch{breakbytoken}
-\minted@def@optfv@switch{breakbytokenanywhere}
-\minted@def@optfv{breakindent}
-\minted@def@optfv{breakindentnchars}
-\minted@def@optfv@switch{breakautoindent}
-\minted@def@optfv{breaksymbol}
-\minted@def@optfv{breaksymbolsep}
-\minted@def@optfv{breaksymbolsepnchars}
-\minted@def@optfv{breaksymbolindent}
-\minted@def@optfv{breaksymbolindentnchars}
-\minted@def@optfv{breaksymbolleft}
-\minted@def@optfv{breaksymbolsepleft}
-\minted@def@optfv{breaksymbolsepleftnchars}
-\minted@def@optfv{breaksymbolindentleft}
-\minted@def@optfv{breaksymbolindentleftnchars}
-\minted@def@optfv{breaksymbolright}
-\minted@def@optfv{breaksymbolsepright}
-\minted@def@optfv{breaksymbolseprightnchars}
-\minted@def@optfv{breaksymbolindentright}
-\minted@def@optfv{breaksymbolindentrightnchars}
-\minted@def@optfv{breakbefore}
-\minted@def@optfv{breakbeforesymbolpre}
-\minted@def@optfv{breakbeforesymbolpost}
-\minted@def@optfv@switch{breakbeforeinrun}
-\minted@def@optfv{breakafter}
-\minted@def@optfv@switch{breakafterinrun}
-\minted@def@optfv{breakaftersymbolpre}
-\minted@def@optfv{breakaftersymbolpost}
-\minted@def@optfv@switch{breakanywhere}
-\minted@def@optfv{breakanywheresymbolpre}
-\minted@def@optfv{breakanywheresymbolpost}
-\minted@def@optfv{fontencoding}
-\minted@def@opt{bgcolor}
-\minted@def@opt@switch{autogobble}
-\minted@def@opt@switch{ignorelexererrors}
-\newcommand{\minted@encoding}{\minted@get@opt{encoding}{UTF8}}
-\newenvironment{minted@snugshade*}[1]{%
-  \def\FrameCommand##1{\hskip\@totalleftmargin
+  {\csname minted@styledef@#1\endcsname
+   \minted@patch@PygmentsStyledef
+   \minted@VerbatimPygments}%
+  {\minted@defstyle@load{#1}}}
+\def\minted@catchfiledef#1#2{%
+  \CatchFileDef{#1}{#2}{%
+    \catcode`\\=0
+    \catcode`\{=1
+    \catcode`\}=2
+    \catcode`\#=6
+    \catcode`\ =10
+    \catcode`\@=11
+    \catcode`\`=12
+    \catcode`\==12
+    \catcode`\+=12
+    \catcode`\.=12
+    \catcode`\,=12
+    \catcode`\[=12
+    \catcode`\]=12
+    \catcode`\%=14
+    \endlinechar=-1}}
+\def\minted@defstyle@load#1{%
+  \minted@detectconfig
+  \ifbool{minted@cache}%
+   {\edef\minted@styledeffilename{#1\detokenize{.style.minted}}%
+    \edef\minted@styledeffilepath{\minted@cachepath\minted@styledeffilename}%
+    \IfFileExists{\minted@styledeffilepath}%
+     {\minted@defstyle@input{#1}}%
+     {\ifbool{minted@canexec}%
+      {\minted@defstyle@generate{#1}}%
+      {\minted@error{Missing definition for highlighting style "#1" (minted executable
+         is unavailable or disabled); attempting to substitute fallback style}%
+       \minted@defstyle@fallback{#1}}}}%
+   {\edef\minted@styledeffilename{%
+      \detokenize{_}\MintedJobnameMdfive\detokenize{.style.minted}}%
+    \let\minted@styledeffilepath\minted@styledeffilename
+    \ifbool{minted@canexec}%
+     {\minted@defstyle@generate{#1}}%
+     {\minted@error{Missing definition for highlighting style "#1" (minted executable
+        is unavailable or disabled); attempting to substitute fallback style}%
+      \minted@defstyle@fallback{#1}}}}
+\def\minted@defstyle@input#1{%
+  \begingroup
+  \minted@catchfiledef{\minted@tmp}{\minted@styledeffilepath}%
+  \minted@tmp
+  \ifcsname\minted@styleprefix\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {\expandafter\global\expandafter\let\csname minted@styledef@#1\endcsname\minted@tmp
+   \endgroup
+   \ifbool{minted@cache}{\minted@addcachefilename{\minted@styledeffilename}}{}%
+   \csname minted@styledef@#1\endcsname
+   \minted@patch@PygmentsStyledef
+   \minted@VerbatimPygments}%
+  {\endgroup
+   \ifbool{minted@canexec}%
+    {\minted@warning{Invalid or corrupted style definition file
+       "\minted@styledeffilename"; attempting to regenerate}%
+     \minted@defstyle@generate{#1}}%
+    {\minted@error{Invalid or corrupted style definition file
+       "\minted@styledeffilename"; attempting to substitute fallback style
+       (minted executable is unavailable or disabled)}%
+     \minted@defstyle@fallback{#1}}}}
+\def\minted@defstyle@generate#1{%
+  \pydatasetfilename{\MintedDataFilename}%
+  \minted@fasthighlightmode@checkstart
+  \pydatawritedictopen
+  \pydatawritekeyvalue{command}{styledef}%
+  \pydatawritekeyedefvalue{jobname}{\jobname}%
+  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
+  \pydatawritekeyedefvalue{currentfilepath}{\CurrentFilePath}%
+  \pydatawritekeyedefvalue{currentfile}{\CurrentFile}%
+  \pydatawritekeyedefvalue{inputlineno}{\the\inputlineno}%
+  \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
+  \pydatawritekeyedefvalue{styledeffilename}{\minted@styledeffilename}%
+  \pydatawritekeyvalue{style}{#1}%
+  \pydatawritekeyedefvalue{commandprefix}{\minted@styleprefix}%
+  \pydatawritedictclose
+  \ifbool{minted@fasthighlightmode}%
+   {\minted@defstyle@fallback{#1}}%
+   {\pydataclosefilename{\MintedDataFilename}%
+    \begingroup
+    \minted@exec@styledef
+    \ifx\minted@exec@warning\relax
+    \else
+      \expandafter\minted@exec@warning
+    \fi
+    \ifx\minted@exec@error\relax
+      \expandafter\minted@defstyle@generate@i
+    \else
+      \expandafter\minted@defstyle@generate@error
+    \fi
+    {#1}}}
+\def\minted@defstyle@generate@i#1{%
+  \endgroup
+  \begingroup
+  \minted@catchfiledef{\minted@tmp}{\minted@styledeffilepath}%
+  \minted@tmp
+  \ifcsname\minted@styleprefix\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {\expandafter\global\expandafter\let\csname minted@styledef@#1\endcsname\minted@tmp
+   \endgroup
+   \ifbool{minted@cache}{\minted@addcachefilename{\minted@styledeffilename}}{}%
+   \csname minted@styledef@#1\endcsname
+   \minted@patch@PygmentsStyledef
+   \minted@VerbatimPygments}%
+  {\endgroup
+   \minted@error{Failed to create style definition file "\minted@styledeffilename"
+     (no error message, see "\MintedErrlogFilename" if it exists);
+     attempting to substitute fallback style}%
+   \minted@defstyle@fallback{#1}}}
+\def\minted@defstyle@generate@error#1{%
+  \minted@exec@error
+  \endgroup
+  \minted@defstyle@fallback{#1}}
+\def\minted@defstyle@fallback#1{%
+  \ifstrequal{#1}{default}%
+   {\expandafter\global\expandafter
+      \let\csname minted@styledef@default\endcsname\minted@styledeffallback}%
+   {\ifcsname minted@styledef@default\endcsname
+    \else
+      \minted@defstyle@load{default}%
+    \fi
+    \expandafter\let\expandafter\minted@tmp\csname minted@styledef@default\endcsname
+    \expandafter\global\expandafter\let\csname minted@styledef@#1\endcsname\minted@tmp}}
+\def\minted@styledeffallback{%
+  \expandafter\def\csname\minted@styleprefix\endcsname##1##2{##2}%
+  \expandafter\def\csname\minted@styleprefix Zbs\endcsname{\char`\\}%
+  \expandafter\def\csname\minted@styleprefix Zus\endcsname{\char`\_}%
+  \expandafter\def\csname\minted@styleprefix Zob\endcsname{\char`\{}%
+  \expandafter\def\csname\minted@styleprefix Zcb\endcsname{\char`\}}%
+  \expandafter\def\csname\minted@styleprefix Zca\endcsname{\char`\^}%
+  \expandafter\def\csname\minted@styleprefix Zam\endcsname{\char`\&}%
+  \expandafter\def\csname\minted@styleprefix Zlt\endcsname{\char`\<}%
+  \expandafter\def\csname\minted@styleprefix Zgt\endcsname{\char`\>}%
+  \expandafter\def\csname\minted@styleprefix Zsh\endcsname{\char`\#}%
+  \expandafter\def\csname\minted@styleprefix Zpc\endcsname{\char`\%}%
+  \expandafter\def\csname\minted@styleprefix Zdl\endcsname{\char`\$}%
+  \expandafter\def\csname\minted@styleprefix Zhy\endcsname{\char`\-}%
+  \expandafter\def\csname\minted@styleprefix Zsq\endcsname{\char`\'}%
+  \expandafter\def\csname\minted@styleprefix Zdq\endcsname{\char`\"}%
+  \expandafter\def\csname\minted@styleprefix Zti\endcsname{\char`\~}%
+  \minted@patch@PygmentsStyledef
+  \minted@VerbatimPygments}
+\newenvironment{minted@snugshade*}[1]%
+ {\def\FrameCommand##1{\hskip\@totalleftmargin
     \colorbox{#1}{##1}%
     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
   \MakeFramed{\advance\hsize-\width
     \@totalleftmargin\z@ \linewidth\hsize
     \advance\labelsep\fboxsep
-    \@setminipage}%
- }{\par\unskip\@minipagefalse\endMakeFramed}
-\newsavebox{\minted@bgbox}
-\newenvironment{minted@colorbg}[1]{%
-  \setlength{\OuterFrameSep}{0pt}%
+    \@setminipage}}%
+ {\par\unskip\@minipagefalse\endMakeFramed}
+\newenvironment{minted@colorbg}[1]%
+ {\setlength{\OuterFrameSep}{0pt}%
   \let\minted@tmp\FV@NumberSep
   \edef\FV@NumberSep{%
     \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
   \medskip
-  \begin{minted@snugshade*}{#1}}
+  \begin{minted@snugshade*}{#1}}%
  {\end{minted@snugshade*}%
   \medskip\noindent}
-\newwrite\minted@code
-\newcommand{\minted@savecode}[1]{
-  \immediate\openout\minted@code\minted@jobname.pyg\relax
-  \immediate\write\minted@code{\expandafter\detokenize\expandafter{#1}}%
-  \immediate\closeout\minted@code}
 \newcounter{minted@FancyVerbLineTemp}
-\newcommand{\minted@write@detok}[1]{%
-  \immediate\write\FV@OutFile{\detokenize{#1}}}
-\newcommand{\minted@FVB@VerbatimOut}[1]{%
-  \setcounter{minted@FancyVerbLineTemp}{\value{FancyVerbLine}}%
-  \@bsphack
-  \begingroup
-    \FV@UseKeyValues
-    \FV@DefineWhiteSpace
-    \def\FV@Space{\space}%
-    \FV@DefineTabOut
-    \let\FV@ProcessLine\minted@write@detok
-    \immediate\openout\FV@OutFile #1\relax
-    \let\FV@FontScanPrep\relax
-    \let\@noligs\relax
-    \FV@Scan}
-\newcommand{\minted@FVE@VerbatimOut}{%
-  \immediate\closeout\FV@OutFile\endgroup\@esphack
-  \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}}%
-\ifcsname MintedPygmentize\endcsname\else
-  \newcommand{\MintedPygmentize}{pygmentize}
-\fi
-\newcounter{minted@pygmentizecounter}
-\ifwindows
-  \newcommand{\MintedPython}{python}
-\else
-  \newcommand{\MintedPython}{python3}
-\fi
-\newcommand{\minted@check@MintedPython}{%
-  \ifcsname minted@MintedPython@\MintedPython\endcsname
+\def\minted@lexerlinenoson{%
+  \ifcsname c@minted@lexer\minted@lexer\endcsname
   \else
-    \let\minted@altpython\minted@undefined
-    \ifdefstring{\MintedPython}{python}{\def\minted@altpython{python3}}{}%
-    \ifdefstring{\MintedPython}{python3}{\def\minted@altpython{python}}{}%
-    \ifx\minted@altpython\minted@undefined\relax
-      \TestAppExists{\MintedPython}%
-      \ifAppExists
-        \expandafter\global\expandafter\let%
-          \csname minted@MintedPython@\MintedPython\endcsname\relax
-      \else
-        \PackageError{minted}%
-         {Failed to find Python executable \MintedPython;
-          check Python installation (including PATH),
-          or redefine \string\MintedPython}%
-         {Failed to find Python executable \MintedPython;
-          check Python installation (including PATH),
-          or redefine \string\MintedPython}%
-      \fi
-    \else
-      \ifcsname minted@MintedPython@\minted@altpython\endcsname
-        \let\MintedPython\minted@altpython
-      \else
-        \TestAppExists{\MintedPython}%
-        \ifAppExists
-          \expandafter\global\expandafter\let%
-            \csname minted@MintedPython@\MintedPython\endcsname\relax
-        \else
-          \TestAppExists{\minted@altpython}%
-          \ifAppExists
-            \expandafter\global\expandafter\let%
-              \csname minted@MintedPython@\minted@altpython\endcsname\relax
-            \let\MintedPython\minted@altpython
-          \else
-            \PackageError{minted}%
-             {Failed to find Python executables python or python3;
-              check Python installation (including PATH),
-              or redefine \string\MintedPython}%
-             {Failed to find Python executables python or python3;
-              check Python installation (including PATH),
-              or redefine \string\MintedPython}%
-          \fi
-        \fi
-      \fi
-    \fi
-  \fi
-}
-\ifwindows
-  \def\minted@opt@quote#1{\detokenize{"#1"}}
-\else
-  \def\minted@opt@quote#1{\detokenize{'#1'}}
-\fi
-\newcommand{\minted@pygmentize}[2][\minted@outputdir\minted@jobname.pyg]{%
-  \minted@defstyle{\minted@get@opt{style}{default}}%
-  \stepcounter{minted@pygmentizecounter}%
-  \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-    {\def\minted@codefile{\minted@outputdir\minted@jobname.pyg}}%
-    {\def\minted@codefile{#1}}%
-  \ifthenelse{\boolean{minted@isinline}}%
-    {\def\minted@optlistcl@inlines{%
-      \minted@optlistcl@g@i
-      \csname minted@optlistcl@lang\minted@lang @i\endcsname}}%
-    {\let\minted@optlistcl@inlines\@empty}%
-  \def\minted@cmd{%
-    \ifminted@kpsewhich
-      \ifwindows
-        \detokenize{for /f "usebackq tokens=*"}\space\@percentchar\detokenize{a in (`kpsewhich}\space\minted@codefile\detokenize{`) do}\space
-      \fi
-    \fi
-    \MintedPygmentize\space -l \minted@opt@quote{#2}
-    -f latex -P commandprefix=PYG -F tokenmerge
-    \minted@optlistcl@g \csname minted@optlistcl@lang\minted@lang\endcsname
-    \minted@optlistcl@inlines
-    \minted@optlistcl@cmd -o \minted@outputdir\minted@infile\space
-    \ifminted@kpsewhich
-      \ifwindows
-        \@percentchar\detokenize{a}%
-      \else
-        \detokenize{`}kpsewhich \minted@codefile\space
-          \detokenize{||} \minted@codefile\detokenize{`}%
-      \fi
-    \else
-      \minted@codefile
-    \fi}%
-  % For debugging, uncomment: %%%%
-  % \immediate\typeout{\minted@cmd}%
-  % %%%%
-  \ifthenelse{\boolean{minted@cache}}%
-    {%
-      \ifminted@frozencache
-      \else
-        \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}%
-         {\edef\minted@hash{%
-            \pdf@filemdfivesum{#1}%
-            \pdf@mdfivesum{\minted@cmd\space%
-              autogobble(\the\numexpr\FancyVerbStartNum\relax-%
-                         \the\numexpr\FancyVerbStopNum\relax)}}}%
-         {\edef\minted@hash{%
-            \pdf@filemdfivesum{#1}%
-            \pdf@mdfivesum{\minted@cmd}}}%
-        \edef\minted@infile{\minted@cachedir/\minted@hash.pygtex}%
-        \IfFileExists{\minted@infile}{}{%
-          \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
-            \minted@autogobble{#1}}{}%
-          \ShellEscape{\minted@cmd}}%
-      \fi
-      \ifthenelse{\boolean{minted@finalizecache}}%
-       {%
-          \edef\minted@cachefilename{listing\arabic{minted@pygmentizecounter}.pygtex}%
-          \edef\minted@actualinfile{\minted@cachedir/\minted@cachefilename}%
-          \ifwindows
-            \StrSubstitute{\minted@infile}{/}{\@backslashchar}[\minted@infile@windows]
-            \StrSubstitute{\minted@actualinfile}{/}{\@backslashchar}[\minted@actualinfile@windows]
-            \ShellEscape{move /y \minted@outputdir\minted@infile@windows\space\minted@outputdir\minted@actualinfile@windows}%
-          \else
-            \ShellEscape{mv -f \minted@outputdir\minted@infile\space\minted@outputdir\minted@actualinfile}%
-          \fi
-          \let\minted@infile\minted@actualinfile
-          \expandafter\minted@addcachefile\expandafter{\minted@cachefilename}%
-       }%
-       {\ifthenelse{\boolean{minted@frozencache}}%
-         {%
-            \edef\minted@cachefilename{listing\arabic{minted@pygmentizecounter}.pygtex}%
-            \edef\minted@infile{\minted@cachedir/\minted@cachefilename}%
-            \expandafter\minted@addcachefile\expandafter{\minted@cachefilename}}%
-         {\expandafter\minted@addcachefile\expandafter{\minted@hash.pygtex}}%
-       }%
-      \minted@inputpyg}%
-    {%
-      \ifthenelse{\equal{\minted@get@opt{autogobble}{false}}{true}}{%
-        \minted@autogobble{#1}}{}%
-      \ShellEscape{\minted@cmd}%
-      \minted@inputpyg}%
-}
-\def\minted@autogobble#1{%
-  \edef\minted@argone@esc{#1}%
-  \StrSubstitute{\minted@argone@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@argone@esc]%
-  \StrSubstitute{\minted@argone@esc}{"}{\@backslashchar"}[\minted@argone@esc]%
-  \edef\minted@tmpfname@esc{\minted@outputdir\minted@jobname}%
-  \StrSubstitute{\minted@tmpfname@esc}{\@backslashchar}{\@backslashchar\@backslashchar}[\minted@tmpfname@esc]%
-  \StrSubstitute{\minted@tmpfname@esc}{"}{\@backslashchar"}[\minted@tmpfname@esc]%
-  %Need a version of open() that supports encoding under Python 2
-  \minted@check@MintedPython
-  \edef\minted@autogobblecmd{%
-    \ifminted@kpsewhich
-      \ifwindows
-        \detokenize{for /f "usebackq tokens=*" }\@percentchar\detokenize{a in (`kpsewhich} #1\detokenize{`) do}\space
-      \fi
-    \fi
-    \MintedPython\detokenize{ -c "import sys; import os;
-    import textwrap;
-    from io import open;
-    fname = }%
-      \ifminted@kpsewhich
-        \detokenize{sys.argv[1];}\space
-      \else
-        \detokenize{os.path.expanduser(os.path.expandvars(\"}\minted@argone@esc\detokenize{\"));}\space
-      \fi
-    \detokenize{f = open(fname, \"r\", encoding=\"}\minted@encoding\detokenize{\") if os.path.isfile(fname) else None;
-    t = f.readlines() if f is not None else None;
-    t_opt = t if t is not None else [];
-    f.close() if f is not None else None;
-    tmpfname = os.path.expanduser(os.path.expandvars(\"}\minted@tmpfname@esc.pyg\detokenize{\"));
-    f = open(tmpfname, \"w\", encoding=\"}\minted@encoding\detokenize{\") if t is not None else None;
-    fvstartnum = }\the\numexpr\FancyVerbStartNum\detokenize{;
-    fvstopnum = }\the\numexpr\FancyVerbStopNum\detokenize{;
-    s = max(0, fvstartnum-1);
-    e = max(s, fvstopnum) if fvstopnum > 0 else len(t_opt);
-    [f.write(textwrap.dedent(\"\".join(x))) for x in (t_opt[0:s], t_opt[s:e], t_opt[e:]) if x and t is not None];
-    f.close() if t is not None else os.remove(tmpfname);"}%
-    \ifminted@kpsewhich
-      \ifwindows
-        \space\@percentchar\detokenize{a}%
-      \else
-        \space\detokenize{`}kpsewhich #1\space\detokenize{||} #1\detokenize{`}%
-      \fi
-    \fi
-  }%
-  \ShellEscape{\minted@autogobblecmd}%
-}
-\newcommand{\minted@inputpyg}{%
-  \VerbatimPygments{\PYG}{\PYG}%
-  \ifthenelse{\boolean{minted@isinline}}%
-   {\ifthenelse{\equal{\minted@get@opt{breaklines}{false}}{true}}%
-    {\let\FV@BeginVBox\relax
-     \let\FV@EndVBox\relax
-     \def\FV@BProcessLine##1{\FancyVerbFormatLine{##1}}%
-     \minted@inputpyg@inline}%
-    {\minted@inputpyg@inline}}%
-   {\minted@inputpyg@block}%
-}
-\def\minted@inputpyg@inline{%
-  \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
-   {\minted@input{\minted@outputdir\minted@infile}}%
-   {\colorbox{\minted@get@opt{bgcolor}{}}{%
-      \minted@input{\minted@outputdir\minted@infile}}}%
-}
-\def\minted@inputpyg@block{%
-  \ifthenelse{\equal{\minted@get@opt{bgcolor}{}}{}}%
-   {\minted@input{\minted@outputdir\minted@infile}}%
-   {\begin{minted@colorbg}{\minted@get@opt{bgcolor}{}}%
-    \minted@input{\minted@outputdir\minted@infile}%
-    \end{minted@colorbg}}}
-\newcommand{\minted@langlinenoson}{%
-  \ifcsname c@minted@lang\minted@lang\endcsname\else
-    \newcounter{minted@lang\minted@lang}%
+    \newcounter{minted@lexer\minted@lexer}%
   \fi
   \setcounter{minted@FancyVerbLineTemp}{\value{FancyVerbLine}}%
-  \setcounter{FancyVerbLine}{\value{minted@lang\minted@lang}}%
-}
-\newcommand{\minted@langlinenosoff}{%
-  \setcounter{minted@lang\minted@lang}{\value{FancyVerbLine}}%
-  \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}%
-}
-\ifbool{minted@langlinenos}{}{%
-  \ifbool{minted@inputlanglinenos}{}{%
-    \let\minted@langlinenoson\relax
-    \let\minted@langlinenosoff\relax
-  }
-}
-\ifbool{minted@inputlanglinenos}%
- {\def\minted@inputlanglinenoson{\minted@langlinenoson}%
-  \def\minted@inputlanglinenosoff{\minted@langlinenosoff}}%
- {\let\minted@inputlanglinenoson\relax
-  \let\minted@inputlanglinenosoff\relax}
+  \setcounter{FancyVerbLine}{\value{minted@lexer\minted@lexer}}}
+\def\minted@lexerlinenosoff{%
+  \setcounter{minted@lexer\minted@lexer}{\value{FancyVerbLine}}%
+  \setcounter{FancyVerbLine}{\value{minted@FancyVerbLineTemp}}}
+\ifbool{minted@inputlexerlinenos}%
+ {\let\minted@inputlexerlinenoson\minted@lexerlinenoson
+  \let\minted@inputlexerlinenosoff\minted@lexerlinenosoff}%
+ {\let\minted@inputlexerlinenoson\relax
+  \let\minted@inputlexerlinenosoff\relax
+  \ifbool{minted@lexerlinenos}
+   {}%
+   {\let\minted@lexerlinenoson\relax
+    \let\minted@lexerlinenosoff\relax}}
+\def\minted@codewrapper#1{%
+  \ifcsname minted@inputfilepath\endcsname
+    \minted@inputlexerlinenoson
+  \else
+    \minted@lexerlinenoson
+  \fi
+  \edef\minted@bgcolor{\mintedtexoptvalueof{bgcolor}}%
+  \ifx\minted@bgcolor\@empty
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {#1}%
+  {\ifbool{minted@isinline}%
+    {\colorbox{\minted@bgcolor}{#1}}%
+    {\begin{minted@colorbg}{\minted@bgcolor}#1\end{minted@colorbg}}}%
+  \ifcsname minted@inputfilepath\endcsname
+    \minted@inputlexerlinenosoff
+  \else
+    \minted@lexerlinenosoff
+  \fi}
+\def\minted@highlight{%
+  \minted@defstyle
+  \pydatasetbuffername{minted@tmpdatabuffer}%
+  \pydatabufferkeyvalue{command}{highlight}%
+  \pydatabufferkey{code}%
+  \pydatabuffermlvaluestart
+  \setcounter{minted@tmpcnt}{1}%
+  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@tmpcodebufferlength}\relax
+    \expandafter\let\expandafter
+      \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
+    \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
+    \stepcounter{minted@tmpcnt}%
+  \repeat
+  \pydatabuffermlvalueend
+  \minted@highlight@i}
+\def\minted@highlightinputfile{%
+  \minted@defstyle
+  \edef\minted@inputfilemdfivesum{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \ifx\minted@inputfilemdfivesum\@empty
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+  {\minted@error{Cannot find input file "\minted@inputfilepath"; inserting placeholder}%
+   \minted@insertplaceholder}%
+  {\pydatasetbuffername{minted@tmpdatabuffer}%
+   \pydatabufferkeyvalue{command}{highlight}%
+   \pydatabufferkeyedefvalue{inputfilepath}{\minted@inputfilepath}%
+   \pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}%
+   \minted@highlight@i}}
+\def\minted@highlight@i{%
+  \pydatabufferkeyedefvalue{pyopt.lexer}{\minted@lexer}%
+  \pydatabufferkeyedefvalue{pyopt.commandprefix}{\minted@styleprefix}%
+  \minted@forcsvlist{\minted@highlight@bufferpykeys}{\minted@optkeyslist@py}%
+  \ifbool{minted@cache}%
+   {\edef\minted@highlightfilename{\pydatabuffermdfivesum\detokenize{.highlight.minted}}%
+    \edef\minted@highlightfilepath{\minted@cachepath\minted@highlightfilename}%
+    \IfFileExists{\minted@highlightfilepath}%
+     {\minted@codewrapper{\input{\minted@highlightfilepath}}%
+      \minted@addcachefilename{\minted@highlightfilename}}%
+     {\ifbool{minted@canexec}%
+       {\minted@highlight@create}%
+       {\minted@error{Cannot highlight code (minted executable is unavailable or
+          disabled); attempting to typeset without highlighting}%
+        \minted@highlight@fallback}}}%
+   {\edef\minted@highlightfilename{%
+      \detokenize{_}\MintedJobnameMdfive\detokenize{.highlight.minted}}%
+    \let\minted@highlightfilepath\minted@highlightfilename
+    \ifbool{minted@canexec}%
+     {\minted@highlight@create}%
+     {\minted@error{Cannot highlight code (minted executable is unavailable or
+        disabled); attempting to typeset without highlighting}%
+      \minted@highlight@fallback}}%
+  \pydataclearbuffername{minted@tmpdatabuffer}}
+\def\minted@highlight@bufferpykeys#1{%
+  \edef\minted@tmp{\mintedpyoptvalueof{#1}}%
+  \ifx\minted@tmp\minted@const@pgfkeysnovalue
+  \else
+    \pydatabufferkeyedefvalue{pyopt.#1}{\minted@tmp}%
+  \fi}
+\def\minted@highlight@create{%
+  \pydatasetfilename{\MintedDataFilename}%
+  \minted@fasthighlightmode@checkstart
+  \pydatawritedictopen
+  \pydatawritebuffer
+  \pydatawritekeyedefvalue{jobname}{\jobname}%
+  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
+  \pydatawritekeyedefvalue{currentfilepath}{\CurrentFilePath}%
+  \pydatawritekeyedefvalue{currentfile}{\CurrentFile}%
+  \pydatawritekeyedefvalue{inputlineno}{\the\inputlineno}%
+  \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
+  \pydatawritekeyedefvalue{highlightfilename}{\minted@highlightfilename}%
+  \pydatawritedictclose
+  \ifbool{minted@fasthighlightmode}%
+   {\minted@insertplaceholder}%
+   {\pydataclosefilename{\MintedDataFilename}%
+    \begingroup
+    \minted@exec@highlight
+    \IfFileExists{\minted@highlightfilepath}%
+     {\ifx\minted@exec@warning\relax
+      \else
+        \expandafter\minted@exec@warning
+      \fi
+      \ifx\minted@exec@error\relax
+      \else
+        \expandafter\minted@exec@error
+      \fi
+      \endgroup
+      \minted@codewrapper{\input{\minted@highlightfilepath}}%
+      \ifbool{minted@cache}{\minted@addcachefilename{\minted@highlightfilename}}{}}%
+     {\ifx\minted@exec@warning\relax
+      \else
+        \expandafter\minted@exec@warning
+      \fi
+      \ifx\minted@exec@error\relax
+        \minted@error{Minted executable failed during syntax highlighting
+          but returned no error message (see if "\MintedErrlogFilename" exists)}%
+      \else
+        \expandafter\minted@exec@error
+      \fi
+      \endgroup
+      \minted@highlight@fallback}}}
+\def\minted@highlight@fallback{%
+  \minted@insertplaceholder}
 \newcommand{\setminted}[2][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\setkeys{minted@opt@g}{#2}}%
-    {\minted@configlang{#1}%
-      \setkeys{minted@opt@lang}{#2}}}
+  \ifstrempty{#1}%
+   {\pgfkeys{/minted/global/.cd,#2}}%
+   {\let\minted@tmplexer\minted@lexer
+    \edef\minted@lexer{#1}%
+    \pgfkeys{/minted/lexer/.cd,#2}%
+    \let\minted@lexer\minted@tmplexer}}
 \newcommand{\setmintedinline}[2][]{%
-  \ifthenelse{\equal{#1}{}}%
-    {\setkeys{minted@opt@g@i}{#2}}%
-    {\minted@configlang{#1}%
-      \setkeys{minted@opt@lang@i}{#2}}}
-\setmintedinline[php]{startinline=true}
-\setminted{tabcolor=black}
-\setminted{stripnl=false}
+  \ifstrempty{#1}%
+   {\pgfkeys{/minted/globalinline/.cd,#2}}%
+   {\let\minted@tmplexer\minted@lexer
+    \edef\minted@lexer{#1}%
+    \pgfkeys{/minted/lexerinline/.cd,#2}%
+    \let\minted@lexer\minted@tmplexer}}
 \newcommand{\usemintedstyle}[2][]{\setminted[#1]{style=#2}}
-\begingroup
-\catcode`\ =\active
-\catcode`\^^I=\active
-\gdef\minted@defwhitespace@retok{\def {\noexpand\FV@Space}\def^^I{\noexpand\FV@Tab}}%
-\endgroup
-\newcommand{\minted@writecmdcode}[1]{%
-  \immediate\openout\minted@code\minted@jobname.pyg\relax
-  \immediate\write\minted@code{\detokenize{#1}}%
-  \immediate\closeout\minted@code}
 \def\mintinline{%
   \FVExtraRobustCommand\RobustMintInline\FVExtraUnexpandedReadStarOArgMArgBVArg}
 \FVExtrapdfstringdefDisableCommands{%
@@ -1028,31 +1453,51 @@
   \ifbool{FVExtraRobustCommandExpanded}%
    {\@ifnextchar\bgroup
      {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}%
-     {\PackageError{minted}%
-       {Inline delimiters must be paired curly braces in this context}%
-       {Use curly braces as delimiters}}}%
+     {\minted@error{Inline delimiters must be paired curly braces in this context}}}%
    {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}}
-\def\RobustMintInlineProcess#1#2#3{%
+\def\RobustMintInlineProcess@highlight#1#2#3{%
   \begingroup
-  \setboolean{minted@isinline}{true}%
-  \minted@configlang{#2}%
-  \setkeys{minted@opt@cmd}{#1}%
-  \minted@fvset
-  \RobustMintInlineProcess@i{#3}}
-\ifthenelse{\boolean{minted@draft}}%
- {\def\RobustMintInlineProcess@i#1{%
-    \fvset{extra=true}%
-    \Verb{#1}%
-    \endgroup}}%
- {\def\RobustMintInlineProcess@i#1{%
-   \FVExtraDetokenizeVArg{%
-     \FVExtraRetokenizeVArg{\RobustMintInlineProcess@ii}{\FV@CatCodes}}{#1}}
-  \def\RobustMintInlineProcess@ii#1{%
-    \minted@writecmdcode{#1}%
-    \let\Verbatim\VerbEnv
-    \let\endVerbatim\endVerbEnv
-    \expandafter\minted@pygmentize\expandafter{\minted@lang}%
-    \endgroup}}
+  \booltrue{minted@isinline}%
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \FVExtraDetokenizeVArg{%
+     \FVExtraRetokenizeVArg{\RobustMintInlineProcess@highlight@i}{\FV@CatCodes}}{#3}}
+\def\RobustMintInlineProcess@highlight@i#1{%
+  \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
+  \setcounter{minted@tmpcodebufferlength}{1}%
+  \let\Verbatim\VerbEnv
+  \let\endVerbatim\endVerbEnv
+  \let\minted@highlight@fallback\RobustMintInlineProcess@highlight@fallback
+  \minted@highlight
+  \setcounter{minted@tmpcodebufferlength}{0}%
+  \endgroup}
+\def\RobustMintInlineProcess@highlight@fallback{%
+  \minted@useadditionalfvoptsnopy
+  \fvset{extra=true}%
+  \minted@codewrapper{%
+    \expandafter\let\expandafter\minted@tmp\csname minted@tmpcodebufferline1\endcsname
+    \expandafter\Verb\expandafter{\minted@tmp}}}
+\def\RobustMintInlineProcess@placeholder#1#2#3{%
+  \begingroup
+  \booltrue{minted@isinline}%
+  \minted@insertplaceholder
+  \endgroup}
+\def\RobustMintInlineProcess@verbatim#1#2#3{%
+  \begingroup
+  \booltrue{minted@isinline}%
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \minted@useadditionalfvoptsnopy
+  \fvset{extra=true}%
+  \minted@codewrapper{\Verb{#3}}%
+  \endgroup}
+\ifbool{minted@placeholder}%
+ {\let\RobustMintInlineProcess\RobustMintInlineProcess@placeholder}%
+ {\ifbool{minted@verbatim}%
+   {\let\RobustMintInlineProcess\RobustMintInlineProcess@verbatim}%
+   {\let\RobustMintInlineProcess\RobustMintInlineProcess@highlight}}
 \def\mint{%
   \FVExtraRobustCommand\RobustMint\FVExtraUnexpandedReadStarOArgMArgBVArg}
 \FVExtrapdfstringdefDisableCommands{%
@@ -1061,110 +1506,159 @@
   \ifbool{FVExtraRobustCommandExpanded}%
    {\@ifnextchar\bgroup
      {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}%
-     {\PackageError{minted}%
-       {Delimiters must be paired curly braces in this context}%
-       {Use curly braces as delimiters}}}%
+     {\minted@error{Delimiters must be paired curly braces in this context}}}%
    {\FVExtraReadVArg{\RobustMintProcess{#1}{#2}}}}
-\def\RobustMintProcess#1#2#3{%
+\def\RobustMintProcess@highlight#1#2#3{%
   \begingroup
-  \minted@configlang{#2}%
-  \setkeys{minted@opt@cmd}{#1}%
-  \minted@fvset
-  \RobustMintProcess@i{#3}}
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \FVExtraDetokenizeVArg{%
+    \FVExtraRetokenizeVArg{\RobustMintProcess@highlight@i}{\FV@CatCodes}}{#3}}
+\def\RobustMintProcess@highlight@i#1{%
+  \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
+  \setcounter{minted@tmpcodebufferlength}{1}%
+  \let\minted@highlight@fallback\RobustMintProcess@highlight@fallback
+  \minted@highlight
+  \setcounter{minted@tmpcodebufferlength}{0}%
+  \endgroup}
+\def\RobustMintProcess@highlight@fallback{%
+  \minted@useadditionalfvoptsnopy
+  \minted@codewrapper{%
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+\def\RobustMintProcess@placeholder#1#2#3{%
+  \minted@insertplaceholder}
+\def\RobustMintProcess@verbatim#1#2#3{%
+  \begingroup
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \minted@useadditionalfvoptsnopy
+  \FVExtraDetokenizeVArg{%
+    \FVExtraRetokenizeVArg{\RobustMintProcess@verbatim@i}{\FV@CatCodes}}{#3}}
+\def\RobustMintProcess@verbatim@i#1{%
+  \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
+  \setcounter{minted@tmpcodebufferlength}{1}%
+  \minted@codewrapper{%
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}%
+  \setcounter{minted@tmpcodebufferlength}{0}%
+  \endgroup}
+\ifbool{minted@placeholder}%
+ {\let\RobustMintProcess\RobustMintProcess@placeholder}%
+ {\ifbool{minted@verbatim}%
+   {\let\RobustMintProcess\RobustMintProcess@verbatim}%
+   {\let\RobustMintProcess\RobustMintProcess@highlight}}
+\newenvironment{minted}[2][]%
+ {\VerbatimEnvironment
+  \MintedBegin{#1}{#2}}%
+ {\MintedEnd}
+\def\MintedBegin@highlight#1#2{%
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer,globalbuffer=true]}
+\def\MintedEnd@highlight{%
+  \end{VerbatimBuffer}%
+  \let\minted@highlight@fallback\MintedEnv@highlight@fallback
+  \minted@highlight
+  \VerbatimClearBuffer[buffername=minted@tmpcodebuffer]}
+\def\MintedEnv@highlight@fallback{%
+  \minted@useadditionalfvoptsnopy
+  \minted@codewrapper{%
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+\def\MintedBegin@placeholder#1#2{%
+  \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer]}
+\def\MintedEnd@placeholder{%
+  \end{VerbatimBuffer}%
+  \minted@insertplaceholder}
+\def\MintedBegin@verbatim#1#2{%
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \minted@usefvopts
+  \minted@useadditionalfvoptsnopy
+  \begin{Verbatim}}
+\def\MintedEnd@verbatim{%
+  \end{Verbatim}}
+\ifbool{minted@placeholder}%
+ {\let\MintedBegin\MintedBegin@placeholder
+  \let\MintedEnd\MintedEnd@placeholder}%
+ {\ifbool{minted@verbatim}%
+   {\let\MintedBegin\MintedBegin@verbatim
+    \let\MintedEnd\MintedEnd@verbatim}%
+   {\let\MintedBegin\MintedBegin@highlight
+    \let\MintedEnd\MintedEnd@highlight}}
+\def\minted@readinputmintedargs#1#{%
+  \minted@readinputmintedargs@i{#1}}
+\def\minted@readinputmintedargs@i#1#2#3{%
+  \FVExtraAlwaysUnexpanded{\minted@readinputmintedargs#1{#2}{#3}}}
+\FVExtrapdfstringdefDisableCommands{%
+  \makeatletter
+  \def\minted@readinputmintedargs@i#1#2#3{%
+    \detokenize{<input from file "}#3\detokenize{">}}%
+  \makeatother}
+\def\inputminted{%
+  \FVExtraRobustCommand\RobustInputMinted\minted@readinputmintedargs}
+\FVExtrapdfstringdefDisableCommands{%
+  \def\RobustInputMinted{}}
+\newrobustcmd{\RobustInputMinted}[3][]{%
+  \RobustInputMintedProcess{#1}{#2}{#3}}
+\def\RobustInputMintedProcess@highlight#1#2#3{%
+  \begingroup
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \edef\minted@inputfilepath{#3}%
+  \minted@usefvopts
+  \let\minted@highlight@fallback\RobustInputMintedProcess@highlight@fallback
+  \minted@highlightinputfile
+  \endgroup}
+\def\RobustInputMintedProcess@highlight@fallback{%
+  \minted@useadditionalfvoptsnopy
+  \minted@codewrapper{%
+    \VerbatimInput{\minted@inputfilepath}}}
+\def\RobustInputMintedProcess@placeholder#1#2#3{%
+  \minted@insertplaceholder}
+\def\RobustInputMintedProcess@verbatim#1#2#3{%
+  \begingroup
+  \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
+  \edef\minted@lexer{#2}%
+  \edef\minted@inputfilepath{#3}%
+  \minted@usefvopts
+  \minted@useadditionalfvoptsnopy
+  \minted@codewrapper{%
+    \VerbatimInput{\minted@inputfilepath}}%
+  \endgroup}
+\ifbool{minted@placeholder}%
+ {\let\RobustInputMintedProcess\RobustInputMintedProcess@placeholder}%
+ {\ifbool{minted@verbatim}%
+   {\let\RobustInputMintedProcess\RobustInputMintedProcess@verbatim}%
+   {\let\RobustInputMintedProcess\RobustInputMintedProcess@highlight}}
+\newcommand{\newminted}[3][]{%
+  \ifstrempty{#1}%
+   {\newminted@i{#2code}{#2}{#3}}%
+   {\newminted@i{#1}{#2}{#3}}}
 \begingroup
 \catcode`\^^M=\active%
-\catcode`\<=1%
-\catcode`\>=2%
-\catcode`\{=12%
-\catcode`\}=12%
-\catcode`\!=0%
-\catcode`\\=12%
-!ifthenelse<!boolean<minted@draft>>%
- <!gdef!RobustMintProcess@i#1<%
-    !FVExtraDetokenizeVArg<%
-      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
-  !gdef!RobustMintProcess@ii#1<%
-    !minted@langlinenoson%
-    !scantokens<%
-      \begin{Verbatim}
-      #1
-      \end{Verbatim}
-      !noexpand>%
-    !minted@langlinenosoff%
-    !endgroup!@doendpe>>%
- <!gdef!RobustMintProcess@i#1<%
-    !FVExtraDetokenizeVArg<%
-      !FVExtraRetokenizeVArg<!RobustMintProcess@ii><!FV@CatCodes>><#1>>%
-  !gdef!RobustMintProcess@ii#1<%
-    !minted@writecmdcode<#1>%
-    !minted@langlinenoson%
-    !expandafter!minted@pygmentize!expandafter<!minted@lang>%
-    !minted@langlinenosoff%
-    !endgroup!@doendpe>>%
-!endgroup
-\ifthenelse{\boolean{minted@draft}}%
-  {\newenvironment{minted}[2][]
-    {\VerbatimEnvironment
-      \minted@configlang{#2}%
-      \setkeys{minted@opt@cmd}{#1}%
-      \minted@fvset
-      \minted@langlinenoson
-      \begin{Verbatim}}%
-    {\end{Verbatim}%
-      \minted@langlinenosoff}}%
-  {\newenvironment{minted}[2][]
-    {\VerbatimEnvironment
-      \let\FVB@VerbatimOut\minted@FVB@VerbatimOut
-      \let\FVE@VerbatimOut\minted@FVE@VerbatimOut
-      \minted@configlang{#2}%
-      \setkeys{minted@opt@cmd}{#1}%
-      \minted@fvset
-      \begin{VerbatimOut}[codes={\catcode`\^^I=12},firstline,lastline]{\minted@jobname.pyg}}%
-    {\end{VerbatimOut}%
-        \minted@langlinenoson
-        \expandafter\minted@pygmentize\expandafter{\minted@lang}%
-        \minted@langlinenosoff}}
-\ifthenelse{\boolean{minted@draft}}%
-  {\newcommand{\inputminted}[3][]{%
-    \begingroup
-    \minted@configlang{#2}%
-    \setkeys{minted@opt@cmd}{#1}%
-    \minted@fvset
-    \minted@inputlanglinenoson
-    \VerbatimInput{#3}%
-    \minted@inputlanglinenosoff
-    \endgroup}}%
-  {\newcommand{\inputminted}[3][]{%
-    \begingroup
-    \minted@configlang{#2}%
-    \setkeys{minted@opt@cmd}{#1}%
-    \minted@fvset
-    \minted@inputlanglinenoson
-    \minted@pygmentize[#3]{#2}%
-    \minted@inputlanglinenosoff
-    \endgroup}}
-\newcommand{\newminted}[3][]{
-  \ifthenelse{\equal{#1}{}}
-    {\def\minted@envname{#2code}}
-    {\def\minted@envname{#1}}
-  \newenvironment{\minted@envname}
-    {\VerbatimEnvironment
-      \begin{minted}[#3]{#2}}
-    {\end{minted}}
-  \newenvironment{\minted@envname *}[1]
-    {\VerbatimEnvironment\begin{minted}[#3,##1]{#2}}
-    {\end{minted}}}
+\gdef\newminted@i#1#2#3{%
+  \expandafter\def\csname#1@i\endcsname##1{%
+    \begin{minted}[#3,##1]{#2}^^M}%
+  \newenvironment{#1}%
+   {\VerbatimEnvironment%
+    \FVExtraReadOArgBeforeVEnv{\csname#1@i\endcsname}}%
+   {\end{minted}}%
+  \newenvironment{#1*}[1]%
+   {\VerbatimEnvironment%
+    \begin{minted}[#3,##1]{#2}}%
+   {\end{minted}}}%
+\endgroup
 \newcommand{\newmint}[3][]{%
-  \if\relax\detokenize{#1}\relax
-    \def\minted@shortname{#2}%
-  \else
-    \def\minted@shortname{#1}%
-  \fi
-  \expandafter\newmint@i\expandafter{\minted@shortname}{#2}{#3}}
+  \ifstrempty{#1}%
+   {\edef\minted@tmp{#2}}%
+   {\edef\minted@tmp{#1}}
+  \expandafter\newmint@i\expandafter{\minted@tmp}{#2}{#3}}
 \def\newmint@i#1#2#3{%
   \expandafter\newcommand\csname#1\endcsname{%
     \expandafter\FVExtraRobustCommand\csname RobustNewMint#1\endcsname
-      \FVExtraUnexpandedReadStarOArgBVArg}%
+    \FVExtraUnexpandedReadStarOArgBVArg}%
   \FVExtrapdfstringdefDisableCommands{%
     \expandafter\def\csname RobustNewMint#1\endcsname{}}%
   \expandafter\newrobustcmd\csname RobustNewMint#1\endcsname{%
@@ -1173,29 +1667,41 @@
     \ifbool{FVExtraRobustCommandExpanded}%
      {\@ifnextchar\bgroup
        {\FVExtraReadVArg{\csname RobustNewMint#1@ii\endcsname{##1}}}%
-       {\PackageError{minted}%
-         {Delimiters must be paired curly braces in this context}%
-         {Use curly braces as delimiters}}}%
+       {\minted@error{Delimiters must be paired curly braces in this context}}}%
      {\FVExtraReadVArg{\csname RobustNewMint#1@ii\endcsname{##1}}}}
   \expandafter\def\csname RobustNewMint#1@ii\endcsname##1##2{%
     \RobustMintProcess{#3,##1}{#2}{##2}}}
-\newcommand{\newmintedfile}[3][]{
-  \ifthenelse{\equal{#1}{}}
-    {\def\minted@shortname{#2file}}
-    {\def\minted@shortname{#1}}
-  \expandafter\newcommand\csname\minted@shortname\endcsname[2][]{
-    \inputminted[#3,##1]{#2}{##2}}}
+\def\minted@readnewmintedfileargs#1#{%
+  \minted@readnewmintedfileargs@i{#1}}
+\def\minted@readnewmintedfileargs@i#1#2{%
+  \FVExtraAlwaysUnexpanded{\minted@readnewmintedfileargs#1{#2}}}
+\FVExtrapdfstringdefDisableCommands{%
+  \makeatletter
+  \def\minted@readnewmintedfileargs@i#1#2{%
+    \detokenize{<input from file "}#2\detokenize{">}}%
+  \makeatother}
+\newcommand{\newmintedfile}[3][]{%
+  \ifstrempty{#1}%
+   {\edef\minted@tmp{#2file}}%
+   {\edef\minted@tmp{#1}}%
+  \expandafter\newmintedfile@i\expandafter{\minted@tmp}{#2}{#3}}
+\def\newmintedfile@i#1#2#3{%
+  \expandafter\newcommand\csname#1\endcsname{%
+    \expandafter\FVExtraRobustCommand\csname RobustNewMintedFile#1\endcsname
+    \minted@readnewmintedfileargs}%
+  \FVExtrapdfstringdefDisableCommands{%
+    \expandafter\def\csname RobustNewMintedFile#1\endcsname{}}%
+  \expandafter\newrobustcmd\csname RobustNewMintedFile#1\endcsname[2][]{%
+    \RobustInputMintedProcess{#3,##1}{#2}{##2}}}
 \newcommand{\newmintinline}[3][]{%
-  \if\relax\detokenize{#1}\relax
-    \def\minted@shortname{#2inline}%
-  \else
-    \def\minted@shortname{#1}%
-  \fi
-  \expandafter\newmintinline@i\expandafter{\minted@shortname}{#2}{#3}}
+  \ifstrempty{#1}%
+   {\edef\minted@tmp{#2inline}}%
+   {\edef\minted@tmp{#1}}%
+  \expandafter\newmintinline@i\expandafter{\minted@tmp}{#2}{#3}}
 \def\newmintinline@i#1#2#3{%
   \expandafter\newcommand\csname#1\endcsname{%
     \expandafter\FVExtraRobustCommand\csname RobustNewMintInline#1\endcsname
-      \FVExtraUnexpandedReadStarOArgBVArg}%
+    \FVExtraUnexpandedReadStarOArgBVArg}%
   \FVExtrapdfstringdefDisableCommands{%
     \expandafter\def\csname RobustNewMintInline#1\endcsname{}}%
   \expandafter\newrobustcmd\csname RobustNewMintInline#1\endcsname{%
@@ -1204,71 +1710,25 @@
     \ifbool{FVExtraRobustCommandExpanded}%
      {\@ifnextchar\bgroup
        {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}%
-       {\PackageError{minted}%
-         {Inline delimiters must be paired curly braces in this context}%
-         {Use curly braces as delimiters}}}%
+       {\minted@error{Inline delimiters must be paired curly braces in this context}}}%
      {\FVExtraReadVArg{\csname RobustNewMintInline#1@ii\endcsname{##1}}}}
   \expandafter\def\csname RobustNewMintInline#1@ii\endcsname##1##2{%
     \RobustMintInlineProcess{#3,##1}{#2}{##2}}}
-\ifthenelse{\boolean{minted@newfloat}}%
+\ifbool{minted@newfloat}%
  {\@ifundefined{minted@float@within}%
-    {\DeclareFloatingEnvironment[fileext=lol,placement=tbp]{listing}}%
-    {\def\minted@tmp#1{%
-       \DeclareFloatingEnvironment[fileext=lol,placement=tbp, within=#1]{listing}}%
-     \expandafter\minted@tmp\expandafter{\minted@float@within}}}%
+   {\DeclareFloatingEnvironment[fileext=lol,placement=tbp]{listing}}%
+   {\def\minted@tmp#1{%
+      \DeclareFloatingEnvironment[fileext=lol,placement=tbp,within=#1]{listing}}%
+    \expandafter\minted@tmp\expandafter{\minted@float@within}}}%
  {\@ifundefined{minted@float@within}%
-    {\newfloat{listing}{tbp}{lol}}%
-    {\newfloat{listing}{tbp}{lol}[\minted@float@within]}}
+   {\newfloat{listing}{tbp}{lol}}%
+   {\newfloat{listing}{tbp}{lol}[\minted@float@within]}}
 \ifminted@newfloat\else
 \newcommand{\listingscaption}{Listing}
 \floatname{listing}{\listingscaption}
 \newcommand{\listoflistingscaption}{List of Listings}
 \providecommand{\listoflistings}{\listof{listing}{\listoflistingscaption}}
 \fi
-\AtEndOfPackage{%
-  \ifthenelse{\boolean{minted@draft}}%
-   {}%
-   {%
-    \ifthenelse{\boolean{minted@frozencache}}{}{%
-      \ifnum\pdf@shellescape=1\relax\else
-        \PackageError{minted}%
-         {You must invoke LaTeX with the
-          -shell-escape flag}%
-         {Pass the -shell-escape flag to LaTeX. Refer to the minted.sty
-          documentation for more information.}%
-      \fi}%
-   }%
-}
-\AtEndPreamble{%
-  \ifthenelse{\boolean{minted@draft}}%
-   {}%
-   {%
-    \ifthenelse{\boolean{minted@frozencache}}{}{%
-      \TestAppExists{\MintedPygmentize}%
-      \ifAppExists\else
-        \PackageError{minted}%
-         {You must have `pygmentize' installed
-          to use this package}%
-         {Refer to the installation instructions in the minted
-          documentation for more information.}%
-      \fi}%
-  }%
-}
-\AfterEndDocument{%
-  \ifthenelse{\boolean{minted@draft}}%
-   {}%
-   {\ifthenelse{\boolean{minted@frozencache}}%
-     {}
-     {\ifx\XeTeXinterchartoks\minted@undefined
-      \else
-        \DeleteFile[\minted@outputdir]{\minted@jobname.mintedcmd}%
-        \DeleteFile[\minted@outputdir]{\minted@jobname.mintedmd5}%
-      \fi
-      \DeleteFile[\minted@outputdir]{\minted@jobname.pyg}%
-      \DeleteFile[\minted@outputdir]{\minted@jobname.out.pyg}%
-     }%
-   }%
-}
 \endinput
 %%
 %% End of file `minted.sty'.

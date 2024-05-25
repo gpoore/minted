@@ -1,4 +1,53 @@
-# minted — highlighted source code for LaTeX
+# `minted` — highlighted source code for LaTeX
+
+
+## Development status
+
+This is the development branch for `minted` version 3.0.  Beta releases are
+now available.  Essentially all planned new features have been implemented
+and should be usable.  However, the beta is not intended for general use.
+Additional testing and security review are still needed.
+
+The documentation in `minted.dtx` will not be updated to reflect all changes
+until v3.0 is released.  Refer to `latex/CHANGELOG.md` for the current list
+of changed from v2.9.
+
+Steps for installing the current beta version:
+
+1.  Install `minted.sty` (and `minted2.sty` if you need backward compatibility
+    with v2.9).  These are located under `latex/minted/`.  To test one or both
+    of these with a single document, simply download them and put them in the
+    same directory (folder) with the document.  To try them with multiple
+    documents, you can install them within your TeX distribution.  You could
+    simply replace the existing `minted.sty`, but it will typically be better
+    to put the files under `TEXMFLOCAL`, which can be located by running
+    `kpsewhich --var-value TEXMFLOCAL`.  For example, you might put the files
+    under `<path>/texmf-local/tex/latex/local/minted`.  Once the files are in
+    place, run `texhash <TEXMFLOCAL dir>` to update TeX's index of packages.
+
+2.  Install the new Python package with executable `latexminted`.  This is
+    available from the
+    [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
+    For example, `python -m pip install latexminted`.  Depending on your
+    system configuration, you may want `python3` instead of `python`, may need
+    to add `--user`, or may need to make other modifications to the
+    installation command.  It is also possible to download the Python source
+    from the `python/` directory in this repository and install `latexminted`
+    that way.  When `latexminted` is installed, it will also install
+    `latex2pydata` and Pygments.
+
+3.  Under Windows, an additional step is required.  The following description
+    is for TeX Live; an equivalent process is needed for MiKTeX.  Within the
+    TeX installation under `bin/windows/`, create a copy of `runscript.exe`
+    and then rename the copy to `latexmintedwin.exe`.  Then copy the file
+    `latexmintedwin.py` (under `latex/restricted/` in this repository) to
+    `texmf-dist/scripts/minted`.  Finally, run `texhash` to update TeX's
+    index.
+
+Development of v3.0 is thanks to a
+[TeX Development Fund grant](https://tug.org/tc/devfund/grants.html) from the
+[TeX Users Group](https://tug.org/).
+
 
 
 ## Overview
@@ -28,49 +77,25 @@ const double pi = 3.1415926535
 
 will produce the following rendering:
 
-![screenshot](http://i.stack.imgur.com/OLUjl.png)
+![screenshot](https://i.stack.imgur.com/OLUjl.png)
 
 See the [documentation](https://github.com/gpoore/minted/blob/master/source/minted.pdf)
 for examples and installation instructions.
-
-Notice that `minted` requires that LaTeX run with the `-shell-escape` flag.
-This has security implications; it allows LaTeX to run external programs.
-`-shell-escape` should only be used with documents that you trust.
-
-
-## Development status
-
-`minted` version 3.0 is now under development, thanks to a [TeX Development
-Fund grant](https://tug.org/tc/devfund/grants.html) from the [TeX Users
-Group](https://tug.org/).  This will bring a new Python executable that
-replaces `pygmentize`.  The new executable will be compatible with restricted
-shell escape, so no more `-shell-escape` with associated security
-vulnerabilities.  The new executable will also make it possible to extend
-`minted` using Python, not just LaTeX macros.  This will bring official
-support for custom lexers, allow including snippets of external files based on
-regular expressions, and make possible a number of other improvements and
-bugfixes.  For compatibility purposes, the final version of `minted` v2.x will
-be released as the compatibility package `minted2`.  Initial beta versions of
-`minted` v3.0 are expected by early 2024.  A final minted v3.x release
-including all planned features is expected before the end of summer 2024.
 
 
 ## Availability
 
 `minted` is distributed with both TeX Live and MiKTeX. It is also available
-from [CTAN](http://www.ctan.org/pkg/minted).  In any case,
-[Python](http://python.org/) and [Pygments](http://pygments.org/download/)
+from [CTAN](https://www.ctan.org/pkg/minted).  In any case,
+[Python](https://python.org/) and [Pygments](https://pygments.org/download/)
 need to be installed separately.
 
 
 ## License
 
 This work may be distributed and/or modified under the conditions of the
-[LaTeX Project Public License](http://www.latex-project.org/lppl.txt) (LPPL),
-version 1.3 or later.
-
-Additionally, the project may be distributed under the terms of the
-[3-Clause ("New") BSD license](http://opensource.org/licenses/BSD-3-Clause).
+[LaTeX Project Public License](https://www.latex-project.org/lppl.txt) (LPPL),
+version 1.3c or later.
 
 Please use the project's GitHub site at <https://github.com/gpoore/minted>
 for suggestions, feature requests, and bug reports.

@@ -1,0 +1,55 @@
+[build-system]
+requires = ['setuptools']
+
+
+[project]
+name = 'latexminted'
+description = 'Python executable for LaTeX minted package'
+readme = 'README.md'
+requires-python = '>= 3.8'
+authors = [
+    {name = 'Geoffrey M. Poore', email = 'gpoore@gmail.com'}
+]
+license = {file = 'LICENSE.txt'}
+dynamic = ['version']
+keywords = [
+    'LaTeX',
+    'syntax highlighting',
+    'Pygments',
+]
+dependencies = [
+    'pygments >= 2.17.0',
+]
+# https://pypi.python.org/pypi?:action=list_classifiers
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Programming Language :: Python',
+    'Environment :: Console',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Education',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved',
+    'Operating System :: OS Independent',
+    'Topic :: Text Processing :: Markup :: LaTeX',
+]
+
+
+[project.urls]
+homepage = 'https://github.com/gpoore/minted/tree/main/python/'
+repository = 'https://github.com/gpoore/minted'
+changelog = 'https://github.com/gpoore/minted/blob/main/python/CHANGELOG.md'
+
+
+[project.scripts]
+latexminted = 'latexminted.cmdline:main'
+
+
+[tool.setuptools]
+license-files = ['LICENSE*', 'CHANGELOG*', 'RESTRICTED_SHELL_ESCAPE*']
+
+[tool.setuptools.dynamic]
+version = {attr = 'latexminted.__version__'}
+
+
+[tool.ruff]
+line-length = 120

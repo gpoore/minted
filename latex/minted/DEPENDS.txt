@@ -3,13 +3,10 @@ etoolbox
 float
 framed
 fvextra
-ifplatform
-ifthen
-keyval
-kvoptions
-lineno
+latex2pydata
 newfloat
 pdftexcmds
+pgfkeys
+pgfopts
 shellesc
 xcolor
-xstring

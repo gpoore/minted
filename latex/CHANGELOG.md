@@ -1,4 +1,289 @@
-# Changelog
+# Changelog — minted LaTeX package
+
+
+## v3.0.0 (dev)
+
+Until `minted` v3.0 is released, this should be considered the authoritative
+list of modifications from v2.9.  The documentation in `minted.dtx` will not
+be updated to reflect all changes until v3.0 is released.  The changes
+described below are not guaranteed to be final until `minted` v3.0 is
+released.
+
+*  `minted` v3 is a complete rewrite from v2.9.  `minted` v3 includes
+   significant changes from `minted` v2 on the LaTeX side, and also uses a
+   new `minted`-specific Python executable to perform syntax highlighting.
+   This executable is specifically designed to meet the security requirements
+   for restricted shell escape programs.  Once it has passed a security review
+   and is accepted by TeX distributions, it will be possible to highlight code
+   without `-shell-escape` and its attendant security vulnerabilities.
+
+*  If you load the `minted` package (now v3) with full shell escape enabled
+   (`-shell-escape`), `minted` will fall back to v2 behavior if it cannot find
+   the new Python executable `latexminted`.  This fallback behavior is only
+   temporary, so you should either install the `latexminted` executable to
+   switch to `minted` v3, or load the new `minted2` compatibility package to
+   continue with `minted` v2.  The `minted2` package provides the features of
+   `minted` v2.9, the final release before v3.  No additional v2 releases are
+   planned; no changes to the `minted2` package are expected.
+
+*  The `pygmentize` executable included with the Pygments library is no longer
+   used.  Instead, there is a new Python executable `latexminted`.  This is
+   part of the `latexminted` Python package, which is developed under the
+   `python/` directory in the `minted` repository and is available from the
+   [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).  The
+   `latexminted` executable uses Pygments internally to perform syntax
+   highlighting while also providing several additional features.
+
+   There is also a short wrapper script `latexmintedwin` under the `latex/`
+   directory in the `minted` repository to provide Windows compatibility under
+   restricted shell escape with TeX Live.  This is designed to be installed
+   within the `texmf-dist/scripts` directory of a TeX Live installation.
+
+   The `latexminted` executable is designed to be compatible with the
+   security requirements for restricted shell escape, so that in the future
+   TeX distributions can enable `latexminted` without requiring
+   `-shell-escape`.  It is possible to benefit from these enhanced security
+   capabilities immediately and avoid the need for `-shell-escape`.
+
+   - TeX Live:  Copy the variable `shell_escape_commands` from the
+     distribution `texmf.cnf` (typically something like
+     `<tex_distro>/texmf-dist/web2c/texmf.cnf`) into the user `texmf.cnf`
+     (typically something like `<tex_distro>/texmf.cnf`), and then add
+     `latexminted` and (if applicable) `latexmintedwin` to the end of the
+     `shell_escape_commands` list.  The location of the `texmf.cnf` files can
+     be determined by running `kpsewhich -all texmf.cnf`.
+
+   - MiKTeX:  Add a line `AllowedShellCommands[] = latexminted` to the
+     existing list of allowed commands in `miktex.ini`.  Under Windows, you
+     may also need `AllowedShellCommands[] = latexmintedwin`.  You may want
+     to modify the user-scoped configuration instead of the system-wide
+     configuration.  See the
+     [MiKTeX documentation](https://docs.miktex.org/manual/miktex.ini.html)
+     for more details, particularly `initexmf --edit-config-file <file>`.
+
+   When `minted` v3 is used with full shell escape enabled (`-shell-escape`),
+   it will fall back to `minted` v2 behavior if the `latexminted` executable
+   is not found.  This is accomplished via the new `minted2` package.  This
+   fallback behavior is only temporary, so you should either install the
+   `latexminted` executable and switch to `minted` v3, or load the `minted2`
+   package directly to continue with `minted` v2.
+
+*  Errors and warnings that occur within Python are now reported as `minted`
+   package errors and warnings within LaTeX in nearly all cases.  It should no
+   longer be necessary to look through the compile log for Python errors and warnings.  A temp file `*.errlog.minted` containing Python traceback
+   information is created in some cases when errors cannot be fully reported
+   within LaTeX or more details may be needed.
+
+*  [`latex2pydata`](https://github.com/gpoore/latex2pydata) is now required
+   for passing data from LaTeX to Python and then processing it within Python.
+   This consists of a LaTeX package, available from
+   [CTAN](https://ctan.org/pkg/latex2pydata), and a Python package, available
+   from [PyPI](https://pypi.org/project/latex2pydata/).  The LaTeX package can
+   typically be installed with your TeX distribution's package manager.  The
+   Python package will typically be installed automatically when you install
+   the new `minted` Python executable as part of the `latexminted` Python
+   package.
+
+*  Options are now handled with `pgfkeys` and `pgfopts`, instead of
+   `keyval` and `kvoptions`.
+
+*  All temporary files are cleaned up automatically when compiling completes
+   without interruption.  All temporary files now have names of the form
+   `_<hash>.<role>.minted`.  `<hash>` is an MD5 hash of `\jobname` (if
+   `\jobname` is wrapped in double or single quotation marks, these are
+   stripped before the MD5 is computed).  `<role>` is the role of the temp
+   file: `data` (data passed to Python), `config` (detected system
+   configuration), `style` (highlighting style definition), `highlight`
+   (highlighted code), or `message` (message passed back to LaTeX by Python
+   executable).  `<role>` can also be `errlog` when the Python executable
+   encounters an unexpected error that it is not designed to report to the
+   LaTeX side; this is not automatically cleaned up.  There are no more
+   `<jobname>.pyg` and `<jobname>.out.pyg` files.
+
+*  Several package options are no longer supported and result in errors or
+   warnings.
+
+   - `finalizecache`:  No longer needed.  The `frozencache` package option now
+      uses the regular cache, rather than requiring a new, special cache
+      containing files with sequentially numbered names.  When using
+      `frozencache` with `-output-directory`, the `cachedir` package option
+      should be used to specify a full relative path to the cache (for
+      example, `cachedir=./<outputdir>/_minted`).
+
+   - `outputdir`: No longer needed.  TeX Live 2024+ saves a custom output
+     directory from `-output-directory` in the environment variable
+     [`TEXMF_OUTPUT_DIRECTORY`](https://tug.org/texinfohtml/web2c.html#Output-file-location).
+     The environment variable `TEXMF_OUTPUT_DIRECTORY` can be set manually in
+     other cases.
+
+   - `kpsewhich`:  No longer needed.  `kpsewhich` is now automatically
+     invoked as necessary by the `minted` Python executable in locating
+     files.
+
+   - `draft` and `final`:  These no longer have any effect and result in a
+     warning.  They will soon be removed altogether.  Improvements in caching
+     have largely eliminated the overhead that `draft` mode was designed to
+     avoid, while new features that are implemented purely within Python have
+     made it impossible in some cases to typeset code using only LaTeX.  The
+     new package options `placeholder` and `verbatim` offer alternatives when
+     maximum compilation speed is needed or the `minted` Python executable is
+     unavailable.
+
+*  New package options:
+
+   - `highlightmode`:  Determines when code is highlighted.  The default is
+     `fastfirst`.  If a cache for the document exists, then code is
+     highlighted immediately.  If a cache for the document does not exist,
+     then typeset a placeholder instead of code and highlight all code at the
+     end of the document.  This will require a second compile before code is
+     typeset, but because all code is highlighted at once, there is less
+     overhead and the total time required can be significantly less for
+     documents that include many code snippets.  The alternatives are `fast`
+     (always highlight at end of document, requiring a second compile) and
+     `immediate` (always highlight immediately, so no second compile is
+     needed).  `immediate` should be used when typesetting code in external
+     temp files that are overwritten during compilation.
+
+     When code is highlighted at the end of the document with `fast` or
+     `fastfirst`, any error and warning messages will refer to a location at
+     the end of the document rather than the original code location, since
+     highlighting occurred at the end of the document.  In this case, messages
+     are supplemented with original LaTeX source file names and line numbers
+     to aid in debugging.
+
+   - `placeholder`:  Instead of typesetting code, insert a placeholder.  This
+     is enabled automatically when working with PGF/TikZ externalization.
+
+   - `verbatim`:  Instead of highlighting code, attempt to typeset it verbatim
+     without using the `minted` Python executable.  This is not guaranteed to
+     be an accurate representation of the code, since some features such as
+     `autogobble` require Python.
+
+*  Renamed package options `langlinenos` to `lexerlinenos` and
+   `inputlanglinenos` to `inputlexerlinenos`.  The old names are still
+   supported.
+
+*  The default cache directory name is now `_minted`.  All files within a
+   directory now share the same cache, instead of having separate per-document
+   caches.  The new `latexminted` Python executable improves cache management
+   so that a shared cache functions correctly.  A cache file that is shared by
+   multiple documents will not be deleted if one document ceases to use the
+   file.
+
+   Document-specific caching as in `minted` v2 can be restored using the
+   package option `cachedir`.  For example, for files whose names do not
+   contain spaces, simply use `cachedir=\detokenize{_minted-}\jobname`.  For
+   files with names that do contain spaces, use a copy of `\jobname` in which
+   the wrapping quotation marks have been removed or replaced with other
+   characters and the spaces have been replaced with placeholders such as `_`.
+
+*  Cache file names now take the form `<hash>_highlight.minted` and
+   `<style>_style.minted`.  `<hash>` is a single MD5 hash of code and options,
+   when serialized in Python literal format.  Cache file names no longer use
+   two concatenated MD5 hashes, one of code and one of options.  The cache
+   directory will also contain files `_<hash>.index.minted`.  These list all
+   cache files used by a given document.  In this case, `<hash>` is the MD5
+   hash of the document's `\jobname` (if `\jobname` is wrapped in double or
+   single quotation marks, these are stripped before the MD5 is computed).
+
+*  Highlighting style names must now match the regular expression
+   `^[0-9A-Za-z_-]+$`.  This is checked on the LaTeX side.
+
+*  `\inputminted` is redefined as robust and is usable in movable arguments.
+
+*  `\newminted` now creates an environment that takes an optional argument
+   consisting of options, instead of taking no argument.  It still creates a
+   starred `*` environment variant that takes a mandatory argument consisting
+   of options, but this is only retained for backward-compatibility purposes.
+
+*  Improved fallback behavior in the event of errors.  If code cannot be
+   highlighted, it is automatically typeset with a verbatim approximation if
+   possible and otherwise replaced by a placeholder.  If a highlighting style
+   definition cannot be generated, it is automatically replaced with the
+   default style if available, and otherwise a built-in style with no syntax
+   highlighting is used.
+
+*  File encoding changes:
+
+   - The new `latexminted` executable assumes that LaTeX output files are
+     UTF-8, and saves highlighted code as UTF-8.  That is, LaTeX should be
+     configured so that everything is UTF-8.
+
+   - The `encoding` option now defaults to UTF-8.  It is only used in decoding
+     files for `\inputminted` and commands based on it.
+
+   - The `outencoding` option is no longer supported.
+
+*  Added new options for including ranges of code based on literal string
+   delimiters or regular expressions.  These work with all commands and
+   environments, including `\inputminted`.
+
+   - `rangestartstring`:  Select code starting with this string.
+
+   - `rangestartafterstring`:  Select code starting immediately after this
+     string.
+
+   - `rangestopstring`:  Select code ending with this string.
+
+   - `rangestopbeforestring`:  Select code ending immediately before this
+     string.
+
+   - `rangeregex`:  Select code that matches this regular expression.
+
+   - `rangeregexmatchnumber` [default=`1`]:  If there are multiple
+     non-overlapping matches for `rangeregex`, this determines which is
+     used.
+
+   - `rangeregexdotall` [default=`false`]:  `.` matches any character
+     including the newline.
+
+   - `rangeregexmultiline` [default=`false`]:  `^` and `$` match at
+     internal newlines, not just at the start/end of the string.
+
+   If line numbers are displayed, they are based off of the range of code that
+   is selected; code that is discarded in selecting the range is not
+   considered in calculating line numbers.
+
+   String values and regular expressions can be set using text with backslash
+   escapes, in a manner analogous to regular (non-raw) Python strings.  Any
+   ASCII symbols and punctuation, including those that have special LaTeX
+   meaning, can be backslash escaped.  For example, `rangeregex=\\\\.` is
+   processed like the Python string `"\\\\."`, becoming the literal text
+   `\\.`, which is then interpreted as the regular expression for a literal
+   backslash followed by any character.  Alternatively, string values and
+   regular expressions can be set using a single macro that, when fully
+   expanded (`\edef`), gives the desired literal text.  For example,
+   `\def\pattern{\detokenize{\\.}}` and then `rangeregex=\pattern` would be
+   equivalent to `rangeregex=\\\\.`.
+
+*  There is now official support for custom lexers.  Custom lexers that are
+   installed as Pygments [plugins](https://pygments.org/docs/plugins/) have
+   always been supported, since Pygments can find them automatically.
+   However, custom lexers in the form of `*.py` files in the document
+   directory have not officially been supported.
+
+   Custom lexers can be specified in place of builtin lexers.  For example,
+   `\inputminted{lexer.py}{<file>}` or
+   `\inputminted{./path/lexer.py:LexerClass}{<file>}`.
+
+   Custom lexers in the form of `*.py` files are not automatically enabled,
+   since they are equivalent to arbitrary code execution and are thus a
+   significant security risk.  To enable custom lexers, create a file
+   `.latexminted_config` in your home directory (as found by Python's
+   `pathlib.Path.home()`).  This file must contain data in Python literal,
+   JSON, or TOML format.  TOML requires Python >= 3.11.  The data must contain
+   an entry equivalent to this Python data:
+   ```
+   {
+      "custom_lexers": {
+         "<lexer file name>": "<SHA-256 hash of lexer file>"
+      }
+   }
+   ```
+   `<lexer file name>` is just the name of the file, with no path or class
+   included.  For example, for `./path/lexer.py:LexerClass` it would be just
+   `lexer.py`.  Any number of file names and hashes can be provided.
+
 
 
 ## v2.9 (2023/12/18)
