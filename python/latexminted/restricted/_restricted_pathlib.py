@@ -28,8 +28,7 @@ class RestrictedPath(type(pathlib.Path())):
     `os` and `shutil` or functions such as `open()`.
 
      *  Reading:  Restricted to `.read_text()`, `.read_bytes()`, and
-        `.open()`.  No reading dot files.  No reading files outside the user
-        home directory.
+        `.open()`.
 
      *  Writing:  Restricted to `.write_text()` and `.open()`.  Restricted to
         files under the current working directory, $TEXMFOUTPUT, and
@@ -62,8 +61,14 @@ class RestrictedPath(type(pathlib.Path())):
          -  `.touch()`
     '''
 
+    # There are currently no restrictions on reading locations, but the
+    # implementation allows this to be added.  This is equivalent to
+    # TeX Live's `openin_any = a`; see
+    # https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634.
     _fs_read_roots: set[pathlib.Path] = set()
-    _fs_read_roots.add(pathlib.Path.home().resolve())
+    # Similarly, there are no restrictions on reading dotfiles, but the
+    # implementation allows this to be added.
+    _fs_read_dotfiles: bool = True
 
     _fs_write_roots: set[pathlib.Path] = set()
     _fs_write_roots.add(pathlib.Path.cwd().resolve())
@@ -98,7 +103,7 @@ class RestrictedPath(type(pathlib.Path())):
     def is_readable_dir(self) -> bool:
         if self not in self._checked_readable_dir_set:
             self_resolved = self.resolve()
-            if not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
+            if self._fs_read_roots and not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
                 pass
             else:
                 self._is_readable_dir_set.add(self)
@@ -108,9 +113,9 @@ class RestrictedPath(type(pathlib.Path())):
     def is_readable_file(self) -> bool:
         if self not in self._checked_readable_file_set:
             self_resolved = self.resolve()
-            if not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
+            if self._fs_read_roots and not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
                 pass
-            elif self_resolved.name.startswith('.'):
+            elif not self._fs_read_dotfiles and self_resolved.name.startswith('.'):
                 pass
             else:
                 self._is_readable_file_set.add(self)

@@ -32,12 +32,12 @@ def config(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str]
         config_lines.append(rf'\gdef\minted@config@timestamp{{{tex_timestamp}}}%')
         tex_cachepath: str
         tex_cachedir: str = data['cachedir']
-        if RestrictedPath(tex_cachedir).absolute() or not input_tempfiledir_path_str:
+        if RestrictedPath(tex_cachedir).is_absolute() or not input_tempfiledir_path_str:
             tex_cachepath = tex_cachedir
         else:
             if tex_cachedir.startswith('./'):
                 tex_cachedir = tex_cachedir[2:]
-            tex_cachepath = f'{input_tempfiledir_path_str}/{tex_cachedir}'
+            tex_cachepath = f'{input_tempfiledir_path_str}{tex_cachedir}'
         if not tex_cachepath.endswith('/'):
             tex_cachepath += '/'
         config_lines.append(rf'\gdef\minted@config@cachepath{{{tex_cachepath}}}%')

@@ -19,19 +19,20 @@ needing `-shell-escape`.  This is referred to as "restricted shell scape,"
 shell escape but only for trusted executables.
 
 
-## `latexminted` and the filesystem
+## `latexminted` and the file system
 
-Restricted access to the filesystem is one aspect of the requirements for
+Restricted access to the file system is one aspect of the requirements for
 restricted shell escape.  The restrictions may be summarized as follows, based on the TeX Live configuration file
 [`texmf.cnf`](https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634)
 plus the changelog for `kpathsea` which mentions the new environment
 variable
 [`TEXMF_OUTPUT_DIRECTORY`](https://www.tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/NEWS?view=markup).
 
-  * Reading:  Disallow reading dotfiles.
+  * Reading:  No restrictions.
 
-  * Writing:  Restrict writing to the current working directory, `$TEXMFOUT`,
-    and `$TEXMF_OUTPUT_DIRECTORY`, plus their subdirectories.
+  * Writing:  Prohibit writing dotfiles.  Restrict writing to the current
+    working directory, `$TEXMFOUT`, and `$TEXMF_OUTPUT_DIRECTORY`, plus their
+    subdirectories.
 
 The exact way that these restrictions are described in the TeX Live sources is
 somewhat different (for example, disallowing going to parent directories), but
@@ -41,27 +42,25 @@ Python provides a number of ways to read and write files, including the
 [`open()`](https://docs.python.org/3/library/functions.html#open) function,
 the [`io`](https://docs.python.org/3/library/io.html) module, and the
 [`pathlib`](https://docs.python.org/3/library/pathlib.html) module.  The
-`latexminted` library restricts access to the filesystem as follows.
+`latexminted` library restricts access to the file system as follows.
 
-1.  All security-related functionality, including filesystem access, is
+1.  All security-related functionality, including file system access, is
     provided through the `restricted` subpackage.  This makes it easier to see
     whether commits modify any code with security implications.
 
 2.  Within the `restricted` subpackage, there is a `RestrictedPath` class that
     is a subclass of `pathlib.Path`.  All file path objects that are created
     in response to user data from LaTeX are instances of `RestrictedPath`.
-    Filesystem operations are initiated using instances of `RestrictedPath`,
+    File system operations are initiated using instances of `RestrictedPath`,
     including creating directories and reading and writing files.
 
-    Before an instance of `RestrictedPath` can access the filesystem, it is
+    Before an instance of `RestrictedPath` can access the file system, it is
     resolved
     ([`.resolve()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve))
     to create an absolute path with no symlinks.  Then this resolved path is
     checked against the current working directory, `$TEXMFOUT`,
     and `$TEXMF_OUTPUT_DIRECTORY` to ensure that the location and type of
-    filesystem operation is allowed.  If not, an error is raised.
-
-    Reading files is currently further restricted to files within the user's home directory.  This restriction may be relaxed in the future.
+    file system operation is allowed.  If not, an error is raised.
 
     Writing/deleting files is further restricted beyond file location to files
     with names matching this regular expression:
