@@ -61,6 +61,30 @@ class RestrictedPath(type(pathlib.Path())):
          -  `.touch()`
     '''
 
+    # `super().resolve()` is used frequently in determining whether paths are
+    # readable/writable/executable.  `.resolve()` and `.parent()` cache and
+    # track resolved paths to minimize file system access.
+    _resolved_set: set[RestrictedPath] = set()
+    _resolve_cache: dict[RestrictedPath, RestrictedPath] = {}
+
+    def resolve(self) -> RestrictedPath:
+        try:
+            resolved = self._resolve_cache[self]
+        except KeyError:
+            resolved = super().resolve()
+            self._resolved_set.add(resolved)
+            self._resolve_cache[self] = resolved
+            self._resolve_cache[resolved] = resolved
+        return resolved
+
+    @property
+    def parent(self) -> RestrictedPath:
+        parent = super().parent
+        if self in self._resolved_set:
+            self._resolved_set.add(parent)
+            self._resolve_cache[parent] = parent
+        return parent
+
     # There are currently no restrictions on reading locations, but the
     # implementation allows this to be added.  This is equivalent to
     # TeX Live's `openin_any = a`; see
@@ -102,42 +126,32 @@ class RestrictedPath(type(pathlib.Path())):
 
     def is_readable_dir(self) -> bool:
         if self not in self._checked_readable_dir_set:
-            self_resolved = self.resolve()
-            if self._fs_read_roots and not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
-                pass
-            else:
+            resolved = self.resolve()
+            if not self._fs_read_roots or any(resolved.is_relative_to(p) for p in self._fs_read_roots):
                 self._is_readable_dir_set.add(self)
             self._checked_readable_dir_set.add(self)
         return self in self._is_readable_dir_set
 
     def is_readable_file(self) -> bool:
         if self not in self._checked_readable_file_set:
-            self_resolved = self.resolve()
-            if self._fs_read_roots and not any(self_resolved.is_relative_to(p) for p in self._fs_read_roots):
-                pass
-            elif not self._fs_read_dotfiles and self_resolved.name.startswith('.'):
-                pass
-            else:
+            resolved = self.resolve()
+            if (resolved.parent.is_readable_dir() and (self._fs_read_dotfiles or not resolved.name.startswith('.'))):
                 self._is_readable_file_set.add(self)
             self._checked_readable_file_set.add(self)
         return self in self._is_readable_file_set
 
     def is_writable_dir(self) -> bool:
         if self not in self._checked_writable_dir_set:
-            self_resolved = self.resolve()
-            if not any(self_resolved.is_relative_to(p) for p in self._fs_write_roots):
-                pass
-            else:
+            resolved = self.resolve()
+            if any(resolved.is_relative_to(p) for p in self._fs_write_roots):
                 self._is_writable_dir_set.add(self)
             self._checked_writable_dir_set.add(self)
         return self in self._is_writable_dir_set
 
     def is_writable_file(self) -> bool:
         if self not in self._checked_writable_file_set:
-            self_resolved = self.resolve()
-            if not any(self_resolved.is_relative_to(p) for p in self._fs_write_roots):
-                pass
-            elif self._writable_filename_re.fullmatch(self_resolved.name):
+            resolved = self.resolve()
+            if (resolved.parent.is_writable_dir() and self._writable_filename_re.fullmatch(resolved.name)):
                 self._is_writable_file_set.add(self)
             self._checked_writable_file_set.add(self)
         return self in self._is_writable_file_set
@@ -153,12 +167,10 @@ class RestrictedPath(type(pathlib.Path())):
         `restricted_subprocess.restricted_run()`.
         '''
         if self not in self._checked_executable_file_location_set:
-            self_resolved = self.resolve()
-            if any(self_resolved.is_relative_to(p) for p in self._fs_write_roots):
-                pass
-            elif any(p.is_relative_to(self_resolved.parent) for p in self._fs_write_roots):
-                pass
-            else:
+            resolved = self.resolve()
+            parent = resolved.parent
+            if (not any(resolved.is_relative_to(p) for p in self._fs_write_roots) and
+                    not any(p.is_relative_to(parent) for p in self._fs_write_roots)):
                 self._is_executable_file_location_set.add(self)
             self._checked_executable_file_location_set.add(self)
         return self in self._is_executable_file_location_set
