@@ -89,7 +89,8 @@ def clean(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str],
           additional_cache_file_names: list[str] | None = None):
     clean_temp_except_errlog(md5=md5)
 
-    timestamp_date = date.fromisoformat(timestamp[:8])
+    # Python < 3.11 requires `YYYY-MM-DD`
+    timestamp_date = date.fromisoformat(f'{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}')
     cache_path = RestrictedPath(data['cachepath'])
     current_index_name = f'_{md5}.index.minted'
     used_cache_files: set[str] = set()
@@ -114,7 +115,9 @@ def clean(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str],
             messages.append_error(rf'Insufficient permission to open file \detokenize{{"{index_path.name}"}}')
             continue
 
-        index_date = date.fromisoformat(index_data['timestamp'][:8])
+        # Python < 3.11 requires `YYYY-MM-DD`
+        index_data_ts = index_data['timestamp']
+        index_date = date.fromisoformat(f'{index_data_ts[:4]}-{index_data_ts[4:6]}-{index_data_ts[6:8]}')
         index_age = timestamp_date - index_date
         if index_age > timedelta(days=30):
             # Delete index files more than 30 days old

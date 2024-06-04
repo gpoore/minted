@@ -13,13 +13,25 @@ from __future__ import annotations
 import os
 import pathlib
 import re
+import sys
 from ..err import PathSecurityError
 
 
 
 
 # The `type(...)` is needed to inherit the `_flavour` attribute
-class RestrictedPath(type(pathlib.Path())):
+class AnyPath(type(pathlib.Path())):
+    if sys.version_info[:2] < (3, 9):
+        def is_relative_to(self, other: AnyPath) -> bool:
+            try:
+                self.relative_to(other)
+            except ValueError:
+                return False
+            return True
+
+
+
+class RestrictedPath(type(AnyPath())):
     '''
     Subclass of `pathlib.Path` (which is system-dependent) that restricts file
     operations to be consistent with TeX restricted shell escape security
@@ -89,17 +101,17 @@ class RestrictedPath(type(pathlib.Path())):
     # implementation allows this to be added.  This is equivalent to
     # TeX Live's `openin_any = a`; see
     # https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634.
-    _fs_read_roots: set[pathlib.Path] = set()
+    _fs_read_roots: set[AnyPath] = set()
     # Similarly, there are no restrictions on reading dotfiles, but the
     # implementation allows this to be added.
     _fs_read_dotfiles: bool = True
 
-    _fs_write_roots: set[pathlib.Path] = set()
-    _fs_write_roots.add(pathlib.Path.cwd().resolve())
+    _fs_write_roots: set[AnyPath] = set()
+    _fs_write_roots.add(AnyPath.cwd().resolve())
     for variable in ('TEXMFOUTPUT', 'TEXMF_OUTPUT_DIRECTORY'):
         value = os.getenv(variable)
         if value:
-            value_path = pathlib.Path(value).resolve()
+            value_path = AnyPath(value).resolve()
             _fs_write_roots.add(value_path)
 
     # Track readable/writable directories and files separately, since some of
@@ -269,7 +281,7 @@ def latexminted_config_read_bytes() -> bytes:
     Read the minted config file in the user home directory.  This is a dot
     file and thus cannot be accessed via `RestrictedPath`.
     '''
-    return pathlib.Path('~/.latexminted_config').expanduser().read_bytes()
+    return AnyPath('~/.latexminted_config').expanduser().read_bytes()
 
 
 
