@@ -12,11 +12,11 @@ requires running LaTeX with `-shell-escape` or a similar command-line option,
 or modifying LaTeX configuration.  `minted` versions 1 and 2 required
 `-shell-escape`, which allowed running the `pygmentize` executable to
 highlight code but also allowed for arbitrary code execution.  `minted`
-version 3 uses a new Python executable that is part of the `latexminted`
-Python package.  This executable is designed to be accepted as one of the
-trusted programs that TeX distributions allow to run by default, without
-needing `-shell-escape`.  This is referred to as "restricted shell scape,"
-shell escape but only for trusted executables.
+version 3 uses new Python executables that are part of the `minted` LaTeX
+package and the `latexminted` Python package.  These executable are designed
+to be accepted as trusted programs that TeX distributions allow to run by
+default, without needing `-shell-escape`.  This is referred to as "restricted
+shell scape," shell escape but only for trusted executables.
 
 
 ## `latexminted` and the file system
@@ -31,7 +31,7 @@ variable
   * Reading:  No restrictions.
 
   * Writing:  Prohibit writing dotfiles.  Restrict writing to the current
-    working directory, `$TEXMFOUT`, and `$TEXMF_OUTPUT_DIRECTORY`, plus their
+    working directory, `TEXMFOUT`, and `TEXMF_OUTPUT_DIRECTORY`, plus their
     subdirectories.
 
 The exact way that these restrictions are described in the TeX Live sources is
@@ -58,8 +58,8 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
     resolved
     ([`.resolve()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve))
     to create an absolute path with no symlinks.  Then this resolved path is
-    checked against the current working directory, `$TEXMFOUT`,
-    and `$TEXMF_OUTPUT_DIRECTORY` to ensure that the location and type of
+    checked against the current working directory, `TEXMFOUT`,
+    and `TEXMF_OUTPUT_DIRECTORY` to ensure that the location and type of
     file system operation is allowed.  If not, an error is raised.
 
     Writing/deleting files is further restricted beyond file location to files
@@ -99,7 +99,7 @@ subpackage.  `restricted_run()` serves as a wrapper around
 1.  The executable must be in a list of approved executables.  Currently, this
     is only `kpsewhich`.
 
-2.  The executable must exist on PATH, as found by
+2.  The executable must exist on `PATH`, as found by
     [`shutil.which()`](https://docs.python.org/3/library/shutil.html#shutil.which).
     It must not be in a location writable by LaTeX, as verified using
     `RestrictedPath`.  For added security, locations writable by LaTeX cannot
