@@ -2,9 +2,9 @@
 
 The `minted` LaTeX package is designed to be compatible with the security
 requirements for LaTeX restricted shell escape.  This document summarizes the
-steps that are taken for security compliance in the LaTeX package.  There is a
-corresponding file in the `latexminted` Python package that summarizes
-security on the Python side.
+steps that are taken for security compliance in the LaTeX package and the
+accompanying Python executable.  There is a corresponding file in the
+`latexminted` Python package that summarizes security on the Python side.
 
 LaTeX can run arbitrary shell commands while compiling documents, but this is
 typically disabled for security reasons.  Enabling arbitrary shell commands
@@ -12,11 +12,11 @@ requires running LaTeX with `-shell-escape` or a similar command-line option,
 or modifying LaTeX configuration.  `minted` versions 1 and 2 required
 `-shell-escape`, which allowed running the `pygmentize` executable to
 highlight code but also allowed for arbitrary code execution.  `minted`
-version 3 uses a new Python executable that is part of the `latexminted`
-Python package.  This executable is designed to be accepted as one of the
-trusted programs that TeX distributions allow to run by default, without
-needing `-shell-escape`.  This is referred to as "restricted shell scape,"
-shell escape but only for trusted executables.
+version 3 uses new Python executables that are part of the `minted` LaTeX
+package and the `latexminted` Python package.  These executable are designed
+to be accepted as trusted programs that TeX distributions allow to run by
+default, without needing `-shell-escape`.  This is referred to as "restricted
+shell scape," shell escape but only for trusted executables.
 
 
 ## `minted.sty` LaTeX style file
@@ -59,53 +59,48 @@ implications that are different from any other package that can write or read
 files, except for running the `latexminted` Python executable.
 
 
-## `latexmintedwindows` executable
+## `latexminted` executable
 
-Under Windows with restricted shell escape, TeX Live interprets executables without a full path as being executables within the TeX Live `bin/windows/` directory.
+The LaTeX package includes a Python executable called `latexminted` that is
+intended for installation within TeX distributions.  Because the `latexminted`
+executable has significant security implications, it is in a separate
+`restricted/` directory in this repository, so that it is easier to see
+whether commits modify any code with security implications.
 
- *  Relevant changelog:
-    https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/ChangeLog#L820
+The executable typically imports and then runs the `main()` function from the
+`latexminted` Python package.  This involves no additional security
+implications beyond the `latexminted` Python package itself.
 
- *  Implementation:
-    https://github.com/TeX-Live/texlive-source/blob/e47512fcb293e2390b609bce612449d579efc230/texk/web2c/lib/texmfmp.c#L534
+Depending on system configuration, the `latexminted` executable may launch a
+subprocess instead.
 
-Otherwise, Windows could run an executable with the same name that is located
-in the current working directory, which is typically writable by LaTeX.  As a
-byproduct, this effectively limits restricted shell escape executables to
-those within the TeX Live `bin/windows/` directory.
+1.  The libraries used by the `latexminted` executable require Python >= 3.8.
+    If the default Python version is < 3.8, then `latexminted` will attempt to
+    locate a more recent Python installation and run itself with that Python
+    version in a subprocess.  Python's `shutil.which()` is used to search
+    `PATH` for more recent Python versions.
 
-To work within these constraints, the `minted` LaTeX package includes a Python
-executable `latexmintedwindows` that is intended for installation within TeX
-distributions.  `latexmintedwindows` is separate from the `latexminted` Python
-package and its executable, which are intended for installation as part of a
-Python distribution outside of LaTeX.
+2.  When the `minted` LaTeX package is installed, the `latexminted` Python
+    package and all other required Python libraries including Pygments are
+    also installed within the TeX distribution in the form of Python wheels
+    `*.whl`.  It is also possible to install the `latexminted` Python package
+    and Pygments separately, within a Python installation.  This is necessary
+    to use plugin packages for Pygments.  If the `latexminted` Python package
+    is installed within a Python installation, then it will create a
+    `latexminted` executable within that Python installation.
 
-In TeX Live, an executable wrapper `latexmintedwindows.exe` is created in
-`bin/windows/` by creating a copy of `runscript.exe` and then renaming it to
-`latexmintedwindows.exe`.  Then the file `latexmintedwindows.py` is placed in
-`texmf-dist/scripts/minted`.  When `latexmintedwindows.exe` runs, it will
-automatically locate and invoke `latexmintedwindows.py`.
+    When the `latexminted` executable that is installed within a TeX
+    distribution runs, it checks for the existence of a `latexminted`
+    executable within a Python installation.  If that executable exists and
+    has a higher precedence on `PATH`, then that executable runs in a
+    subprocess.  Python's `shutil.which()` is used to search `PATH` for
+    `latexminted` executables outside the TeX distribution.
 
-`latexmintedwindows` can run in two separate modes:
+Whenever a subprocess is used to run an executable, that executable must meet
+two conditions:
 
-1.  The current default Python installation is used by `runscript.exe` to
-    execute `latexmintedwindows.py`.  If this Python installation has the
-    `latexminted` Python library installed, then the `main()` function is
-    imported from this library and executed.  In this case, there are no
-    security implications beyond those in the `latexminted` Python library
-    itself.
+  * The executable must exist on `PATH`, outside the current working directory
+    or a subdirectory and outside `TEXMFOUTPUT` and `TEXMF_OUTPUT_DIRECTORY`.
 
-2.  If the current default Python installation does not have the
-    `latexminted` Python library, then `latexmintedwindows.py` looks for
-    `latexminted.exe` on PATH.  It is possible that `latexminted` is
-    installed elsewhere, in a different Python installation.  If
-    `latexminted.exe` is found, outside of all locations writable by LaTeX
-    and within a Python installation, then it is executed in a subprocess.
-    See `latexmintedwindows.py` for the full details of safely locating and
-    running `latexminted.exe`.
-
-Unlike the `minted.sty` part of the package that essentially inherits security
-from LaTeX, `latexmintedwindows` has significant security implications.  As a
-result, it is in a separate `restricted/` directory in this repository, so
-that it is easier to see whether commits modify any code with security
-implications.
+  * The current directory, `TEXMFOUTPUT`, and `TEXMF_OUTPUT_DIRECTORY` cannot
+    be subdirectories of the directory in which the executable is located.

@@ -9,39 +9,40 @@ be updated to reflect all changes until v3.0 is released.  The changes
 described below are not guaranteed to be final until `minted` v3.0 is
 released.
 
-*  `minted` v3 is a complete rewrite from v2.9.  `minted` v3 includes
-   significant changes from `minted` v2 on the LaTeX side, and also uses a
-   new `minted`-specific Python executable to perform syntax highlighting.
-   This executable is specifically designed to meet the security requirements
-   for restricted shell escape programs.  Once it has passed a security review
-   and is accepted by TeX distributions, it will be possible to highlight code
-   without `-shell-escape` and its attendant security vulnerabilities.
-
-*  If you load the `minted` package (now v3) with full shell escape enabled
-   (`-shell-escape`), `minted` will fall back to v2 behavior if it cannot find
-   the new Python executable `latexminted`.  This fallback behavior is only
-   temporary, so you should either install the `latexminted` executable to
-   switch to `minted` v3, or load the new `minted2` compatibility package to
-   continue with `minted` v2.  The `minted2` package provides the features of
+*  Backward compatibility:  The new `minted2` package provides the features of
    `minted` v2.9, the final release before v3.  No additional v2 releases are
    planned; no changes to the `minted2` package are expected.
 
-*  The `pygmentize` executable included with the Pygments library is no longer
-   used.  Instead, there is a new Python executable `latexminted`.  This is
-   part of the `latexminted` Python package, which is developed under the
-   `python/` directory in the `minted` repository and is available from the
-   [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).  The
-   `latexminted` executable uses Pygments internally to perform syntax
-   highlighting while also providing several additional features.
+*  `minted` v3 is a complete rewrite from v2.9.  `minted` v3 includes
+   significant changes from `minted` v2 on the LaTeX side, and also uses a new
+   `minted`-specific Python executable called `latexminted` to perform syntax
+   highlighting.  This executable is specifically designed to meet the
+   security requirements for restricted shell escape programs.  Once it has
+   passed a security review and is accepted by TeX distributions, it will be
+   possible to highlight code without `-shell-escape` and its attendant
+   security vulnerabilities.
 
-   There is also a short wrapper script `latexmintedwindows` under the `latex/`
-   directory in the `minted` repository to provide Windows compatibility under
-   restricted shell escape with TeX Live.  This is designed to be installed
-   within the `texmf-dist/scripts` directory of a TeX Live installation.
+   Syntax highlighting is still performed with Pygments, but the `pygmentize`
+   executable included with Pygments is no longer used.
 
-   The `latexminted` executable is designed to be compatible with the
-   security requirements for restricted shell escape, so that in the future
-   TeX distributions can enable `latexminted` without requiring
+*  Installing the `minted` package now also installs the `latexminted` Python
+   executable and all required Python libraries, including Pygments, within
+   your TeX distribution.  These require Python >= 3.8.  If the default Python
+   version on PATH is < 3.8, then the `latexminted` Python executable will
+   attempt to locate a more recent version and run itself with that version in
+   a subprocess.
+
+   Manually installing Python libraries is only necessary if you want to use
+   plugin packages for Pygments.  In that case, install the `latexminted`
+   Python package in a Python installation.  This automatically installs
+   `latex2pydata` and Pygments as dependencies.  `latexminted` is available
+   from [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
+   Then install plugin packages for Pygments within the same Python
+   installation.
+
+*  The new `latexminted` Python executable is designed to be compatible with
+   the security requirements for restricted shell escape, so that in the
+   future TeX distributions can enable `latexminted` without requiring
    `-shell-escape`.  It is possible to benefit from these enhanced security
    capabilities immediately and avoid the need for `-shell-escape`.
 
@@ -49,24 +50,16 @@ released.
      distribution `texmf.cnf` (typically something like
      `<tex_distro>/texmf-dist/web2c/texmf.cnf`) into the user `texmf.cnf`
      (typically something like `<tex_distro>/texmf.cnf`), and then add
-     `latexminted` and (if applicable) `latexmintedwindows` to the end of the
-     `shell_escape_commands` list.  The location of the `texmf.cnf` files can
-     be determined by running `kpsewhich -all texmf.cnf`.
+     `latexminted` to the end of the `shell_escape_commands` list.  The
+     location of the `texmf.cnf` files can be determined by running
+     `kpsewhich -all texmf.cnf`.
 
    - MiKTeX:  Add a line `AllowedShellCommands[] = latexminted` to the
-     existing list of allowed commands in `miktex.ini`.  Under Windows, you
-     may also need `AllowedShellCommands[] = latexmintedwindows`.  You may want
-     to modify the user-scoped configuration instead of the system-wide
+     existing list of allowed commands in `miktex.ini`.  You may want to
+     modify the user-scoped configuration instead of the system-wide
      configuration.  See the
      [MiKTeX documentation](https://docs.miktex.org/manual/miktex.ini.html)
      for more details, particularly `initexmf --edit-config-file <file>`.
-
-   When `minted` v3 is used with full shell escape enabled (`-shell-escape`),
-   it will fall back to `minted` v2 behavior if the `latexminted` executable
-   is not found.  This is accomplished via the new `minted2` package.  This
-   fallback behavior is only temporary, so you should either install the
-   `latexminted` executable and switch to `minted` v3, or load the `minted2`
-   package directly to continue with `minted` v2.
 
 *  Errors and warnings that occur within Python are now reported as `minted`
    package errors and warnings within LaTeX in nearly all cases.  It should no
@@ -79,15 +72,17 @@ released.
    This consists of a LaTeX package, available from
    [CTAN](https://ctan.org/pkg/latex2pydata), and a Python package, available
    from [PyPI](https://pypi.org/project/latex2pydata/).  The LaTeX package can
-   typically be installed with your TeX distribution's package manager.  The
-   Python package will typically be installed automatically when you install
-   the new `minted` Python executable as part of the `latexminted` Python
-   package.
+   typically be installed with your TeX distribution's package manager.  The Python package is automatically installed within your TeX distribution when
+   `minted` is installed.
 
 *  Options are now handled with `pgfkeys` and `pgfopts`, instead of
    `keyval` and `kvoptions`.
 
-*  All temporary files are cleaned up automatically when compiling completes
+*  Temporary files are no longer created unless the cache needs to be updated
+   (or caching is disabled).  All MD5 hashing of code now takes place in
+   memory instead of using one temp file per command/environment.
+
+   All temporary files are cleaned up automatically when compiling completes
    without interruption.  All temporary files now have names of the form
    `_<hash>.<role>.minted`.  `<hash>` is an MD5 hash of `\jobname` (if
    `\jobname` is wrapped in double or single quotation marks, these are

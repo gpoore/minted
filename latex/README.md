@@ -3,5 +3,5 @@
 
 The LaTeX package is under `minted/`.
 
-Restricted shell escape under Windows requires a Python executable within the
-TeX distribution.  The `latexmintedwindows` executable is under `restricted/`.
+The `latexminted` Python executable for installation within TeX distributions
+is under `restricted/`.

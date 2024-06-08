@@ -10,7 +10,7 @@ Additional testing and security review are still needed.
 
 The documentation in `minted.dtx` will not be updated to reflect all changes
 until v3.0 is released.  Refer to `latex/CHANGELOG.md` for the current list
-of changed from v2.9.
+of changes from v2.9.
 
 Steps for installing the current beta version:
 
@@ -22,27 +22,42 @@ Steps for installing the current beta version:
     simply replace the existing `minted.sty`, but it will typically be better
     to put the files under `TEXMFLOCAL`, which can be located by running
     `kpsewhich --var-value TEXMFLOCAL`.  For example, you might put the files
-    under `<path>/texmf-local/tex/latex/local/minted`.  Once the files are in
-    place, run `texhash <TEXMFLOCAL dir>` to update TeX's index of packages.
+    under `<path>/texmf-local/tex/latex/local/minted`.
 
-2.  Install the new Python package with executable `latexminted`.  This is
-    available from the
-    [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
-    For example, `python -m pip install latexminted`.  Depending on your
-    system configuration, you may want `python3` instead of `python`, may need
-    to add `--user`, or may need to make other modifications to the
-    installation command.  It is also possible to download the Python source
-    from the `python/` directory in this repository and install `latexminted`
-    that way.  When `latexminted` is installed, it will also install
-    `latex2pydata` and Pygments.
+2.  Install the new Python executable and required libraries.  There are two
+    ways to do this.  The first method is equivalent to the process that will
+    be performed automatically once `minted` v3.0 is released and available
+    from CTAN; the second method is an alternative that may be simpler for
+    testing.
 
-3.  Under Windows, an additional step is required.  The following description
-    is for TeX Live; an equivalent process is needed for MiKTeX.  Within the
-    TeX installation under `bin/windows/`, create a copy of `runscript.exe`
-    and then rename the copy to `latexmintedwindows.exe`.  Then copy the file
-    `latexmintedwindows.py` (under `latex/restricted/` in this repository) to
-    `texmf-dist/scripts/minted`.  Finally, run `texhash` to update TeX's
-    index.
+      * Download `latexminted.py` from `latex/restricted/` in this repository.
+        Put it under `texmf-dist/scripts/minted` in your TeX installation.  At
+        the beginning of the `latexminted.py` file are links to three Python
+        wheels that are the dependencies for the script.  Download these
+        wheels and put them in the same directory (folder) as
+        `latexminted.py`.
+
+        Under Windows, an additional step is required.  The following
+        description is for TeX Live; an equivalent process is needed for
+        MiKTeX.  Within the TeX installation under `bin/windows/`, create a
+        copy of `runscript.exe` and then rename the copy to `latexminted.exe`.
+
+        Under other operating system, you may need to make `latexminted.py`
+        executable.
+
+      * Alternative:  Install the new Python package `latexminted`, available
+        from the
+        [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
+        For example, `python -m pip install latexminted`.  Depending on your
+        system configuration, you may want `python3` instead of `python`, may
+        need to add `--user`, or may need to make other modifications to the
+        installation command.  It is also possible to download the Python
+        source from the `python/` directory in this repository and install
+        `latexminted` that way.  When the `latexminted` Python package is
+        installed, it will also install `latex2pydata` and Pygments, and
+        create a `latexminted` executable.
+
+3.  Run `texhash` to update TeX's index with the new files.
 
 Development of v3.0 is thanks to a
 [TeX Development Fund grant](https://tug.org/tc/devfund/grants.html) from the

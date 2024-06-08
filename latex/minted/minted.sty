@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/05/25 v3.0.0beta3 Yet another Pygments shim for LaTeX]
+    [2024/06/08 v3.0.0beta4 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -45,13 +45,7 @@
   \minted@error{#1}%
   \batchmode\read -1 to \minted@fatalerror@exitnow}
 \def\minted@warning#1{\PackageWarning{minted}{#1}}
-\ifnum\csname c_sys_shell_escape_int\endcsname=2\relax
-  \expandafter\IfFileExists\expandafter{\detokenize{nul:}}%
-   {\edef\MintedExecutable{\detokenize{latexmintedwindows}}}%
-   {\edef\MintedExecutable{\detokenize{latexminted}}}
-\else
-  \edef\MintedExecutable{\detokenize{latexminted}}
-\fi
+\edef\MintedExecutable{\detokenize{latexminted}}
 \edef\minted@executable@minversion{\detokenize{0.1.0}}
 \def\minted@executable@setminversioncomponents{%
   \expandafter\minted@executable@setminversioncomponents@i
@@ -150,69 +144,6 @@
   \detokenize{_}\MintedJobnameMdfive\detokenize{.errlog.minted}}
 \edef\MintedMessageFilename{%
   \detokenize{_}\MintedJobnameMdfive\detokenize{.message.minted}}
-\def\minted@two@fallback{%
-  \global\let\minted@executable@version\relax
-  \global\let\minted@config@timestamp\relax
-  \global\let\minted@config@cachepath\relax
-  \pydatasetfilename{\MintedDataFilename}%
-  \pydatawritedictopen
-  \pydatawritekeyvalue{command}{config}%
-  \pydatawritekeyedefvalue{jobname}{\jobname}%
-  \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
-  \pydatawritekeyvalue{cachedir}{}%
-  \pydatawritedictclose
-  \pydataclosefilename{\MintedDataFilename}%
-  \ShellEscape{%
-    \MintedExecutable
-    \detokenize{ config --timestamp }\minted@timestamp\detokenize{ }%
-    \MintedJobnameMdfive}%
-  \InputIfFileExists{\MintedConfigFilename}{}{}%
-  \ifx\minted@executable@version\relax
-    \expandafter\minted@two@fallback@noexecutable
-  \else
-    \expandafter\minted@two@fallback@i
-  \fi}
-\def\minted@two@fallback@noexecutable{%
-  \minted@warning{minted v3+ Python executable is not installed or is not added to PATH;
-    falling back to minted v2 (install executable, or switch to package minted2)}%
-  \expandafter\let\expandafter\minted@two@opt\csname opt@minted.sty\endcsname
-  \expandafter\let\csname ver@minted.sty\endcsname\relax
-  \expandafter\RequirePackage\expandafter[\minted@two@opt]{minted2}%
-  \DeleteFile[\minted@outputdir]{\MintedDataFilename}%
-  \endinput}
-\def\minted@two@fallback@i{%
-  \ifx\minted@timestamp\minted@config@timestamp
-    \global\let\minted@executable@version\relax
-    \global\let\minted@executable@timestamp\relax
-    \global\let\minted@config@timestamp\relax
-    \global\let\minted@config@cachepath\relax
-    \ShellEscape{\MintedExecutable\detokenize{ delete }\MintedDataFilename}%
-    \ShellEscape{\MintedExecutable\detokenize{ delete }\MintedConfigFilename}%
-  \else
-    \expandafter\minted@two@fallback@wrongtimestamp
-  \fi}
-\def\minted@two@fallback@wrongtimestamp{%
-  \ifx\minted@timestamp\minted@executable@timestamp
-    \minted@warning{minted v3+ Python executable could not find output directory;
-      falling back to minted v2 (upgrade to TeX distribution that supports
-      \detokenize{TEXMF_OUTPUT_DIRECTORY}, set environement variable
-      \detokenize{TEXMF_OUTPUT_DIRECTORY} manually, or switch to package minted2)}%
-  \else
-    \minted@warning{minted v3+ Python executable is not installed or is not added to PATH;
-    falling back to minted v2 (install executable, or switch to package minted2)}%
-  \fi
-  \global\let\minted@executable@version\relax
-  \global\let\minted@executable@timestamp\relax
-  \global\let\minted@config@timestamp\relax
-  \global\let\minted@config@cachepath\relax
-  \expandafter\let\expandafter\minted@two@opt\csname opt@minted.sty\endcsname
-  \expandafter\let\csname ver@minted.sty\endcsname\relax
-  \expandafter\RequirePackage\expandafter[\minted@two@opt]{minted2}%
-  \DeleteFile[]{\MintedConfigFilename}%
-  \endinput}
-\ifnum\csname c_sys_shell_escape_int\endcsname=1\relax
-  \expandafter\minted@two@fallback
-\fi
 \def\minted@pgfopts#1{%
   \pgfkeys{/minted/pkg/.cd,#1}}
 \minted@pgfopts{
