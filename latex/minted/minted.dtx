@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/06/08 v3.0.0beta4 Yet another Pygments shim for LaTeX]
+    [2024/06/11 v3.0.0beta5 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1565,7 +1565,7 @@
 % \subsection{Timestamp}
 %
 %
-% Timestamp for current compile.  Under pdfTeX and LuaTeX, an actual timestamp with second precision.  Under XeTeX, a derived timestamp (via |\year|, |\month|, |\day|, |\time|) with only minute precision.
+% Timestamp for current compile.  This could eventually be simplified to use |\c_sys_timestamp_str| for all engines; that macro is in \texpkg{l3kernel} from 2023-08-29.
 %
 % \begin{macro}{\minted@timestamp}
 %    \begin{macrocode}
@@ -1582,6 +1582,10 @@
 \expandafter\ifx\csname pdftexversion\endcsname\relax
 \else
   \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdfcreationdate}}
+\fi
+\expandafter\ifx\csname XeTeXrevision\endcsname\relax
+\else
+  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\creationdate}}
 \fi
 \expandafter\ifx\csname directlua\endcsname\relax
 \else

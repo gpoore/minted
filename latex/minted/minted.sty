@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/06/08 v3.0.0beta4 Yet another Pygments shim for LaTeX]
+    [2024/06/11 v3.0.0beta5 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -74,6 +74,10 @@
 \expandafter\ifx\csname pdftexversion\endcsname\relax
 \else
   \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdfcreationdate}}
+\fi
+\expandafter\ifx\csname XeTeXrevision\endcsname\relax
+\else
+  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\creationdate}}
 \fi
 \expandafter\ifx\csname directlua\endcsname\relax
 \else
