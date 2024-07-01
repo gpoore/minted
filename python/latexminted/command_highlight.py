@@ -22,12 +22,11 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from .err import (
     PathSecurityError,
-    SubprocessExecutableNotFoundError, SubprocessExecutablePathSecurityError,
     MissingLatexMintedRCError,
     CustomLexerError, CustomLexerSecurityError,
 )
 from .messages import Messages
-from .restricted import load_custom_lexer, RestrictedPath, restricted_run
+from .restricted import latex_config, load_custom_lexer, RestrictedPath
 
 
 
@@ -189,25 +188,12 @@ def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, enco
         messages.append_error(rf'Cannot read file in prohibited location: \detokenize{{"{input_file}"}}')
         return None
     except FileNotFoundError:
-        try:
-            kpsewhich_proc = restricted_run(['kpsewhich', input_file])
-        except SubprocessExecutableNotFoundError:
-            messages.append_error(rf'Cannot locate file \detokenize{{"{input_file}"}} (kpsewhich unavailable)')
-            return None
-        except SubprocessExecutablePathSecurityError:
-            messages.append_error(
-                rf'Cannot use kpsewhich to locate file \detokenize{{"{input_file}"}} '
-                r'when kpsewhich is located under the current directory, \detokenize{TEXMFOUTPUT}, '
-                r'or \detokenize{TEXMF_OUTPUT_DIRECTORY}, or when these locations are under the same '
-                r'directory as kpsewhich'
-            )
-            return None
-        if kpsewhich_proc.returncode != 0:
-            sys.stderr.buffer.write(kpsewhich_proc.stderr)
+        kpsewhich_input_file = latex_config.kpsewhich_find_file(input_file)
+        if kpsewhich_input_file is None:
             messages.append_error(rf'Cannot locate file \detokenize{{"{input_file}"}} (kpsewhich failed)')
             return None
         try:
-            kpsewhich_input_file_path = RestrictedPath(kpsewhich_proc.stdout.decode(sys.stdout.encoding).strip())
+            kpsewhich_input_file_path = RestrictedPath(kpsewhich_input_file)
         except UnicodeDecodeError:
             messages.append_error(rf'Cannot locate file \detokenize{{"{input_file}"}} (could not decode kpsewhich output)')
             return None

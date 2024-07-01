@@ -19,9 +19,8 @@ from latex2pydata import __version__ as latex2pydata_version
 from pygments import __version__ as pygments_version
 from .version import __version__
 from .command_batch import batch
-from .command_clean import clean, clean_messages
+from .command_clean import clean, clean_file, clean_messages
 from .command_config import config
-from .command_delete import delete
 from .command_highlight import highlight
 from .command_styledef import styledef
 from .load_data import load_data
@@ -51,14 +50,14 @@ def main():
     parser_clean.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_clean.add_argument('md5', help=r'MD5 hash based \jobname')
 
+    parser_cleanfile = subparsers.add_parser('cleanfile', help='Clean up a particular temp file')
+    parser_cleanfile.set_defaults(func=clean_file)
+    parser_cleanfile.add_argument('file', help='File to clean')
+
     parser_config = subparsers.add_parser('config', help='Detect configuration and save it to file for \\input')
     parser_config.set_defaults(func=config)
     parser_config.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_config.add_argument('md5', help=r'MD5 hash based \jobname')
-
-    parser_delete = subparsers.add_parser('delete', help='Delete file (restricted filenames only)')
-    parser_delete.set_defaults(func=delete)
-    parser_delete.add_argument('file', help='File to delete')
 
     parser_highlight = subparsers.add_parser('highlight', help='Highlight code and save it to file for \\input')
     parser_highlight.set_defaults(func=highlight)

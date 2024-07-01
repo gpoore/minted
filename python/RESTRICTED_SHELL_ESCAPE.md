@@ -22,16 +22,16 @@ shell scape," shell escape but only for trusted executables.
 ## `latexminted` and the file system
 
 Restricted access to the file system is one aspect of the requirements for
-restricted shell escape.  The restrictions may be summarized as follows, based on the TeX Live configuration file
+restricted shell escape.  The default restrictions may be summarized as
+follows, based on the TeX Live configuration file
 [`texmf.cnf`](https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634)
-plus the changelog for `kpathsea` which mentions the new environment
-variable
+plus the changelog for `kpathsea` which mentions the new environment variable
 [`TEXMF_OUTPUT_DIRECTORY`](https://www.tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/NEWS?view=markup).
 
   * Reading:  No restrictions.
 
   * Writing:  Prohibit writing dotfiles.  Restrict writing to the current
-    working directory, `TEXMFOUT`, and `TEXMF_OUTPUT_DIRECTORY`, plus their
+    working directory, `TEXMFOUTPUT`, and `TEXMF_OUTPUT_DIRECTORY`, plus their
     subdirectories.
 
 The exact way that these restrictions are described in the TeX Live sources is
@@ -58,7 +58,7 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
     resolved
     ([`.resolve()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve))
     to create an absolute path with no symlinks.  Then this resolved path is
-    checked against the current working directory, `TEXMFOUT`,
+    checked against the current working directory, `TEXMFOUTPUT`,
     and `TEXMF_OUTPUT_DIRECTORY` to ensure that the location and type of
     file system operation is allowed.  If not, an error is raised.
 
@@ -88,21 +88,18 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
 
 ## `latexminted` and subprocesses
 
-It can be necessary in some cases to run external commands.  Currently, this is
-limited to using `kpsewhich` to locate files, based on TeX configuration.
-This is implemented in the `restricted_run()` function within the `restricted`
-subpackage.  `restricted_run()` serves as a wrapper around
-[`subprocess.run()`](https://docs.python.org/3/library/subprocess.html#subprocess.run).
+It can be necessary in some cases to run external commands.  Currently, this
+is limited to using `kpsewhich` and `initexmf` to access LaTeX configuration,
+and using `kpsewhich` to locate files.  The following steps are taken to
+ensure safe subprocess access.
 
-`restricted_run()` takes the following steps to ensure safe subprocess access.
-
-1.  The executable must be in a list of approved executables.  Currently, this
-    is only `kpsewhich`.
+1.  The executable must be in a list of approved executables.
 
 2.  The executable must exist on `PATH`, as found by
-    [`shutil.which()`](https://docs.python.org/3/library/shutil.html#shutil.which).
-    It must not be in a location writable by LaTeX, as verified using
-    `RestrictedPath`.  For added security, locations writable by LaTeX cannot
+    [`shutil.which()`](https://docs.python.org/3/library/shutil.html#shutil.which),
+    or at a location specified with the environment variable `SELFAUTOLOC`,
+    which is set by TeX Live.  The executable must not be in a location
+    writable by LaTeX.  For added security, locations writable by LaTeX cannot
     be under the executable parent directory.
 
 3.  The executable cannot be a batch file (no `*.bat` or `*.cmd`), to prevent

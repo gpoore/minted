@@ -16,6 +16,9 @@ from __future__ import annotations
 class LatexMintedError(Exception):
     pass
 
+class LatexConfigError(LatexMintedError):
+    pass
+
 class SecurityError(LatexMintedError):
     pass
 

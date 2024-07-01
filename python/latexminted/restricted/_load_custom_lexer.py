@@ -30,9 +30,9 @@ def load_custom_lexer(lexer: str) -> type[Lexer]:
 
     latexminted_config_data = load_latexminted_config()
     if latexminted_config_data is None:
-        raise MissingLatexMintedRCError('Missing or invalid ~/.latexminted_config; custom lexers are disabled')
+        raise MissingLatexMintedRCError('Missing or invalid .latexminted_config; custom lexers are disabled')
     if 'custom_lexers' not in latexminted_config_data:
-        raise CustomLexerSecurityError('No custom lexers are enabled in ~/.latexminted_config')
+        raise CustomLexerSecurityError('No custom lexers are enabled in .latexminted_config')
 
     try:
         lexer_bytes = lexer_path.read_bytes()
@@ -46,7 +46,8 @@ def load_custom_lexer(lexer: str) -> type[Lexer]:
     hash = hasher.hexdigest()
     if latexminted_config_data['custom_lexers'].get(lexer_path.name, '').lower() != hash:
         raise CustomLexerSecurityError(
-            f'Custom lexer "{lexer_path.name}" is not enabled in ~/.latexminted_config; check that SHA-256 hash is present and updated'
+            f'Custom lexer "{lexer_path.name}" is not enabled in .latexminted_config; '
+            'check that SHA-256 hash is present and updated'
         )
 
     namespace = {}

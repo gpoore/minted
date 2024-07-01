@@ -10,25 +10,26 @@
 
 from __future__ import annotations
 
-import os
-import pathlib
 import re
-import sys
+try:
+    from typing import Self
+except ImportError:
+    pass
 from ..err import PathSecurityError
+from ._anypath import AnyPath
+from ._latex_config import latex_config
 
 
 
-
-# The `type(...)` is needed to inherit the `_flavour` attribute
-class AnyPath(type(pathlib.Path())):
-    if sys.version_info[:2] < (3, 9):
-        def is_relative_to(self, other: AnyPath) -> bool:
-            try:
-                self.relative_to(other)
-            except ValueError:
-                return False
-            return True
-
+_cwd_anypath = AnyPath(latex_config.tex_cwd)
+if latex_config.TEXMFOUTPUT:
+    _TEXMFOUTPUT_anypath_resolved = AnyPath(latex_config.TEXMFOUTPUT).resolve()
+else:
+    _TEXMFOUTPUT_anypath_resolved = None
+if latex_config.TEXMF_OUTPUT_DIRECTORY:
+    _TEXMF_OUTPUT_DIRECTORY_anypath_resolved = AnyPath(latex_config.TEXMF_OUTPUT_DIRECTORY).resolve()
+else:
+    _TEXMF_OUTPUT_DIRECTORY_anypath_resolved = None
 
 
 class RestrictedPath(type(AnyPath())):
@@ -40,7 +41,8 @@ class RestrictedPath(type(AnyPath())):
     `os` and `shutil` or functions such as `open()`.
 
      *  Reading:  Restricted to `.read_text()`, `.read_bytes()`, and
-        `.open()`.
+        `.open()`.  Permitted file locations and file names depend on variable
+        `openin_any` in `texmf.cnf` config files.
 
      *  Writing:  Restricted to `.write_text()` and `.open()`.  Restricted to
         files under the current working directory, $TEXMFOUTPUT, and
@@ -71,48 +73,67 @@ class RestrictedPath(type(AnyPath())):
          -  `.symlink_to()`
          -  `.hardlink_to()`
          -  `.touch()`
+
+    Differences from TeX's file system security (for example, see
+    https://www.tug.org/texinfohtml/kpathsea.html#Safe-filenames-1):
+
+     *  TeX's security settings for reading and writing files depend on
+        analyzing file paths as strings; the actual file system is never
+        consulted.  The default security setting for writing restricts
+        absolute paths to files within $TEXMF_OUTPUT_DIRECTORY and
+        $TEXMFOUTPUT.  Paths cannot contain `..` to access parent directories,
+        even if the location referred to is allowed.  As a result, relative
+        paths are restricted to paths under the current working directory
+        (plus $TEXMF_OUTPUT_DIRECTORY and $TEXMFOUTPUT, depending on document
+        and system configuration).  Symbolic links are not resolved, so they
+        can be used to access locations outside the current working directory,
+        $TEXMF_OUTPUT_DIRECTORY, and $TEXMFOUTPUT.
+
+        File system security is determined by `openout_any` and `openin_any`
+        settings in `texmf.cnf` for TeX Live, and from
+        `[Core]AllowUnsafeInputFiles` and `[Core]AllowUnsafeOutputFiles` in
+        `miktex.ini` for MiKTeX.
+
+     *  `RestrictedPath` security settings depend on resolving paths using the
+        file system.  Paths are converted into absolute paths with all
+        symlinks resolved, and only then are compared with permitted locations
+        for reading and writing.  Absolute paths and paths containing `..` are
+        always accepted for any permitted location.  Symbolic links are
+        resolved before determining whether a path is permitted, so they
+        cannot be used to access locations outside the current working
+        directory, $TEXMF_OUTPUT_DIRECTORY, and $TEXMFOUTPUT.
     '''
 
-    # `super().resolve()` is used frequently in determining whether paths are
-    # readable/writable/executable.  `.resolve()` and `.parent()` cache and
-    # track resolved paths to minimize file system access.
-    _resolved_set: set[RestrictedPath] = set()
-    _resolve_cache: dict[RestrictedPath, RestrictedPath] = {}
+    _fs_read_dotfiles: bool = latex_config.can_read_dotfiles
+    _fs_read_roots: set[AnyPath] | None
+    if latex_config.can_read_anywhere:
+        _fs_read_roots = None
+    else:
+        _fs_read_roots = set()
+        _fs_read_roots.add(_cwd_anypath)
+        for p in (_TEXMFOUTPUT_anypath_resolved, _TEXMF_OUTPUT_DIRECTORY_anypath_resolved):
+            if p is not None:
+                _fs_read_roots.add(p)
 
-    def resolve(self) -> RestrictedPath:
-        try:
-            resolved = self._resolve_cache[self]
-        except KeyError:
-            resolved = super().resolve()
-            self._resolved_set.add(resolved)
-            self._resolve_cache[self] = resolved
-            self._resolve_cache[resolved] = resolved
-        return resolved
-
-    @property
-    def parent(self) -> RestrictedPath:
-        parent = super().parent
-        if self in self._resolved_set:
-            self._resolved_set.add(parent)
-            self._resolve_cache[parent] = parent
-        return parent
-
-    # There are currently no restrictions on reading locations, but the
-    # implementation allows this to be added.  This is equivalent to
-    # TeX Live's `openin_any = a`; see
-    # https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634.
-    _fs_read_roots: set[AnyPath] = set()
-    # Similarly, there are no restrictions on reading dotfiles, but the
-    # implementation allows this to be added.
-    _fs_read_dotfiles: bool = True
-
-    _fs_write_roots: set[AnyPath] = set()
-    _fs_write_roots.add(AnyPath.cwd().resolve())
-    for variable in ('TEXMFOUTPUT', 'TEXMF_OUTPUT_DIRECTORY'):
-        value = os.getenv(variable)
-        if value:
-            value_path = AnyPath(value).resolve()
-            _fs_write_roots.add(value_path)
+    _fs_write_dotfiles: bool = latex_config.can_write_dotfiles
+    _fs_write_roots: set[AnyPath] | None
+    # Use the code below if this is separated out into a separate
+    # `latexrestricted` package with `RestrictedPath` as the base class for
+    # various kinds of restricted paths
+    # ------------------------------------------------------------------------
+    # if latex_config.can_write_anywhere:
+    #     _fs_write_roots = None
+    # else:
+    #     _fs_write_roots = set()
+    #     _fs_write_roots.add(_cwd_anypath)
+    #     for p in (_TEXMFOUTPUT_anypath_resolved, _TEXMF_OUTPUT_DIRECTORY_anypath_resolved):
+    #         if p is not None:
+    #             _fs_write_roots.add(p)
+    _fs_write_roots = set()
+    _fs_write_roots.add(_cwd_anypath)
+    for p in (_TEXMFOUTPUT_anypath_resolved, _TEXMF_OUTPUT_DIRECTORY_anypath_resolved):
+        if p is not None:
+            _fs_write_roots.add(p)
 
     # Track readable/writable directories and files separately, since some of
     # the requirements are different.
@@ -133,13 +154,10 @@ class RestrictedPath(type(AnyPath())):
     # file names `<MD5 hash>` plus style names `<style name>`.
     _writable_filename_re = re.compile(r'[0-9a-zA-Z_-]+\.(?:config|data|errlog|highlight|index|message|style)\.minted')
 
-    _checked_executable_file_location_set: set[RestrictedPath] = set()
-    _is_executable_file_location_set: set[RestrictedPath] = set()
-
     def is_readable_dir(self) -> bool:
         if self not in self._checked_readable_dir_set:
             resolved = self.resolve()
-            if not self._fs_read_roots or any(resolved.is_relative_to(p) for p in self._fs_read_roots):
+            if self._fs_read_roots is None or any(resolved.is_relative_to(p) for p in self._fs_read_roots):
                 self._is_readable_dir_set.add(self)
             self._checked_readable_dir_set.add(self)
         return self in self._is_readable_dir_set
@@ -155,7 +173,7 @@ class RestrictedPath(type(AnyPath())):
     def is_writable_dir(self) -> bool:
         if self not in self._checked_writable_dir_set:
             resolved = self.resolve()
-            if any(resolved.is_relative_to(p) for p in self._fs_write_roots):
+            if self._fs_write_roots is None or any(resolved.is_relative_to(p) for p in self._fs_write_roots):
                 self._is_writable_dir_set.add(self)
             self._checked_writable_dir_set.add(self)
         return self in self._is_writable_dir_set
@@ -163,29 +181,13 @@ class RestrictedPath(type(AnyPath())):
     def is_writable_file(self) -> bool:
         if self not in self._checked_writable_file_set:
             resolved = self.resolve()
-            if (resolved.parent.is_writable_dir() and self._writable_filename_re.fullmatch(resolved.name)):
+            if (resolved.parent.is_writable_dir() and
+                    (self._fs_write_dotfiles or not resolved.name.startswith('.')) and
+                    not any(resolved.name.endswith(ext) for ext in latex_config.prohibited_write_file_extensions) and
+                    self._writable_filename_re.fullmatch(resolved.name)):
                 self._is_writable_file_set.add(self)
             self._checked_writable_file_set.add(self)
         return self in self._is_writable_file_set
-
-    def is_executable_file_location(self) -> bool:
-        '''
-        Note that this only checks whether the path is outside prohibited or
-        problematic locations, hence the `_location`.  It does NOT check
-        whether the file is executable or is on PATH.  For correct results,
-        the executable should be located with `shutil.which()`, and then the
-        path derived from this should be checked with
-        `.is_executable_file_location()`.  See
-        `restricted_subprocess.restricted_run()`.
-        '''
-        if self not in self._checked_executable_file_location_set:
-            resolved = self.resolve()
-            parent = resolved.parent
-            if (not any(resolved.is_relative_to(p) for p in self._fs_write_roots) and
-                    not any(p.is_relative_to(parent) for p in self._fs_write_roots)):
-                self._is_executable_file_location_set.add(self)
-            self._checked_executable_file_location_set.add(self)
-        return self in self._is_executable_file_location_set
 
 
     def chmod(self, *args, **kwargs):
@@ -274,44 +276,64 @@ class RestrictedPath(type(AnyPath())):
         return super().write_text(data, encoding=encoding, **kwargs)
 
 
+    @classmethod
+    def tex_cwd(cls) -> Self:
+        return cls(_cwd_anypath)
+
+    @classmethod
+    def TEXMFOUTPUT(cls) -> Self | None:
+        if _TEXMFOUTPUT_anypath_resolved is None:
+            return None
+        return cls(_TEXMFOUTPUT_anypath_resolved)
+
+    @classmethod
+    def TEXMF_OUTPUT_DIRECTORY(cls) -> Self | None:
+        if _TEXMF_OUTPUT_DIRECTORY_anypath_resolved is None:
+            return None
+        return cls(_TEXMF_OUTPUT_DIRECTORY_anypath_resolved)
+
+    @classmethod
+    def openout_roots(cls) -> list[Self]:
+        openout_roots: list[Self] = []
+        TEXMF_OUTPUT_DIRECTORY = cls.TEXMF_OUTPUT_DIRECTORY()
+        if TEXMF_OUTPUT_DIRECTORY:
+            openout_roots.append(TEXMF_OUTPUT_DIRECTORY)
+        else:
+            openout_roots.append(cls.tex_cwd())
+        TEXMFOUTPUT = cls.TEXMFOUTPUT()
+        if TEXMFOUTPUT and TEXMFOUTPUT not in openout_roots:
+            openout_roots.append(TEXMFOUTPUT)
+        return openout_roots
+
+    @classmethod
+    def all_writable_roots(cls) -> set[Self]:
+        all_writable_roots: set[Self] = set()
+        all_writable_roots.add(cls.tex_cwd())
+        TEXMF_OUTPUT_DIRECTORY = cls.TEXMF_OUTPUT_DIRECTORY()
+        if TEXMF_OUTPUT_DIRECTORY:
+            all_writable_roots.add(TEXMF_OUTPUT_DIRECTORY)
+        TEXMFOUTPUT = cls.TEXMFOUTPUT()
+        if TEXMFOUTPUT:
+            all_writable_roots.add(TEXMFOUTPUT)
+        return all_writable_roots
 
 
-def latexminted_config_read_bytes() -> bytes:
+
+
+def latexminted_config_read_bytes() -> list[bytes]:
     '''
-    Read the minted config file in the user home directory.  This is a dot
-    file and thus cannot be accessed via `RestrictedPath`.
+    Read minted config files from the user home directory and TEXMFHOME.
+    These are dot files and thus cannot be accessed via `RestrictedPath`.
     '''
-    return AnyPath('~/.latexminted_config').expanduser().read_bytes()
-
-
-
-
-cwd_path: RestrictedPath = RestrictedPath.cwd().resolve()
-
-# Ignore $TEXMFOUTPUT in determining location to write temp files, since
-# it's a fallback if the current directory isn't writable.  $TEXMFOUTPUT is
-# only used for communicating error messages.
-tempfiledir_path: RestrictedPath
-_texmf_output_directory = os.getenv('TEXMF_OUTPUT_DIRECTORY')
-if _texmf_output_directory:
-    tempfiledir_path = RestrictedPath(_texmf_output_directory).resolve()
-else:
-    tempfiledir_path = cwd_path
-del _texmf_output_directory
-
-texmfoutput_path: RestrictedPath | None = None
-_texmfoutput = os.getenv('TEXMFOUTPUT')
-if _texmfoutput:
-    texmfoutput_path = RestrictedPath(_texmfoutput).resolve()
-del _texmfoutput
-
-# Version of `tempfiledir_path` to use within `\input` in LaTeX
-input_tempfiledir_path_str: str
-try:
-    input_tempfiledir_path_str = tempfiledir_path.relative_to(cwd_path).as_posix()
-except ValueError:
-    input_tempfiledir_path_str = tempfiledir_path.as_posix()
-if input_tempfiledir_path_str == '.':
-    input_tempfiledir_path_str = ''
-elif not input_tempfiledir_path_str.endswith('/'):
-    input_tempfiledir_path_str += '/'
+    config_bytes_list = []
+    try:
+        config_bytes_list.append(AnyPath('~/.latexminted_config').expanduser().read_bytes())
+    except (FileNotFoundError, PermissionError):
+        pass
+    latex_config_texmf = latex_config.kpsewhich_find_config_file('.latexminted_config')
+    if latex_config_texmf:
+        try:
+            config_bytes_list.append(AnyPath(latex_config_texmf).read_bytes())
+        except (FileNotFoundError, PermissionError):
+            pass
+    return config_bytes_list

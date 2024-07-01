@@ -13,76 +13,50 @@ from __future__ import annotations
 from datetime import date, timedelta
 from .err import PathSecurityError
 from .messages import Messages
-from .restricted import cwd_path, json_loads, json_dumps, RestrictedPath, tempfiledir_path, texmfoutput_path
+from .restricted import json_loads, json_dumps, RestrictedPath
 
 
 
 
-file_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
+all_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
+all_roles_less_errlog = [x for x in all_roles if x != 'errlog']
+message_roles = ['message', 'errlog']
 
 
+
+def clean_file(*, file: str):
+    for path in RestrictedPath.all_writable_roots():
+        try:
+            (path / file).unlink(missing_ok=True)
+        except (PermissionError, PathSecurityError):
+            pass
 
 
 def clean_messages(*, md5: str):
-    paths = [tempfiledir_path]
-    if cwd_path is not tempfiledir_path:
-        paths.append(cwd_path)
-    # Messages and error logs can be written to $TEXMFOUTPUT
-    if texmfoutput_path is not None and texmfoutput_path not in paths:
-        paths.append(texmfoutput_path)
-    for path in paths:
-        try:
-            (path / f'_{md5}.message.minted').unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
-        try:
-            (path / f'_{md5}.errlog.minted').unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
+    for path in RestrictedPath.all_writable_roots():
+        for role in message_roles:
+            try:
+                (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
+            except (PermissionError, PathSecurityError):
+                pass
 
 
 def clean_temp(*, md5: str):
-    paths = [tempfiledir_path]
-    if cwd_path is not tempfiledir_path:
-        paths.append(cwd_path)
-    for path in paths:
-        for role in file_roles:
+    for path in RestrictedPath.all_writable_roots():
+        for role in all_roles:
             try:
                 (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
             except (PermissionError, PathSecurityError):
                 pass
-    # Only messages and error logs can be written to $TEXMFOUTPUT
-    if texmfoutput_path is not None and texmfoutput_path not in paths:
-        try:
-            (texmfoutput_path / f'_{md5}.message.minted').unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
-        try:
-            (texmfoutput_path / f'_{md5}.errlog.minted').unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
 
 
 def clean_temp_except_errlog(*, md5: str):
-    paths = [tempfiledir_path]
-    if cwd_path is not tempfiledir_path:
-        paths.append(cwd_path)
-    for path in paths:
-        for role in file_roles:
-            if role == 'errlog':
-                continue
+    for path in RestrictedPath.all_writable_roots():
+        for role in all_roles_less_errlog:
             try:
                 (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
             except (PermissionError, PathSecurityError):
                 pass
-    # Only messages and error logs can be written to $TEXMFOUTPUT
-    if texmfoutput_path is not None and texmfoutput_path not in paths:
-        try:
-            (texmfoutput_path / f'_{md5}.message.minted').unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
-
-
 
 
 def clean(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str],

@@ -12,26 +12,36 @@ from __future__ import annotations
 
 from typing import Any
 from .messages import Messages
-from .restricted import latex2pydata_loads, RestrictedPath, tempfiledir_path
+from .restricted import RestrictedPath, latex2pydata_loads
 
 
 
 
 def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> list[dict[str, Any]] | dict[str, Any] | None:
     data_file_name: str = f'_{md5}.data.minted'
-    data_path: RestrictedPath = tempfiledir_path / data_file_name
 
-    data_text: str
-    try:
-        data_text = data_path.read_text()
-    except FileNotFoundError:
-        messages.append_error(rf'Failed to find file \detokenize{{"{data_file_name}"}}')
-        messages.data_file_not_found = True
-    except PermissionError:
-        messages.append_error(rf'Insufficient permission to open file \detokenize{{"{data_file_name}"}}')
-    except UnicodeDecodeError:
-        messages.append_error(rf'Failed to decode file \detokenize{{"{data_file_name}"}} (expected UTF-8)')
-    if messages.has_errors():
+    data_text: str | None = None
+    for read_path in RestrictedPath.openout_roots()[:-1]:
+        data_path = read_path / data_file_name
+        try:
+            data_text = data_path.read_text()
+        except (FileNotFoundError, PermissionError):
+            continue
+        except UnicodeDecodeError:
+            messages.append_error(rf'Failed to decode file \detokenize{{"{data_file_name}"}} (expected UTF-8)')
+            return None
+    if data_text is None:
+        data_path = RestrictedPath.openout_roots()[-1] / data_file_name
+        try:
+            data_text = data_path.read_text()
+        except FileNotFoundError:
+            messages.append_error(rf'Failed to find file \detokenize{{"{data_file_name}"}}')
+            messages.data_file_not_found = True
+        except PermissionError:
+            messages.append_error(rf'Insufficient permission to open file \detokenize{{"{data_file_name}"}}')
+        except UnicodeDecodeError:
+            messages.append_error(rf'Failed to decode file \detokenize{{"{data_file_name}"}} (expected UTF-8)')
+    if data_text is None:
         return None
 
     try:

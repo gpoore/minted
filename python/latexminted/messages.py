@@ -13,7 +13,7 @@ from __future__ import annotations
 import textwrap
 import traceback
 from typing import Any
-from .restricted import cwd_path, RestrictedPath, tempfiledir_path, texmfoutput_path
+from .restricted import RestrictedPath
 
 
 
@@ -103,14 +103,8 @@ class Messages(object):
                 message_lines.append(rf'  \minted@error{{{message}}}%')
             message_lines.append(r'}%')
 
-        write_paths: list[RestrictedPath] = [tempfiledir_path]
-        if cwd_path is not tempfiledir_path:
-            write_paths.append(cwd_path)
-        if texmfoutput_path is not None and texmfoutput_path not in write_paths:
-            write_paths.append(texmfoutput_path)
-
         if message_lines:
-            for write_path in write_paths:
+            for write_path in RestrictedPath.openout_roots():
                 try:
                     (write_path / self.message_file_name).write_text('\n'.join(message_lines))
                 except PermissionError:
@@ -119,7 +113,7 @@ class Messages(object):
                     break
 
         if self._errlogs:
-            for write_path in write_paths:
+            for write_path in RestrictedPath.openout_roots():
                 try:
                     (write_path / self.errlog_file_name).write_text('\n'.join(self._errlogs))
                 except PermissionError:

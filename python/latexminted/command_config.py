@@ -12,8 +12,9 @@ from __future__ import annotations
 
 from .command_clean import clean_temp
 from .messages import Messages
-from .restricted import cwd_path, input_tempfiledir_path_str, tempfiledir_path, RestrictedPath
+from .restricted import RestrictedPath
 from .version import __version_info__
+from .err import PathSecurityError
 
 
 
@@ -30,27 +31,26 @@ def config(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str]
     if data is not None:
         tex_timestamp: str = data['timestamp']
         config_lines.append(rf'\gdef\minted@config@timestamp{{{tex_timestamp}}}%')
-        tex_cachepath: str
-        tex_cachedir: str = data['cachedir']
-        if RestrictedPath(tex_cachedir).is_absolute() or not input_tempfiledir_path_str:
-            tex_cachepath = tex_cachedir
-        else:
-            if tex_cachedir.startswith('./'):
-                tex_cachedir = tex_cachedir[2:]
-            tex_cachepath = f'{input_tempfiledir_path_str}{tex_cachedir}'
-        if not tex_cachepath.endswith('/'):
-            tex_cachepath += '/'
-        config_lines.append(rf'\gdef\minted@config@cachepath{{{tex_cachepath}}}%')
 
-    try:
-        (tempfiledir_path / config_file_name).write_text('\n'.join(config_lines))
-    except PermissionError:
-        messages.append_error('Insufficient permission to write minted config file')
-    else:
-        return
-
-    if data is None and tempfiledir_path is not cwd_path:
+    for openout_root in RestrictedPath.openout_roots():
         try:
-            (cwd_path / config_file_name).write_text('\n'.join(config_lines))
-        except PermissionError:
-            messages.append_error('Insufficient permission to write minted config file')
+            with (openout_root / config_file_name).open('w', encoding='utf8') as config_file:
+                if data is None:
+                    config_file.write('\n'.join(config_lines))
+                    return
+                tex_cachedir: str = data['cachedir']
+                tex_cachepath: str
+                if RestrictedPath(tex_cachedir).is_absolute() or openout_root == RestrictedPath.tex_cwd():
+                    tex_cachepath = tex_cachedir
+                else:
+                    try:
+                        tex_cachepath = (openout_root / tex_cachedir).relative_to(RestrictedPath.tex_cwd()).as_posix()
+                    except ValueError:
+                        tex_cachepath = (openout_root / tex_cachedir).as_posix()
+                if not tex_cachepath.endswith('/'):
+                    tex_cachepath += '/'
+                config_lines.append(rf'\gdef\minted@config@cachepath{{{tex_cachepath}}}%')
+                config_file.write('\n'.join(config_lines))
+                return
+        except (PermissionError, PathSecurityError):
+            continue

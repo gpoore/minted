@@ -264,10 +264,13 @@ released.
    Custom lexers in the form of `*.py` files are not automatically enabled,
    since they are equivalent to arbitrary code execution and are thus a
    significant security risk.  To enable custom lexers, create a file
-   `.latexminted_config` in your home directory (as found by Python's
-   `pathlib.Path.home()`).  This file must contain data in Python literal,
-   JSON, or TOML format.  TOML requires Python >= 3.11.  The data must contain
-   an entry equivalent to this Python data:
+   `.latexminted_config`.  This can be in your home directory (as found by
+   Python's `pathlib.Path.home()`) or in TEXMFHOME or a similar location with
+   other LaTeX config files; if this file is found in both locations, settings
+   from the TeX location overwrite settings from the home directory.  This
+   file must contain data in Python literal, JSON, or TOML format.  TOML
+   requires Python >= 3.11.  The data must contain an entry equivalent to this
+   Python data:
    ```
    {
       "custom_lexers": {
