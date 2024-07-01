@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/06/11 v3.0.0beta5 Yet another Pygments shim for LaTeX]
+    [2024/07/01 v3.0.0beta6 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -381,9 +381,9 @@
   \ifbool{minted@canexec}{\ShellEscape{#1}\minted@inputexecmessages}{}}
 \def\minted@ShellEscapeNoMessages#1{%
   \ifbool{minted@canexec}{\ShellEscape{#1}}{}}
-\def\minted@exec@delete#1{%
+\def\minted@exec@cleanfile#1{%
   \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ delete }#1}}
+    \MintedExecutable\detokenize{ cleanfile }#1}}
 \def\minted@inputexecmessages{%
   \minted@ensureatletter{\InputIfFileExists{\MintedMessageFilename}{}{}}}
 \def\minted@exec@batch{%
@@ -458,7 +458,7 @@
   \fi}
 \def\minted@detectconfig@wrongtimestamp{%
   \ifx\minted@timestamp\minted@executable@timestamp
-    \minted@exec@delete{\MintedConfigFilename}%
+    \minted@exec@cleanfile{\MintedConfigFilename}%
     \global\boolfalse{minted@canexec}%
     \minted@error{minted v3 Python executable could not find output directory;
       upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
@@ -467,7 +467,7 @@
     \expandafter\minted@detectconfig@noexecutable
   \fi}
 \def\minted@detectconfig@iii{%
-  \minted@exec@delete{\MintedConfigFilename}%
+  \minted@exec@cleanfile{\MintedConfigFilename}%
   \ifx\minted@exec@warning\relax
   \else
     \expandafter\minted@exec@warning

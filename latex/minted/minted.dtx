@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/06/11 v3.0.0beta5 Yet another Pygments shim for LaTeX]
+    [2024/07/01 v3.0.0beta6 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -2174,16 +2174,16 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@exec@delete}
-% Delete file.  Only files under the working directory, |TEXMFOUTPUT|, or |TEXMF_OUTPUT_DIRECTORY| can be deleted, and only if their names match the regex
+% \begin{macro}{\minted@exec@cleanfile}
+% Clean (delete) a temp file in all locations where it might be expected to exist.  Only files under the working directory, |TEXMFOUTPUT|, or |TEXMF_OUTPUT_DIRECTORY| can be cleaned, and only if their names match the regex
 %\begin{verbatim}
 %[0-9a-zA-Z_-]+\.(?:config|data|errlog|highlight|message|style)\.minted
 %\end{verbatim}
 % The identifier immediately before the |.minted| file extension describes the role of the file.  Files ending with |.errlog.minted| are not automatically cleaned up at the end of a compile, but are deleted at the beginning as part of config detection.
 %    \begin{macrocode}
-\def\minted@exec@delete#1{%
+\def\minted@exec@cleanfile#1{%
   \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ delete }#1}}
+    \MintedExecutable\detokenize{ cleanfile }#1}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2319,7 +2319,7 @@
   \fi}
 \def\minted@detectconfig@wrongtimestamp{%
   \ifx\minted@timestamp\minted@executable@timestamp
-    \minted@exec@delete{\MintedConfigFilename}%
+    \minted@exec@cleanfile{\MintedConfigFilename}%
     \global\boolfalse{minted@canexec}%
     \minted@error{minted v3 Python executable could not find output directory;
       upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
@@ -2328,7 +2328,7 @@
     \expandafter\minted@detectconfig@noexecutable
   \fi}
 \def\minted@detectconfig@iii{%
-  \minted@exec@delete{\MintedConfigFilename}%
+  \minted@exec@cleanfile{\MintedConfigFilename}%
   \ifx\minted@exec@warning\relax
   \else
     \expandafter\minted@exec@warning
