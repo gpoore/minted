@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from .command_clean import clean_temp
+from .command_clean import clean_initial_temp
 from .messages import Messages
 from .restricted import RestrictedPath
 from .version import __version_info__
@@ -19,10 +19,10 @@ from .err import PathSecurityError
 
 
 
-def config(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str] | None):
+def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str] | None):
     config_file_name = f'_{md5}.config.minted'
 
-    clean_temp(md5=md5)
+    clean_initial_temp(md5=md5)
 
     config_lines = []
     minted_executable_version = f'{__version_info__.major}.{__version_info__.minor}.{__version_info__.micro}'

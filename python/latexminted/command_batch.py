@@ -19,18 +19,18 @@ from .messages import Messages
 
 
 
-def batch(*, md5: str, timestamp: str, messages: Messages, data: list[dict[str, Any]]):
+def batch(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: list[dict[str, Any]]):
     new_cache_file_names: list[str] = []
     for d in data:
         command = d['command']
         if command == 'styledef':
             messages.set_context(d)
-            f = styledef(md5=md5, timestamp=timestamp, messages=messages, data=d)
+            f = styledef(md5=md5, timestamp=timestamp, debug=debug, messages=messages, data=d)
             if f is not None:
                 new_cache_file_names.append(f)
         elif command == 'highlight':
             messages.set_context(d)
-            f = highlight(md5=md5, timestamp=timestamp, messages=messages, data=d)
+            f = highlight(md5=md5, timestamp=timestamp, debug=debug, messages=messages, data=d)
             if f is not None:
                 new_cache_file_names.append(f)
         elif command == 'clean':
@@ -38,7 +38,8 @@ def batch(*, md5: str, timestamp: str, messages: Messages, data: list[dict[str, 
             # Don't need to check whether clean is at the end of the list of
             # commands, since the LaTeX side disables the Python executable
             # immediately after clean.
-            clean(md5=md5, timestamp=timestamp, messages=messages, data=d, additional_cache_file_names=new_cache_file_names)
+            clean(md5=md5, timestamp=timestamp, debug=debug, messages=messages,
+                  data=d, additional_cache_file_names=new_cache_file_names)
         else:
             raise ValueError
 
@@ -54,4 +55,5 @@ def batch(*, md5: str, timestamp: str, messages: Messages, data: list[dict[str, 
             'cachepath': data[-1]['cachepath'],
             'cachefiles': [],
         }
-        clean(md5=md5, timestamp=timestamp, messages=messages, data=clean_data, additional_cache_file_names=new_cache_file_names)
+        clean(md5=md5, timestamp=timestamp, debug=debug, messages=messages,
+              data=clean_data, additional_cache_file_names=new_cache_file_names)

@@ -69,7 +69,6 @@ class RestrictedPath(type(AnyPath())):
          -  `.lchmod()`
          -  `.write_bytes()` (use `.write_text()`)
          -  `.rename()`
-         -  `.replace()`
          -  `.symlink_to()`
          -  `.hardlink_to()`
          -  `.touch()`
@@ -239,8 +238,16 @@ class RestrictedPath(type(AnyPath())):
     def rename(self, *args, **kwargs):
         raise NotImplementedError
 
-    def replace(self, *args, **kwargs):
-        raise NotImplementedError
+    def replace(self, target: RestrictedPath):
+        if not self.is_writable_file():
+            raise PathSecurityError(
+                f'Cannot replace file because it is outside permitted locations:  "{self.as_posix()}"'
+            )
+        if not target.is_writable_file():
+            raise PathSecurityError(
+                f'Cannot create replacement file because it is outside permitted locations:  "{target.as_posix()}"'
+            )
+        return super().replace(target)
 
     def rmdir(self):
         if not self.is_writable_dir():

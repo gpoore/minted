@@ -20,7 +20,7 @@ from .restricted import RestrictedPath
 
 
 
-def styledef(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str]) -> str | None:
+def styledef(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str]) -> str | None:
     style = data['style']
     try:
         StyleClass = get_style_by_name(style)

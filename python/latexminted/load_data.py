@@ -17,7 +17,7 @@ from .restricted import RestrictedPath, latex2pydata_loads
 
 
 
-def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> list[dict[str, Any]] | dict[str, Any] | None:
+def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> tuple[list[dict[str, Any]] | dict[str, Any], RestrictedPath] | None:
     data_file_name: str = f'_{md5}.data.minted'
 
     data_text: str | None = None
@@ -85,4 +85,4 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
             rf'minted data file \detokenize{{"{data_file_name}"}} contains unexpected data type "{type(data)}"'
         )
         return None
-    return data
+    return (data, data_path)

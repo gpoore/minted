@@ -126,6 +126,8 @@ released.
 
 *  New package options:
 
+   - `debug`:  Keep temp files from highlighting to aid in debugging.
+
    - `highlightmode`:  Determines when code is highlighted.  The default is
      `fastfirst`.  If a cache for the document exists, then code is
      highlighted immediately.  If a cache for the document does not exist,

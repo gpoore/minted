@@ -18,13 +18,18 @@ from .restricted import json_loads, json_dumps, RestrictedPath
 
 
 
+paths_skipped_in_initial_temp_cleaning: set[RestrictedPath] = set()
+
 all_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
 all_roles_less_errlog = [x for x in all_roles if x != 'errlog']
 message_roles = ['message', 'errlog']
 
 
 
-def clean_file(*, file: str):
+
+def clean_file(*, file: str, debug: bool):
+    if debug:
+        return
     for path in RestrictedPath.all_writable_roots():
         try:
             (path / file).unlink(missing_ok=True)
@@ -41,27 +46,39 @@ def clean_messages(*, md5: str):
                 pass
 
 
-def clean_temp(*, md5: str):
+def _clean_temp(*, md5: str, roles: list[str], skipped: set[RestrictedPath] | None):
     for path in RestrictedPath.all_writable_roots():
-        for role in all_roles:
+        for role in roles:
+            temp_file_path = path / f'_{md5}.{role}.minted'
+            if skipped and temp_file_path in skipped:
+                continue
             try:
-                (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
+                temp_file_path.unlink(missing_ok=True)
             except (PermissionError, PathSecurityError):
-                pass
+                continue
+        for n in range(1, 101):
+            debug_data_path = path / f'_{md5}_{n}.data.minted'
+            try:
+                debug_data_path.unlink()
+            except (PermissionError, PathSecurityError):
+                continue
+            except FileNotFoundError:
+                break
+
+
+def clean_initial_temp(*, md5: str):
+    _clean_temp(md5=md5, roles=all_roles, skipped=paths_skipped_in_initial_temp_cleaning)
 
 
 def clean_temp_except_errlog(*, md5: str):
-    for path in RestrictedPath.all_writable_roots():
-        for role in all_roles_less_errlog:
-            try:
-                (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
-            except (PermissionError, PathSecurityError):
-                pass
+    _clean_temp(md5=md5, roles=all_roles_less_errlog, skipped=None)
 
 
-def clean(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str],
+def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str],
           additional_cache_file_names: list[str] | None = None):
-    clean_temp_except_errlog(md5=md5)
+    if not debug:
+        # Debug setting only applies to temp files, not to cache cleaning
+        clean_temp_except_errlog(md5=md5)
 
     # Python < 3.11 requires `YYYY-MM-DD`
     timestamp_date = date.fromisoformat(f'{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}')
@@ -72,7 +89,6 @@ def clean(*, md5: str, timestamp: str, messages: Messages, data: dict[str, str],
     if additional_cache_file_names is not None:
         used_cache_files.update(additional_cache_file_names)
     used_cache_files.update(data['cachefiles'])
-
 
     for index_path in cache_path.glob('*.index.minted'):
         if index_path.name == current_index_name:

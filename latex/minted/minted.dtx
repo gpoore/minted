@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/07/01 v3.0.0beta6 Yet another Pygments shim for LaTeX]
+    [2024/07/02 v3.0.0beta7 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -645,6 +645,10 @@
 %\end{Verbatim}
 %
 % Note that the cache directory is relative to the |outputdir|, if an |outputdir| is specified.
+%
+%
+% \DescribeMacro{debug=\meta{boolean} (default:~false)}
+% Keep temp files for aid in debugging.
 %
 %
 % \DescribeMacro{finalizecache=\meta{boolean} (default:~false)}
@@ -1748,6 +1752,17 @@
 % \end{macro}
 %
 %
+% \begin{macro}{minted@debug}
+% Keep temp files for aid in debugging.
+%    \begin{macrocode}
+\newbool{minted@debug}
+\minted@pgfopts{
+  debug/.is if=minted@debug,
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{minted@cache}
 % Determine whether highlighted content is cached.
 %    \begin{macrocode}
@@ -2174,6 +2189,16 @@
 % \end{macro}
 %
 %
+% \begin{macro}{\minted@execarg@debug,\minted@execarg@timestamp}
+%    \begin{macrocode}
+\def\minted@execarg@debug{%
+  \ifbool{minted@debug}{\detokenize{ --debug }}{}}
+\def\minted@execarg@timestamp{%
+  \detokenize{ --timestamp }\minted@timestamp\detokenize{ }}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\minted@exec@cleanfile}
 % Clean (delete) a temp file in all locations where it might be expected to exist.  Only files under the working directory, |TEXMFOUTPUT|, or |TEXMF_OUTPUT_DIRECTORY| can be cleaned, and only if their names match the regex
 %\begin{verbatim}
@@ -2183,7 +2208,7 @@
 %    \begin{macrocode}
 \def\minted@exec@cleanfile#1{%
   \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ cleanfile }#1}}
+    \MintedExecutable\detokenize{ cleanfile }\minted@execarg@debug#1}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2203,7 +2228,7 @@
 \def\minted@exec@batch{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ batch --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ batch }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}
@@ -2215,7 +2240,7 @@
 \def\minted@exec@config{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ config --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ config }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}
@@ -2224,10 +2249,10 @@
 % \begin{macro}{\minted@exec@styledef}
 % Create style definition.
 %    \begin{macrocode}
-\gdef\minted@exec@styledef{%
+\def\minted@exec@styledef{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ styledef --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ styledef }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}
@@ -2239,7 +2264,7 @@
 \def\minted@exec@highlight{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ highlight --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ highlight }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}
@@ -2251,7 +2276,7 @@
 \def\minted@exec@clean{%
   \minted@ShellEscapeNoMessages{%
     \MintedExecutable
-    \detokenize{ clean --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ clean }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}

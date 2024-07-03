@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-import sys
 import textwrap
 from typing import Any
 from pygments import highlight as pygments_highlight
@@ -304,7 +303,7 @@ def preprocess_code(code: str, *, messages: Messages,
 
 
 
-def highlight(*, md5: str, timestamp: str, messages: Messages, data: dict[str, Any]) -> str | None:
+def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, Any]) -> str | None:
     processed_data = process_highlight_data(messages=messages, data=data)
     if processed_data is None:
         return

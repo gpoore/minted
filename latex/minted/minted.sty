@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/07/01 v3.0.0beta6 Yet another Pygments shim for LaTeX]
+    [2024/07/02 v3.0.0beta7 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -159,6 +159,10 @@
 \newbool{minted@newfloat}
 \minted@pgfopts{
   newfloat/.is if=minted@newfloat,
+}
+\newbool{minted@debug}
+\minted@pgfopts{
+  debug/.is if=minted@debug,
 }
 \newbool{minted@cache}
 \booltrue{minted@cache}
@@ -381,35 +385,39 @@
   \ifbool{minted@canexec}{\ShellEscape{#1}\minted@inputexecmessages}{}}
 \def\minted@ShellEscapeNoMessages#1{%
   \ifbool{minted@canexec}{\ShellEscape{#1}}{}}
+\def\minted@execarg@debug{%
+  \ifbool{minted@debug}{\detokenize{ --debug }}{}}
+\def\minted@execarg@timestamp{%
+  \detokenize{ --timestamp }\minted@timestamp\detokenize{ }}
 \def\minted@exec@cleanfile#1{%
   \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ cleanfile }#1}}
+    \MintedExecutable\detokenize{ cleanfile }\minted@execarg@debug#1}}
 \def\minted@inputexecmessages{%
   \minted@ensureatletter{\InputIfFileExists{\MintedMessageFilename}{}{}}}
 \def\minted@exec@batch{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ batch --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ batch }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 \def\minted@exec@config{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ config --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ config }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
-\gdef\minted@exec@styledef{%
+\def\minted@exec@styledef{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ styledef --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ styledef }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 \def\minted@exec@highlight{%
   \minted@ShellEscapeMaybeMessages{%
     \MintedExecutable
-    \detokenize{ highlight --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ highlight }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 \def\minted@exec@clean{%
   \minted@ShellEscapeNoMessages{%
     \MintedExecutable
-    \detokenize{ clean --timestamp }\minted@timestamp\detokenize{ }%
+    \detokenize{ clean }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 \newbool{minted@diddetectconfig}
 \def\minted@detectconfig{%
