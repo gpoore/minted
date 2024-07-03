@@ -15,7 +15,7 @@ import re
 import textwrap
 from typing import Any
 from pygments import highlight as pygments_highlight
-from pygments.formatters import LatexFormatter
+from pygments.formatters.latex import LatexEmbeddedLexer, LatexFormatter
 from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
@@ -102,7 +102,6 @@ formatter_keys: set[str] = set([
     'commandprefix',
     'escapeinside',
     'mathescape',
-    'styleprefix',
     'texcl',
     'texcomments',
 ])
@@ -347,6 +346,9 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     for filter_name, opt_name in filter_keys_one_option.items():
         if filter_opts[filter_name]:
             pygments_lexer.add_filter(filter_name, **{opt_name: filter_opts[filter_name]})
+    escapeinside: str = formatter_opts.get('escapeinside', '')
+    if len(escapeinside) == 2:
+        pygments_lexer = LatexEmbeddedLexer(escapeinside[0], escapeinside[1], pygments_lexer)
 
     pygments_formatter = LatexFormatter(**formatter_opts)
 
