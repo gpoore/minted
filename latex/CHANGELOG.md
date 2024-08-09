@@ -35,10 +35,9 @@ released.
    Manually installing Python libraries is only necessary if you want to use
    plugin packages for Pygments.  In that case, install the `latexminted`
    Python package in a Python installation.  This automatically installs
-   `latex2pydata` and Pygments as dependencies.  `latexminted` is available
-   from [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
-   Then install plugin packages for Pygments within the same Python
-   installation.
+   `latex2pydata`, `latexrestricted`, and Pygments as dependencies.
+   `latexminted` is available from the
+   [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).  Then install plugin packages for Pygments within the same Python installation.
 
 *  The new `latexminted` Python executable is designed to be compatible with
    the security requirements for restricted shell escape, so that in the

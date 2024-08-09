@@ -93,8 +93,12 @@ subprocess instead.
     distribution runs, it checks for the existence of a `latexminted`
     executable within a Python installation.  If that executable exists and
     has a higher precedence on `PATH`, then that executable runs in a
-    subprocess.  Python's `shutil.which()` is used to search `PATH` for
-    `latexminted` executables outside the TeX distribution.
+    subprocess.  Under Windows, there is also a check for the first
+    `latexminted` executable on `PATH` that is under the user's home
+    directory, since Windows appends user `PATH` to system `PATH`, so the
+    system `PATH` may prevent finding a user installation of `latexminted`.
+    Python's `shutil.which()` is used to search `PATH` for `latexminted`
+    executables outside the TeX distribution.
 
 Whenever a subprocess is used to run an executable, that executable must meet
 two conditions:
