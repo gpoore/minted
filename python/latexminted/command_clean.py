@@ -11,14 +11,14 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from .err import PathSecurityError
+from latexrestricted import PathSecurityError
 from .messages import Messages
-from .restricted import json_loads, json_dumps, RestrictedPath
+from .restricted import json_loads, json_dumps, MintedTempRestrictedPath
 
 
 
 
-paths_skipped_in_initial_temp_cleaning: set[RestrictedPath] = set()
+paths_skipped_in_initial_temp_cleaning: set[MintedTempRestrictedPath] = set()
 
 all_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
 all_roles_less_errlog = [x for x in all_roles if x != 'errlog']
@@ -30,7 +30,7 @@ message_roles = ['message', 'errlog']
 def clean_file(*, file: str, debug: bool):
     if debug:
         return
-    for path in RestrictedPath.all_writable_roots():
+    for path in MintedTempRestrictedPath.tex_roots():
         try:
             (path / file).unlink(missing_ok=True)
         except (PermissionError, PathSecurityError):
@@ -38,7 +38,7 @@ def clean_file(*, file: str, debug: bool):
 
 
 def clean_messages(*, md5: str):
-    for path in RestrictedPath.all_writable_roots():
+    for path in MintedTempRestrictedPath.tex_roots():
         for role in message_roles:
             try:
                 (path / f'_{md5}.{role}.minted').unlink(missing_ok=True)
@@ -46,8 +46,8 @@ def clean_messages(*, md5: str):
                 pass
 
 
-def _clean_temp(*, md5: str, roles: list[str], skipped: set[RestrictedPath] | None):
-    for path in RestrictedPath.all_writable_roots():
+def _clean_temp(*, md5: str, roles: list[str], skipped: set[MintedTempRestrictedPath] | None):
+    for path in MintedTempRestrictedPath.tex_roots():
         for role in roles:
             temp_file_path = path / f'_{md5}.{role}.minted'
             if skipped and temp_file_path in skipped:
@@ -82,7 +82,7 @@ def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: di
 
     # Python < 3.11 requires `YYYY-MM-DD`
     timestamp_date = date.fromisoformat(f'{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}')
-    cache_path = RestrictedPath(data['cachepath'])
+    cache_path = MintedTempRestrictedPath(data['cachepath'])
     current_index_name = f'_{md5}.index.minted'
     used_cache_files: set[str] = set()
     used_cache_files.add(current_index_name)

@@ -10,13 +10,13 @@
 
 from __future__ import annotations
 
-from .err import PathSecurityError
-from .restricted import RestrictedPath
+from latexrestricted import PathSecurityError
+from .restricted import MintedTempRestrictedPath
 
 
 
 
-def debug_mv_data(*, md5, data_path: RestrictedPath) -> RestrictedPath | None:
+def debug_mv_data(*, md5, data_path: MintedTempRestrictedPath) -> MintedTempRestrictedPath | None:
     for n in range(1, 101):
         replacement_path = data_path.parent / f'_{md5}_{n}.data.minted'
         if not replacement_path.is_file():

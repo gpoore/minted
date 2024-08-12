@@ -10,12 +10,12 @@
 
 from __future__ import annotations
 
+from latexrestricted import PathSecurityError
 from pygments.formatters import LatexFormatter
 from pygments.styles import get_style_by_name
 from pygments.util import ClassNotFound
-from .err import PathSecurityError
 from .messages import Messages
-from .restricted import RestrictedPath
+from .restricted import MintedTempRestrictedPath
 
 
 
@@ -29,7 +29,7 @@ def styledef(*, md5: str, timestamp: str, debug: bool, messages: Messages, data:
         return
 
     style_defs = LatexFormatter(style=StyleClass, commandprefix=data['commandprefix']).get_style_defs().lstrip()
-    styledef_path = RestrictedPath(data['cachepath']) / data['styledeffilename']
+    styledef_path = MintedTempRestrictedPath(data['cachepath']) / data['styledeffilename']
     try:
         styledef_path.parent.mkdir(parents=True, exist_ok=True)
         styledef_path.write_text(style_defs)

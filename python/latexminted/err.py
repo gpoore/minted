@@ -16,32 +16,8 @@ from __future__ import annotations
 class LatexMintedError(Exception):
     pass
 
-class LatexConfigError(LatexMintedError):
-    pass
-
-class SecurityError(LatexMintedError):
-    pass
-
-class PathSecurityError(SecurityError):
-    pass
-
-class SubprocessError(LatexMintedError):
-    pass
-
-class SubprocessUnapprovedExecutableError(SecurityError, SubprocessError):
-    pass
-
-class SubprocessExecutableNotFoundError(SubprocessError):
-    pass
-
-class SubprocessExecutablePathSecurityError(SecurityError, SubprocessError):
-    pass
-
-class MissingLatexMintedRCError(LatexMintedError):
+class LatexMintedConfigError(LatexMintedError):
     pass
 
 class CustomLexerError(LatexMintedError):
-    pass
-
-class CustomLexerSecurityError(SecurityError, CustomLexerError):
     pass

@@ -14,18 +14,15 @@ import hashlib
 import re
 import textwrap
 from typing import Any
+from latexrestricted import latex_config, PathSecurityError
 from pygments import highlight as pygments_highlight
 from pygments.formatters.latex import LatexEmbeddedLexer, LatexFormatter
 from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
-from .err import (
-    PathSecurityError,
-    MissingLatexMintedRCError,
-    CustomLexerError, CustomLexerSecurityError,
-)
+from .err import LatexMintedConfigError, CustomLexerError
 from .messages import Messages
-from .restricted import latex_config, load_custom_lexer, RestrictedPath
+from .restricted import latexminted_config, load_custom_lexer, MintedTempRestrictedPath
 
 
 
@@ -171,7 +168,7 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
 
 
 def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, encoding: str) -> str | None:
-    input_file_path = RestrictedPath(input_file)
+    input_file_path = MintedTempRestrictedPath(input_file)
     try:
         input_file_bytes = input_file_path.read_bytes()
         hasher = hashlib.md5()
@@ -191,7 +188,7 @@ def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, enco
             messages.append_error(rf'Cannot locate file \detokenize{{"{input_file}"}} (kpsewhich failed)')
             return None
         try:
-            kpsewhich_input_file_path = RestrictedPath(kpsewhich_input_file)
+            kpsewhich_input_file_path = MintedTempRestrictedPath(kpsewhich_input_file)
         except UnicodeDecodeError:
             messages.append_error(rf'Cannot locate file \detokenize{{"{input_file}"}} (could not decode kpsewhich output)')
             return None
@@ -330,7 +327,7 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
             return
         try:
             pygments_lexer_class = load_custom_lexer(py_opts['lexer'])
-        except (MissingLatexMintedRCError, CustomLexerError, CustomLexerSecurityError) as e:
+        except CustomLexerError as e:
             messages.append_error(rf'\detokenize{{{str(e)}}}')
             return
         except Exception as e:
@@ -353,7 +350,7 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     pygments_formatter = LatexFormatter(**formatter_opts)
 
     highlighted = pygments_highlight(code, pygments_lexer, pygments_formatter)
-    highlighted_path = RestrictedPath(data['cachepath']) / minted_opts['highlightfilename']
+    highlighted_path = MintedTempRestrictedPath(data['cachepath']) / minted_opts['highlightfilename']
     try:
         highlighted_path.write_text(highlighted)
     except PermissionError:

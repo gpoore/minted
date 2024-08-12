@@ -8,9 +8,11 @@
 #
 
 
-from ._latex_config import latex_config
-from ._restricted_pathlib import RestrictedPath
-from ._restricted_subprocess import restricted_run
+from latexrestricted import latex_config
+
+from ._latexminted_config import latexminted_config
+
+from ._restricted_pathlib import MintedCodeRestrictedPath, MintedTempRestrictedPath
 
 from ._stdlib import json_dumps, json_loads, os_environ
 from ._lib import latex2pydata_loads

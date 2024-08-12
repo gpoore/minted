@@ -12,16 +12,16 @@ from __future__ import annotations
 
 from typing import Any
 from .messages import Messages
-from .restricted import RestrictedPath, latex2pydata_loads
+from .restricted import MintedTempRestrictedPath, latex2pydata_loads
 
 
 
 
-def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> tuple[list[dict[str, Any]] | dict[str, Any], RestrictedPath] | None:
+def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> tuple[list[dict[str, Any]] | dict[str, Any], MintedTempRestrictedPath] | None:
     data_file_name: str = f'_{md5}.data.minted'
 
     data_text: str | None = None
-    for read_path in RestrictedPath.openout_roots()[:-1]:
+    for read_path in MintedTempRestrictedPath.tex_openout_roots()[:-1]:
         data_path = read_path / data_file_name
         try:
             data_text = data_path.read_text()
@@ -31,7 +31,7 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
             messages.append_error(rf'Failed to decode file \detokenize{{"{data_file_name}"}} (expected UTF-8)')
             return None
     if data_text is None:
-        data_path = RestrictedPath.openout_roots()[-1] / data_file_name
+        data_path = MintedTempRestrictedPath.tex_openout_roots()[-1] / data_file_name
         try:
             data_text = data_path.read_text()
         except FileNotFoundError:

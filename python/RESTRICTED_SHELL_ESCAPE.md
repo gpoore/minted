@@ -22,21 +22,21 @@ shell scape," shell escape but only for trusted executables.
 ## `latexminted` and the file system
 
 Restricted access to the file system is one aspect of the requirements for
-restricted shell escape.  The default restrictions may be summarized as
-follows, based on the TeX Live configuration file
-[`texmf.cnf`](https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l634)
-plus the changelog for `kpathsea` which mentions the new environment variable
-[`TEXMF_OUTPUT_DIRECTORY`](https://www.tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/NEWS?view=markup).
+restricted shell escape.  File system access depends on LaTeX configuration,
+which is accessed via the
+[`latexrestricted` Python package](https://github.com/gpoore/latexrestricted/).
+TeX Live restrictions depend on `openin_any` and `openout_any` settings in
+[`texmf.cnf`](https://tug.org/svn/texlive/trunk/Build/source/texk/kpathsea/texmf.cnf?revision=70942&view=markup#l684).
+MiKTeX restrictions depend on `[Core]AllowUnsafeInputFiles` and
+`[Core]AllowUnsafeOutputFiles` in
+[`miktex.ini`](https://docs.miktex.org/manual/miktex.ini.html).
+The default restrictions may be summarized as follows:
 
   * Reading:  No restrictions.
 
-  * Writing:  Prohibit writing dotfiles.  Restrict writing to the current
-    working directory, `TEXMFOUTPUT`, and `TEXMF_OUTPUT_DIRECTORY`, plus their
-    subdirectories.
-
-The exact way that these restrictions are described in the TeX Live sources is
-somewhat different (for example, disallowing going to parent directories), but
-this is the overall effect of the restrictions.
+  * Writing:  Prohibit writing dotfiles.  Restrict writing to locations under
+    the current working directory, `TEXMFOUTPUT`, and
+    `TEXMF_OUTPUT_DIRECTORY`.
 
 Python provides a number of ways to read and write files, including the
 [`open()`](https://docs.python.org/3/library/functions.html#open) function,
@@ -45,30 +45,55 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
 `latexminted` library restricts access to the file system as follows.
 
 1.  All security-related functionality, including file system access, is
-    provided through the `restricted` subpackage.  This makes it easier to see
-    whether commits modify any code with security implications.
+    provided through the `restricted` subpackage, which partially depends on
+    the separate
+    [`latexrestricted` package](https://github.com/gpoore/latexrestricted/).
+    This makes it easier to see whether commits modify any code with security
+    implications.
 
-2.  Within the `restricted` subpackage, there is a `RestrictedPath` class that
-    is a subclass of `pathlib.Path`.  All file path objects that are created
-    in response to user data from LaTeX are instances of `RestrictedPath`.
-    File system operations are initiated using instances of `RestrictedPath`,
-    including creating directories and reading and writing files.
+2.  Within the `restricted` subpackage, there are `RestrictedPath` subclasses
+    of `pathlib.Path`.  All file path objects that are created in response to
+    user data from LaTeX are instances of these `RestrictedPath` classes.
+    File system operations are initiated using instances of `RestrictedPath`
+    classes, including creating directories and reading and writing files.
 
-    Before an instance of `RestrictedPath` can access the file system, it is
-    resolved
-    ([`.resolve()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve))
-    to create an absolute path with no symlinks.  Then this resolved path is
-    checked against the current working directory, `TEXMFOUTPUT`,
-    and `TEXMF_OUTPUT_DIRECTORY` to ensure that the location and type of
-    file system operation is allowed.  If not, an error is raised.
+    By default, `MintedResolvedRestrictedPath` is used for all paths.  This is
+    a subclass of `SafeWriteResolvedRestrictedPath` from the `latexrestricted`
+    package.  Paths are checked against the file system and symlinks are
+    resolved before comparing paths with permitted read/write locations.
+    Security settings for reading are inherited from LaTeX settings.  Security
+    settings for writing are always set at maximum:  no writing dotfiles, and
+    no writing outside the current working directory, `TEXMFOUTPUT`, and
+    `TEXMF_OUTPUT_DIRECTORY`.  See the documentation of the `latexrestricted`
+    package for implementation details.
 
-    Writing/deleting files is further restricted beyond file location to files
-    with names matching this regular expression:
+    The `security.file_path_analysis` setting from `.minted_config` defaults
+    to `resolve`, but if it is set to `string` instead, then
+    `MintedStringRestrictedPath` is used instead of
+    `MintedResolvedRestrictedPath`.  This is a subclass of
+    `SafeWriteStringRestrictedPath` from the `latexrestricted` package.
+    Instead of resolving paths with the file system and then comparing them
+    against permitted read/write locations, it performs all path analysis by
+    treating paths as strings.  This follows the TeX file path security
+    implementation, and as a byproduct places limits on valid paths while
+    making it possible to circumvent security settings via symlinks.  All
+    relative paths must be relative to the current working directory.  All
+    absolute paths must be under `TEXMFOUTPUT` and `TEXMF_OUTPUT_DIRECTORY`.
+    Paths cannot contain `..` to access parent directories, even if those
+    locations are permitted for reading/writing.  Because paths are only
+    analyzed as strings, it is possible to access locations outside the
+    current working directory, `TEXMFOUTPUT`, and `TEXMF_OUTPUT_DIRECTORY` via
+    symlinks in those locations.  See the documentation of the
+    `latexrestricted` package for implementation details.
+
+    Regardless of whether paths are resolved with the file system or analyzed
+    as strings, writing/deleting files is further restricted to file names
+    matching this regular expression:
     ```
     [0-9a-zA-Z_-]+\.(?:config|data|errlog|highlight|index|message|style)\.minted
     ```
     All temp files and cache files created by the `minted` LaTeX package and
-    the `latex_python` executable match this regular expression.
+    the `latexminted` executable match this regular expression.
 
 3.  Some modules and packages such as `json`, `tomllib`, and `latex2pydata`
     provide functions for loading data from files and also functions for
@@ -90,10 +115,12 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
 
 It can be necessary in some cases to run external commands.  Currently, this
 is limited to using `kpsewhich` and `initexmf` to access LaTeX configuration,
-and using `kpsewhich` to locate files.  The following steps are taken to
-ensure safe subprocess access.
+and using `kpsewhich` to locate files.  The `LatexConfig` class from the
+[`latexrestricted` package](https://github.com/gpoore/latexrestricted/) is
+used for these tasks.  It takes the following steps to ensure safe subprocess
+access.
 
-1.  The executable must be in a list of approved executables.
+1.  The executable is restricted to `kpsewhich` and `initexmf`.
 
 2.  The executable must exist on `PATH`, as found by
     [`shutil.which()`](https://docs.python.org/3/library/shutil.html#shutil.which),

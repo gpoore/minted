@@ -13,7 +13,7 @@ from __future__ import annotations
 import textwrap
 import traceback
 from typing import Any
-from .restricted import RestrictedPath
+from .restricted import MintedTempRestrictedPath
 
 
 
@@ -51,7 +51,7 @@ class Messages(object):
 
         if self._currentfilepath:
             path = self._currentfilepath
-            if not RestrictedPath(path).is_absolute() and not path.startswith('.'):
+            if not MintedTempRestrictedPath(path).is_absolute() and not path.startswith('.'):
                 path = f'./{path}'
             if not path.endswith('/'):
                 path += '/'
@@ -104,7 +104,7 @@ class Messages(object):
             message_lines.append(r'}%')
 
         if message_lines:
-            for write_path in RestrictedPath.openout_roots():
+            for write_path in MintedTempRestrictedPath.tex_openout_roots():
                 try:
                     (write_path / self.message_file_name).write_text('\n'.join(message_lines))
                 except PermissionError:
@@ -113,7 +113,7 @@ class Messages(object):
                     break
 
         if self._errlogs:
-            for write_path in RestrictedPath.openout_roots():
+            for write_path in MintedTempRestrictedPath.tex_openout_roots():
                 try:
                     (write_path / self.errlog_file_name).write_text('\n'.join(self._errlogs))
                 except PermissionError:

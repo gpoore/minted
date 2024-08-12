@@ -10,11 +10,11 @@
 
 from __future__ import annotations
 
+from latexrestricted import PathSecurityError
 from .command_clean import clean_initial_temp
 from .messages import Messages
-from .restricted import RestrictedPath
+from .restricted import MintedTempRestrictedPath
 from .version import __version_info__
-from .err import PathSecurityError
 
 
 
@@ -32,7 +32,7 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
         tex_timestamp: str = data['timestamp']
         config_lines.append(rf'\gdef\minted@config@timestamp{{{tex_timestamp}}}%')
 
-    for openout_root in RestrictedPath.openout_roots():
+    for openout_root in MintedTempRestrictedPath.tex_openout_roots():
         try:
             with (openout_root / config_file_name).open('w', encoding='utf8') as config_file:
                 if data is None:
@@ -40,11 +40,11 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
                     return
                 tex_cachedir: str = data['cachedir']
                 tex_cachepath: str
-                if RestrictedPath(tex_cachedir).is_absolute() or openout_root == RestrictedPath.tex_cwd():
+                if MintedTempRestrictedPath(tex_cachedir).is_absolute() or openout_root == MintedTempRestrictedPath.tex_cwd():
                     tex_cachepath = tex_cachedir
                 else:
                     try:
-                        tex_cachepath = (openout_root / tex_cachedir).relative_to(RestrictedPath.tex_cwd()).as_posix()
+                        tex_cachepath = (openout_root / tex_cachedir).relative_to(MintedTempRestrictedPath.tex_cwd()).as_posix()
                     except ValueError:
                         tex_cachepath = (openout_root / tex_cachedir).as_posix()
                 if not tex_cachepath.endswith('/'):
