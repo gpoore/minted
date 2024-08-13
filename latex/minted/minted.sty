@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/07/02 v3.0.0beta7 Yet another Pygments shim for LaTeX]
+    [2024/08/13 v3.0.0beta8 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -935,7 +935,6 @@
 }
 \mintedpgfkeyscreate{py}{
   autogobble<true>=false,
-  codetagify<true>=true,
   encoding=utf8,
   funcnamehighlighting<true>=true,
   gobble=0,
@@ -949,6 +948,7 @@
   texcomments<true>=false,
 }
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
+  codetagify=,
   escapeinside=,
   rangestartstring=,
   rangestartafterstring=,

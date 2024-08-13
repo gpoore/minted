@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 import re
 import textwrap
-from typing import Any
+from typing import Any, Callable
 from latexrestricted import latex_config, PathSecurityError
 from pygments import highlight as pygments_highlight
 from pygments.formatters.latex import LatexEmbeddedLexer, LatexFormatter
@@ -31,7 +31,6 @@ from .restricted import latexminted_config, load_custom_lexer, MintedTempRestric
 # Python types
 bool_keys: set[str] = set([
     'autogobble',
-    'codetagify',
     'funcnamehighlighting',
     'mathescape',
     'python3',
@@ -55,6 +54,7 @@ other_keys_value_sets: dict[str, set[str]] = {
     'keywordcase': set(['lower', 'upper' or 'capitalize']),
 }
 other_keys_unchecked_str_value: set[str] = set([
+    'codetagify',
     'commandprefix',
     'encoding',
     'escapeinside',
@@ -89,10 +89,13 @@ lexer_keys: set[str] = set([
     'stripnl',
 ])
 filter_keys_no_options: set[str] = set([
-    'codetagify',
 ])
 filter_keys_one_option: dict[str, str] = {
+    'codetagify': 'codetags',
     'keywordcase': 'case',
+}
+filter_keys_one_option_preproc: dict[str, Callable[[str], str | list[str]]] = {
+    'codetagify': lambda x: [x_i.strip() for x_i in x.split(',')] if ',' in x else x
 }
 filter_keys = filter_keys_no_options | set(filter_keys_one_option)
 formatter_keys: set[str] = set([
@@ -342,7 +345,16 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
             pygments_lexer.add_filter(filter_name)
     for filter_name, opt_name in filter_keys_one_option.items():
         if filter_opts[filter_name]:
-            pygments_lexer.add_filter(filter_name, **{opt_name: filter_opts[filter_name]})
+            if filter_name in filter_keys_one_option_preproc:
+                pygments_lexer.add_filter(
+                    filter_name,
+                    **{opt_name: filter_keys_one_option_preproc[filter_name](filter_opts[filter_name])}
+                )
+            else:
+                pygments_lexer.add_filter(
+                    filter_name,
+                    **{opt_name: filter_opts[filter_name]}
+                )
     escapeinside: str = formatter_opts.get('escapeinside', '')
     if len(escapeinside) == 2:
         pygments_lexer = LatexEmbeddedLexer(escapeinside[0], escapeinside[1], pygments_lexer)

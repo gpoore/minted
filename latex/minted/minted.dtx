@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/07/02 v3.0.0beta7 Yet another Pygments shim for LaTeX]
+    [2024/08/13 v3.0.0beta8 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1065,8 +1065,8 @@
 % Allows |breaksymbolsepright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
 %
-%   \item[codetagify (list of strings) (\textrm{highlight \texttt{XXX}, \texttt{TODO}, \texttt{FIXME}, \texttt{BUG}, and \texttt{NOTE}})]
-%     Highlight special code tags in comments and docstrings.
+%   \item[codetagify (list of strings) (XXX, TODO, FIXME, BUG, NOTE)]
+%     Highlight special code tags in comments and docstrings.  The list of strings may be comma-delimited or space-delimited.
 %
 % \item[curlyquotes (boolean) (false)]
 % By default, the backtick \texttt{\textasciigrave} and typewriter single quotation mark \texttt{\textquotesingle} always appear literally, instead of becoming the left and right curly single quotation marks \texttt{`'}.  This option allows these characters to be replaced by the curly quotation marks when that is desirable.
@@ -2934,7 +2934,6 @@
 %    \begin{macrocode}
 \mintedpgfkeyscreate{py}{
   autogobble<true>=false,
-  codetagify<true>=true,
   encoding=utf8,
   funcnamehighlighting<true>=true,
   gobble=0,
@@ -2948,6 +2947,7 @@
   texcomments<true>=false,
 }
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
+  codetagify=,
   escapeinside=,
   rangestartstring=,
   rangestartafterstring=,

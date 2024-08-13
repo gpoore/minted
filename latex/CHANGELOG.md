@@ -283,6 +283,11 @@ released.
    included.  For example, for `./path/lexer.py:LexerClass` it would be just
    `lexer.py`.  Any number of file names and hashes can be provided.
 
+*  Enhancements of existing options:
+
+   - `codetagify` now supports comma-delimited lists of strings, not just
+     space-delimited lists (#126).
+
 
 
 ## v2.9 (2023/12/18)
