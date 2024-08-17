@@ -89,16 +89,21 @@ subprocess instead.
     is installed within a Python installation, then it will create a
     `latexminted` executable within that Python installation.
 
+    Under non-Windows operating systems, such a separate `latexminted`
+    executable can be used by prepending it to `PATH`.  Under Windows, this is
+    not always possible because TeX Live ignores `PATH` in running restricted
+    shell escape executables and because Windows appends user `PATH` to system
+    `PATH`, so the system `PATH` may prevent finding a user installation of
+    `latexminted`.
+
     When the `latexminted` executable that is installed within a TeX
-    distribution runs, it checks for the existence of a `latexminted`
-    executable within a Python installation.  If that executable exists and
-    has a higher precedence on `PATH`, then that executable runs in a
-    subprocess.  Under Windows, there is also a check for the first
+    distribution runs under Windows, it checks for the existence of a
+    `latexminted` executable within a Python installation.  Such an executable
+    must be the first `latexminted` executable on `PATH`, or the first
     `latexminted` executable on `PATH` that is under the user's home
-    directory, since Windows appends user `PATH` to system `PATH`, so the
-    system `PATH` may prevent finding a user installation of `latexminted`.
-    Python's `shutil.which()` is used to search `PATH` for `latexminted`
-    executables outside the TeX distribution.
+    directory.  Python's `shutil.which()` is used to search `PATH` for
+    `latexminted` executables outside the TeX distribution.  If a suitable
+    executable is found, it runs in a subprocess.
 
 Whenever a subprocess is used to run an executable, that executable must meet
 two conditions:
