@@ -24,6 +24,7 @@ from .command_config import config
 from .command_highlight import highlight
 from .command_styledef import styledef
 from .debug import debug_mv_data
+from .err import LatexMintedConfigError
 from .load_data import load_data
 from .messages import Messages
 
@@ -91,6 +92,12 @@ def main():
     func_args['messages'] = messages
     try:
         maybe_data = load_data(md5=md5, messages=messages, timestamp=timestamp, command=cmdline_args.subparser_name)
+    except LatexMintedConfigError as e:
+        messages.append_error(
+            f'Failed to load latexminted configuration:  {e}'
+        )
+        messages.communicate()
+        sys.exit(1)
     except Exception as e:
         messages.append_error(
             rf'Failed due to unexpected error (see \detokenize{{"{messages.errlog_file_name}"}} if it exists)'

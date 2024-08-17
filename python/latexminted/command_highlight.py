@@ -20,9 +20,9 @@ from pygments.formatters.latex import LatexEmbeddedLexer, LatexFormatter
 from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
-from .err import LatexMintedConfigError, CustomLexerError
+from .err import CustomLexerError
 from .messages import Messages
-from .restricted import latexminted_config, load_custom_lexer, MintedTempRestrictedPath
+from .restricted import load_custom_lexer, MintedTempRestrictedPath
 
 
 
