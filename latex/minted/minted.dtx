@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/08/13 v3.0.0beta8 Yet another Pygments shim for LaTeX]
+    [2024/08/25 v3.0.0beta9 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -196,18 +196,21 @@
   \kern-\parindent\textsf{(#2)}\hfill(default: \texttt{#3})\\}
 
 \newenvironment{optionlist}%
- {%
-  ~\par\vspace{-14pt}%
+ {~\par\vspace{-14pt}%
   \def\pipechar{|}
   \let\|\pipechar
   \newcommand*\mintednext{}%
+  \let\item@orig\item
   \renewcommand*\item[1][]{%
-    \mintednext%
-    \renewcommand*\mintednext{\par}%
-    \minted@printopt##1%
-    \ignorespaces}}
- {%
-  \par}
+    \ifdefstring{\@currenvir}{optionlist}%
+     {\mintednext%
+      \renewcommand*\mintednext{\par}%
+      \minted@printopt##1%
+      \ignorespaces}%
+     {\ifstrempty{##1}%
+      {\vspace{-4pt}\item@orig}
+      {\vspace{-4pt}\item@orig[##1]}}}}
+ {\par}
 
 \edef\hashchar{\string#}
 \makeatother
@@ -1071,6 +1074,19 @@
 % \item[curlyquotes (boolean) (false)]
 % By default, the backtick \texttt{\textasciigrave} and typewriter single quotation mark \texttt{\textquotesingle} always appear literally, instead of becoming the left and right curly single quotation marks \texttt{`'}.  This option allows these characters to be replaced by the curly quotation marks when that is desirable.
 %
+% \item[envname (string) (\textrm{\texttt{Verbatim}, or \texttt{VerbEnv} for inline})]
+% This is the name of the environment that wraps typeset code.  By default, it is |Verbatim| in block contexts and |VerbEnv| in inline contexts (|\setminted| versus |\setmintedinline|).  This is compatible with \texpkg{fancyvrb}'s |BVerbatim|.
+%
+% There are two requirements for using a custom environment other than |Verbatim| and |BVerbatim| in block contexts:
+% \begin{itemize}
+% \item For |minted| and |\mint| support, the custom environment must be created with \texpkg{fancyvrb}'s |\DefineVerbatimEnvironment| or otherwise defined in a manner compatible with \texpkg{fancyvrb}'s environment implementation conventions.
+% \item For |\inputminted| support, a corresponding |\|\meta{envname}|Insert| command must be defined, using \texpkg{fancyvrb}'s |\CustomVerbatimCommand| or otherwise following \texpkg{fancyvrb} command conventions.  For example, using a custom variant of |BVerbatim| involves creating both a custom environment as well as a corresponding variant of |\BVerbatimInput|.
+% \end{itemize}
+%
+% There is currently only limited support for using an environment other than |VerbEnv| in inline contexts.  If an environment other than |VerbEnv| is specified, it will be used for highlighted code, but will not be used if code is typeset verbatim instead or if highlighting fails and a verbatim fallback is needed.  In both of those cases, |\Verb| is currently used.
+%
+% Note that |envname| is the name of the environment that wraps typeset code, but it is \emph{not} the name of the environment that literally appears in highlighted code output.  Highlighted code output uses the |MintedVerbatim| environment by default, and then |MintedVerbatim| is redefined based on |envname|.  This allows a single cache file to be used in multiple contexts.  The name of the environment that literally appears in highlighted code output can be modified with |literalenvname|, but there should be few if any situations where that is actually necessary.
+%
 %   \item[encoding (string) (\meta{system-specific})]
 %     Sets the file encoding that \app{Pygments} expects.  See also |outencoding|.
 %   \item[escapeinside (string) (\meta{none})]
@@ -1157,6 +1173,9 @@
 %       return True
 %   \end{minted}
 % \end{example}
+%
+% \item[literalenvname (string) (MintedVerbatim)]
+% This is the name of the environment that literally appears in highlighted code output as a wrapper around the code.  It is redefined to be equivalent to |envname|.  There should be few if any situations where modifying |literalenvname| rather than |envname| is actually necessary.
 %
 % \item[numberfirstline (boolean) (false)]
 % Always number the first line, regardless of |stepnumber|.
@@ -1465,7 +1484,7 @@
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
-\RequirePackage{fvextra}[2024/05/16]
+\RequirePackage{fvextra}[2024/08/24]
 \RequirePackage{latex2pydata}[2024/05/16]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
@@ -1933,6 +1952,8 @@
 %
 % \paragraph{outputdir}
 % Old, no longer needed option from \mintedpkg\ v2.
+%
+% The empty |\minted@outputdir| is for backward compatibility with packages that depend on \mintedpkg\ v2 internals.
 %    \begin{macrocode}
 \minted@pgfopts{
   outputdir/.code=\minted@error{%
@@ -1941,6 +1962,7 @@
     and the environment variable \detokenize{TEXMF_OUTPUT_DIRECTORY}
     can be set manually in other cases},
 }
+\def\minted@outputdir{}
 %    \end{macrocode}
 %
 %
@@ -2684,9 +2706,9 @@
   \else\ifcsname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname}%
-  \else\ifcsname minted@pyopt@inline@#1\endcsname
+  \else\ifcsname minted@pyopt@globalinline@#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
-      \csname minted@pyopt@inline@#1\endcsname}%
+      \csname minted@pyopt@globalinline@#1\endcsname}%
   \else\ifcsname minted@pyopt@lexer@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@pyopt@lexer@\minted@lexer @#1\endcsname}%
@@ -2709,12 +2731,14 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@pgfkeyscreate@tex,\mintedtexoptvalueof}
+% \begin{macro}{\minted@pgfkeyscreate@tex,\mintedtexoptvalueof,\minted@usetexoptsnonpygments}
 % Syntax:  |\minted@pgfkeyscreate@tex|\marg{processor}\marg{key=initial value list}.
 %
 % Currently, initial values are required.  The key processing macros are written to handle the possibility of optional initial values:  If no initial value is set, use |\pgfkeysnovalue|.
 %
 % |\mintedtexoptvalueof| is used for retrieving values via |\edef|.
+%
+% |\minted@usetexoptsnonpygments| applies the |tex| options that aren't used by Pygments.  It is initially empty and is redefined after |tex| options are defined.  Unlike the |\minted@usefvopts| case, it isn't possible to simply loop through all defined options; more specialized per-option handling is required, since some options are handled in separate Pygments-related macros and there is no equivalent of |\fvset|.
 %    \begin{macrocode}
 \def\minted@pgfkeyscreate@tex#1#2{%
   \minted@forcsvlist{\minted@pgfkeycreate@tex{#1}}{#2}}
@@ -2778,9 +2802,9 @@
   \else\ifcsname minted@texopt@lexerinline@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@lexerinline@\minted@lexer @#1\endcsname}%
-  \else\ifcsname minted@texopt@inline@#1\endcsname
+  \else\ifcsname minted@texopt@globalinline@#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
-      \csname minted@texopt@inline@#1\endcsname}%
+      \csname minted@texopt@globalinline@#1\endcsname}%
   \else\ifcsname minted@texopt@lexer@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@lexer@\minted@lexer @#1\endcsname}%
@@ -2799,6 +2823,7 @@
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@global@#1\endcsname}%
   \fi\fi}
+\def\minted@usetexoptsnonpygments{}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2938,6 +2963,7 @@
   funcnamehighlighting<true>=true,
   gobble=0,
   keywordcase=lower,
+  literalenvname=MintedVerbatim,
   mathescape<true>=false,
   python3<true>=true,
   startinline<true>=false,
@@ -2968,12 +2994,40 @@
 %    \end{macrocode}
 %
 % \paragraph{\mintedpkg\ (kept in \LaTeX)}
+% \begin{itemize}
+% \item The |\minted@def@optcl| is for backward compatibility with versions of \texpkg{tcolorbox} that used this to define an |envname| option under \mintedpkg\ v2.
+% \end{itemize}
 %    \begin{macrocode}
 \mintedpgfkeyscreate{tex}{
-  style=default,
   bgcolor=,
+  envname=Verbatim,
   ignorelexererrors=false,
+  style=default,
 }
+\pgfkeys{
+  /minted/globalinline/.cd,
+  envname=VerbEnv,
+}
+\expandafter\def\expandafter\minted@usetexoptsnonpygments\expandafter{%
+  \minted@usetexoptsnonpygments
+  \edef\minted@literalenvname{\mintedpyoptvalueof{literalenvname}}%
+  \edef\minted@envname{\mintedtexoptvalueof{envname}}%
+  \expandafter\def\expandafter\minted@literalenv\expandafter{%
+    \csname \minted@literalenvname\endcsname}%
+  \expandafter\def\expandafter\minted@endliteralenv\expandafter{%
+    \csname end\minted@literalenvname\endcsname}%
+  \expandafter\expandafter\expandafter
+    \let\expandafter\minted@literalenv\csname \minted@envname\endcsname
+  \expandafter\expandafter\expandafter
+    \let\expandafter\minted@endliteralenv\csname end\minted@envname\endcsname}%
+\ifcsname minted@def@optcl\endcsname
+  \ifx\minted@def@optcl\relax
+    \let\minted@def@optcl\minted@undefined
+  \fi
+\fi
+\providecommand{\minted@def@optcl}[4][]{%
+  \minted@warning{Macro \string\minted@def@optcl\ is deprecated with minted v3
+    and no longer has any effect}}
 %    \end{macrocode}
 %
 %
@@ -3561,8 +3615,6 @@
 % \begin{macro}{\mintinline}
 % Define an inline command.  This is modeled after the reimplemented |\Verb| from \texpkg{fvextra}.  See the \texpkg{fvextra} documentation for details about expansion handling, argument reading, and (re)tokenization.
 %
-% Pygments emits code wrapped in a |Verbatim| environment.  Getting the inline command to work correctly requires redefining |Verbatim| to be \texpkg{fvextra}'s |VerbEnv| temporarily.
-%
 % Everything needs to be within a |\begingroup...\endgroup| to prevent settings from escaping.
 %
 % |\RobustMintInlineProcess@verbatim| doesn't need an explicit |\FVExtraRetokenizeVArg| step because this is done when the code is inserted into |\Verb|.
@@ -3583,13 +3635,12 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
      \FVExtraRetokenizeVArg{\RobustMintInlineProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintInlineProcess@highlight@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
   \setcounter{minted@tmpcodebufferlength}{1}%
-  \let\Verbatim\VerbEnv
-  \let\endVerbatim\endVerbEnv
   \let\minted@highlight@fallback\RobustMintInlineProcess@highlight@fallback
   \minted@highlight
   \setcounter{minted@tmpcodebufferlength}{0}%
@@ -3612,6 +3663,7 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \fvset{extra=true}%
   \minted@codewrapper{\Verb{#3}}%
   \endgroup}
@@ -3642,6 +3694,7 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
     \FVExtraRetokenizeVArg{\RobustMintProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@highlight@i#1{%
@@ -3654,7 +3707,7 @@
 \def\RobustMintProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}}
 \def\RobustMintProcess@placeholder#1#2#3{%
   \minted@insertplaceholder}
 \def\RobustMintProcess@verbatim#1#2#3{%
@@ -3663,13 +3716,14 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
     \FVExtraRetokenizeVArg{\RobustMintProcess@verbatim@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@verbatim@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
   \setcounter{minted@tmpcodebufferlength}{1}%
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}%
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}%
   \setcounter{minted@tmpcodebufferlength}{0}%
   \endgroup}
 \ifbool{minted@placeholder}%
@@ -3692,6 +3746,7 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer,globalbuffer=true]}
 \def\MintedEnd@highlight{%
   \end{VerbatimBuffer}%
@@ -3701,7 +3756,7 @@
 \def\MintedEnv@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}}
 \def\MintedBegin@placeholder#1#2{%
   \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer]}
 \def\MintedEnd@placeholder{%
@@ -3712,9 +3767,10 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
-  \begin{Verbatim}}
+  \minted@usetexoptsnonpygments
+  \begin{\minted@envname}}
 \def\MintedEnd@verbatim{%
-  \end{Verbatim}}
+  \end{\minted@envname}}
 \ifbool{minted@placeholder}%
  {\let\MintedBegin\MintedBegin@placeholder
   \let\MintedEnd\MintedEnd@placeholder}%
@@ -3751,13 +3807,14 @@
   \edef\minted@lexer{#2}%
   \edef\minted@inputfilepath{#3}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \let\minted@highlight@fallback\RobustInputMintedProcess@highlight@fallback
   \minted@highlightinputfile
   \endgroup}
 \def\RobustInputMintedProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInput{\minted@inputfilepath}}}
+    \csname\minted@envname Input\endcsname{\minted@inputfilepath}}}
 \def\RobustInputMintedProcess@placeholder#1#2#3{%
   \minted@insertplaceholder}
 \def\RobustInputMintedProcess@verbatim#1#2#3{%
@@ -3767,8 +3824,9 @@
   \edef\minted@inputfilepath{#3}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \minted@codewrapper{%
-    \VerbatimInput{\minted@inputfilepath}}%
+    \csname\minted@envname Input\endcsname{\minted@inputfilepath}}%
   \endgroup}
 \ifbool{minted@placeholder}%
  {\let\RobustInputMintedProcess\RobustInputMintedProcess@placeholder}%

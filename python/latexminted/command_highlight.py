@@ -57,6 +57,7 @@ other_keys_unchecked_str_value: set[str] = set([
     'codetagify',
     'commandprefix',
     'encoding',
+    'envname',
     'escapeinside',
     'lexer',
     'rangestartstring',
@@ -100,12 +101,16 @@ filter_keys_one_option_preproc: dict[str, Callable[[str], str | list[str]]] = {
 filter_keys = filter_keys_no_options | set(filter_keys_one_option)
 formatter_keys: set[str] = set([
     'commandprefix',
+    'envname',
     'escapeinside',
     'mathescape',
     'texcl',
     'texcomments',
 ])
 pygments_keys = lexer_keys | filter_keys | formatter_keys
+
+# Some keys have a different name in LaTeX versus Python
+key_translations: dict[str, str] = {'literalenvname': 'envname'}
 
 
 def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple[dict[str, Any], ...] | None:
@@ -117,6 +122,7 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
     formatter_opts = {}
 
     for k, v in data['pyopt'].items():
+        k = key_translations.get(k, k)
         if k in lexer_keys:
             current_opts = lexer_opts
         elif k in filter_keys:
@@ -157,7 +163,7 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
         elif k in other_keys_unchecked_str_value:
             current_opts[k] = v
         else:
-            messages.append_error(rf'Unknown key "{k}"')
+            raise TypeError(rf'Key "{k}" lacks a type checking function')
 
     # Additional data processing
     if 'inputfilemdfivesum' in minted_opts:

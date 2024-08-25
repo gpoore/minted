@@ -26,11 +26,11 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/08/13 v3.0.0beta8 Yet another Pygments shim for LaTeX]
+    [2024/08/25 v3.0.0beta9 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
-\RequirePackage{fvextra}[2024/05/16]
+\RequirePackage{fvextra}[2024/08/24]
 \RequirePackage{latex2pydata}[2024/05/16]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
@@ -267,6 +267,7 @@
     and the environment variable \detokenize{TEXMF_OUTPUT_DIRECTORY}
     can be set manually in other cases},
 }
+\def\minted@outputdir{}
 \minted@pgfopts{
   draft/.code=\minted@warning{%
     Package option "draft" no longer has any effect with minted v3+},
@@ -732,9 +733,9 @@
   \else\ifcsname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@pyopt@lexerinline@\minted@lexer @#1\endcsname}%
-  \else\ifcsname minted@pyopt@inline@#1\endcsname
+  \else\ifcsname minted@pyopt@globalinline@#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
-      \csname minted@pyopt@inline@#1\endcsname}%
+      \csname minted@pyopt@globalinline@#1\endcsname}%
   \else\ifcsname minted@pyopt@lexer@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@pyopt@lexer@\minted@lexer @#1\endcsname}%
@@ -815,9 +816,9 @@
   \else\ifcsname minted@texopt@lexerinline@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@lexerinline@\minted@lexer @#1\endcsname}%
-  \else\ifcsname minted@texopt@inline@#1\endcsname
+  \else\ifcsname minted@texopt@globalinline@#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
-      \csname minted@texopt@inline@#1\endcsname}%
+      \csname minted@texopt@globalinline@#1\endcsname}%
   \else\ifcsname minted@texopt@lexer@\minted@lexer @#1\endcsname
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@lexer@\minted@lexer @#1\endcsname}%
@@ -836,6 +837,7 @@
     \unexpanded\expandafter\expandafter\expandafter{%
       \csname minted@texopt@global@#1\endcsname}%
   \fi\fi}
+\def\minted@usetexoptsnonpygments{}
 \def\minted@opthandler@deforrestrictedescape#1#2{%
   \if\relax\detokenize{#2}\relax
     \expandafter\def\csname#1\endcsname{#2}%
@@ -939,6 +941,7 @@
   funcnamehighlighting<true>=true,
   gobble=0,
   keywordcase=lower,
+  literalenvname=MintedVerbatim,
   mathescape<true>=false,
   python3<true>=true,
   startinline<true>=false,
@@ -967,10 +970,35 @@
 }
 \let\minted@lexer\minted@tmplexer
 \mintedpgfkeyscreate{tex}{
-  style=default,
   bgcolor=,
+  envname=Verbatim,
   ignorelexererrors=false,
+  style=default,
 }
+\pgfkeys{
+  /minted/globalinline/.cd,
+  envname=VerbEnv,
+}
+\expandafter\def\expandafter\minted@usetexoptsnonpygments\expandafter{%
+  \minted@usetexoptsnonpygments
+  \edef\minted@literalenvname{\mintedpyoptvalueof{literalenvname}}%
+  \edef\minted@envname{\mintedtexoptvalueof{envname}}%
+  \expandafter\def\expandafter\minted@literalenv\expandafter{%
+    \csname \minted@literalenvname\endcsname}%
+  \expandafter\def\expandafter\minted@endliteralenv\expandafter{%
+    \csname end\minted@literalenvname\endcsname}%
+  \expandafter\expandafter\expandafter
+    \let\expandafter\minted@literalenv\csname \minted@envname\endcsname
+  \expandafter\expandafter\expandafter
+    \let\expandafter\minted@endliteralenv\csname end\minted@envname\endcsname}%
+\ifcsname minted@def@optcl\endcsname
+  \ifx\minted@def@optcl\relax
+    \let\minted@def@optcl\minted@undefined
+  \fi
+\fi
+\providecommand{\minted@def@optcl}[4][]{%
+  \minted@warning{Macro \string\minted@def@optcl\ is deprecated with minted v3
+    and no longer has any effect}}
 \newcounter{minted@numcachefiles}
 \def\minted@addcachefilename#1{%
   \ifbool{minted@canexec}%
@@ -1407,13 +1435,12 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
      \FVExtraRetokenizeVArg{\RobustMintInlineProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintInlineProcess@highlight@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
   \setcounter{minted@tmpcodebufferlength}{1}%
-  \let\Verbatim\VerbEnv
-  \let\endVerbatim\endVerbEnv
   \let\minted@highlight@fallback\RobustMintInlineProcess@highlight@fallback
   \minted@highlight
   \setcounter{minted@tmpcodebufferlength}{0}%
@@ -1436,6 +1463,7 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \fvset{extra=true}%
   \minted@codewrapper{\Verb{#3}}%
   \endgroup}
@@ -1459,6 +1487,7 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
     \FVExtraRetokenizeVArg{\RobustMintProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@highlight@i#1{%
@@ -1471,7 +1500,7 @@
 \def\RobustMintProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}}
 \def\RobustMintProcess@placeholder#1#2#3{%
   \minted@insertplaceholder}
 \def\RobustMintProcess@verbatim#1#2#3{%
@@ -1480,13 +1509,14 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \FVExtraDetokenizeVArg{%
     \FVExtraRetokenizeVArg{\RobustMintProcess@verbatim@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@verbatim@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
   \setcounter{minted@tmpcodebufferlength}{1}%
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}%
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}%
   \setcounter{minted@tmpcodebufferlength}{0}%
   \endgroup}
 \ifbool{minted@placeholder}%
@@ -1502,6 +1532,7 @@
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer,globalbuffer=true]}
 \def\MintedEnd@highlight{%
   \end{VerbatimBuffer}%
@@ -1511,7 +1542,7 @@
 \def\MintedEnv@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer]}}
+    \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}}
 \def\MintedBegin@placeholder#1#2{%
   \begin{VerbatimBuffer}[buffername=minted@tmpcodebuffer]}
 \def\MintedEnd@placeholder{%
@@ -1522,9 +1553,10 @@
   \edef\minted@lexer{#2}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
-  \begin{Verbatim}}
+  \minted@usetexoptsnonpygments
+  \begin{\minted@envname}}
 \def\MintedEnd@verbatim{%
-  \end{Verbatim}}
+  \end{\minted@envname}}
 \ifbool{minted@placeholder}%
  {\let\MintedBegin\MintedBegin@placeholder
   \let\MintedEnd\MintedEnd@placeholder}%
@@ -1554,13 +1586,14 @@
   \edef\minted@lexer{#2}%
   \edef\minted@inputfilepath{#3}%
   \minted@usefvopts
+  \minted@usetexoptsnonpygments
   \let\minted@highlight@fallback\RobustInputMintedProcess@highlight@fallback
   \minted@highlightinputfile
   \endgroup}
 \def\RobustInputMintedProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
   \minted@codewrapper{%
-    \VerbatimInput{\minted@inputfilepath}}}
+    \csname\minted@envname Input\endcsname{\minted@inputfilepath}}}
 \def\RobustInputMintedProcess@placeholder#1#2#3{%
   \minted@insertplaceholder}
 \def\RobustInputMintedProcess@verbatim#1#2#3{%
@@ -1570,8 +1603,9 @@
   \edef\minted@inputfilepath{#3}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
+  \minted@usetexoptsnonpygments
   \minted@codewrapper{%
-    \VerbatimInput{\minted@inputfilepath}}%
+    \csname\minted@envname Input\endcsname{\minted@inputfilepath}}%
   \endgroup}
 \ifbool{minted@placeholder}%
  {\let\RobustInputMintedProcess\RobustInputMintedProcess@placeholder}%

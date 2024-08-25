@@ -74,6 +74,18 @@ released.
    typically be installed with your TeX distribution's package manager.  The Python package is automatically installed within your TeX distribution when
    `minted` is installed.
 
+*  On the LaTeX side, all syntax highlighting settings are now serialized in
+   Python literal format using `latex2pydata` and then saved to a temp file,
+   which is loaded on the Python side.  Settings are no longer passed to the
+   Python side using command-line arguments.  Temp files for passing data to
+   Python are now named using MD5 hashes, instead of using a sanitized version
+   of document `\jobname`.  This eliminates an entire class of security issues
+   and bugs related to escaping and quoting command-line arguments (#180,
+   #276, #298, #322, #338).  It also eliminates bugs related to processing
+   settings as a sequence of command-line options, since `pygmentize`
+   accumulates some options that are used multiple times rather than
+   overwriting earlier values with later values (#258, #337).
+
 *  Options are now handled with `pgfkeys` and `pgfopts`, instead of
    `keyval` and `kvoptions`.
 
@@ -104,8 +116,8 @@ released.
       should be used to specify a full relative path to the cache (for
       example, `cachedir=./<outputdir>/_minted`).
 
-   - `outputdir`: No longer needed.  TeX Live 2024+ saves a custom output
-     directory from `-output-directory` in the environment variable
+   - `outputdir`:  No longer needed (#268).  TeX Live 2024+ saves a custom
+     output directory from `-output-directory` in the environment variable
      [`TEXMF_OUTPUT_DIRECTORY`](https://tug.org/texinfohtml/web2c.html#Output-file-location).
      The environment variable `TEXMF_OUTPUT_DIRECTORY` can be set manually in
      other cases.
@@ -287,6 +299,23 @@ released.
 
    - `codetagify` now supports comma-delimited lists of strings, not just
      space-delimited lists (#126).
+
+*  New options:
+
+   - `envname`:  Name of the environment that wraps typeset code.  By default,
+     it is `Verbatim` in block contexts and `VerbEnv` in inline contexts.
+     This is compatible with `fancyvrb`'s `BVerbatim` (#281).
+
+     Implementation note:  Code is actually wrapped a `MintedVerbatim`
+     environment, and then this is redefined to be equivalent to `envname`
+     (see the new option `literalenvname`).
+
+   - `literalenvname`:  This is the name of the environment that literally
+     appears in highlighted code output as a wrapper around the code.  By
+     default it is `MintedVerbatim`.  This environment is redefined to be
+     equivalent to the current value of `envname`.  There should be few if any
+     situations where modifying `literalenvname` rather than `envname` is
+     actually necessary.
 
 
 
