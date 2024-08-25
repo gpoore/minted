@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/08/25 v3.0.0beta10 Yet another Pygments shim for LaTeX]
+    [2024/08/25 v3.0.0beta11 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -836,6 +836,8 @@
 %   \end{minted}
 % \end{example}
 %
+% When |autogobble| and |gobble| are used together, the effect is cumulative.  First |autogobble| removes all common indentation, and then |gobble| is applied.
+%
 %   \item[baselinestretch (dimension) (\meta{document default})]
 %     Value to use as for baselinestretch inside the listing.
 %
@@ -1130,8 +1132,10 @@
 %     Distance between frame and content.
 %   \item[funcnamehighlighting (boolean) (true)] \appliesto{PHP}
 %     If |true|, highlights built-in function names.
-%   \item[gobble (integer) (0)]
-%     Remove the first $n$ characters from each input line.
+% \item[gobble (integer) (0)]
+% Remove the first $n$ characters from each input line.
+%
+% When |autogobble| and |gobble| are used together, the effect is cumulative.  First |autogobble| removes all common indentation, and then |gobble| is applied.
 %
 % \item[highlightcolor (string) (LightCyan)]
 % Set the color used for |highlightlines|, using a predefined color name from \texpkg{color} or \texpkg{xcolor}, or a color defined via |\definecolor|.
