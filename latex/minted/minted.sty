@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/08/25 v3.0.0beta9 Yet another Pygments shim for LaTeX]
+    [2024/08/25 v3.0.0beta10 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -424,14 +424,14 @@
 \def\minted@detectconfig{%
   \ifbool{minted@diddetectconfig}%
    {}%
-   {\ifbool{minted@canexec}{\begingroup\minted@detectconfig@i\endgroup}{}%
+   {\ifx\minted@cachedir\@empty
+      \gdef\minted@cachepath{}%
+    \else
+      \gdef\minted@cachepath{\minted@cachedir/}%
+    \fi
+    \ifbool{minted@canexec}{\begingroup\minted@detectconfig@i\endgroup}{}%
     \global\booltrue{minted@diddetectconfig}}}
 \def\minted@detectconfig@i{%
-  \ifx\minted@cachedir\@empty
-    \gdef\minted@cachepath{}%
-  \else
-    \gdef\minted@cachepath{\minted@cachedir/}%
-  \fi
   \global\let\minted@executable@version\relax
   \global\let\minted@executable@timestamp\relax
   \global\let\minted@config@timestamp\relax
