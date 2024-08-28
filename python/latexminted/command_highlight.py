@@ -26,6 +26,13 @@ from .restricted import load_custom_lexer, MintedTempRestrictedPath
 
 
 
+# Some Pygments options are given a different name in LaTeX.  These are always
+# referred to by their names in LaTeX.  Options are translated using this dict
+# immediately before being passed to Pygments.
+pygments_translations: dict[str, str] = {
+    'gobblefilter': 'gobble',
+    'literalenvname': 'envname',
+}
 
 # Sets and dicts for checking Python-related options and converting values to
 # Python types
@@ -45,6 +52,7 @@ bool_keys: set[str] = set([
 nonnegative_int_re = re.compile('[1-9][0-9]*|0')
 nonnegative_int_or_none_keys: set[str] = set([
     'gobble',
+    'gobblefilter',
 ])
 positive_int_re = re.compile('[1-9][0-9]*')
 positive_int_keys: set[str] = set([
@@ -57,7 +65,7 @@ other_keys_unchecked_str_value: set[str] = set([
     'codetagify',
     'commandprefix',
     'encoding',
-    'envname',
+    'literalenvname',
     'escapeinside',
     'lexer',
     'rangestartstring',
@@ -94,6 +102,7 @@ filter_keys_no_options: set[str] = set([
 filter_keys_one_option: dict[str, str] = {
     'codetagify': 'codetags',
     'keywordcase': 'case',
+    'gobblefilter': 'n',
 }
 filter_keys_one_option_preproc: dict[str, Callable[[str], str | list[str]]] = {
     'codetagify': lambda x: [x_i.strip() for x_i in x.split(',')] if ',' in x else x
@@ -101,7 +110,7 @@ filter_keys_one_option_preproc: dict[str, Callable[[str], str | list[str]]] = {
 filter_keys = filter_keys_no_options | set(filter_keys_one_option)
 formatter_keys: set[str] = set([
     'commandprefix',
-    'envname',
+    'literalenvname',
     'escapeinside',
     'mathescape',
     'texcl',
@@ -109,8 +118,7 @@ formatter_keys: set[str] = set([
 ])
 pygments_keys = lexer_keys | filter_keys | formatter_keys
 
-# Some keys have a different name in LaTeX versus Python
-key_translations: dict[str, str] = {'literalenvname': 'envname'}
+
 
 
 def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple[dict[str, Any], ...] | None:
@@ -122,7 +130,6 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
     formatter_opts = {}
 
     for k, v in data['pyopt'].items():
-        k = key_translations.get(k, k)
         if k in lexer_keys:
             current_opts = lexer_opts
         elif k in filter_keys:
@@ -327,9 +334,10 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     if code is None:
         return
 
+    translated_lexer_opts = {pygments_translations.get(k, k): v for k, v in lexer_opts.items()}
     pygments_lexer: Lexer
     try:
-        pygments_lexer = get_lexer_by_name(py_opts['lexer'], **lexer_opts)
+        pygments_lexer = get_lexer_by_name(py_opts['lexer'], **translated_lexer_opts)
     except ClassNotFound:
         if not py_opts['lexer'].endswith('.py') and '.py:' not in py_opts['lexer']:
             messages.append_error(rf'''Pygments lexer \detokenize{{"{py_opts['lexer']}"}} is unknown''')
@@ -344,28 +352,29 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
                 rf'''Failed to load custom lexer \detokenize{{"{py_opts['lexer']}"}}; see \detokenize{{{messages.errlog_file_name}}} if it exists''')
             messages.append_errlog(e)
             return
-        pygments_lexer = pygments_lexer_class(**lexer_opts)
+        pygments_lexer = pygments_lexer_class(**translated_lexer_opts)
 
     for filter_name in filter_keys_no_options:
         if filter_opts[filter_name]:
-            pygments_lexer.add_filter(filter_name)
+            pygments_lexer.add_filter(pygments_translations.get(filter_name, filter_name))
     for filter_name, opt_name in filter_keys_one_option.items():
         if filter_opts[filter_name]:
             if filter_name in filter_keys_one_option_preproc:
                 pygments_lexer.add_filter(
-                    filter_name,
+                    pygments_translations.get(filter_name, filter_name),
                     **{opt_name: filter_keys_one_option_preproc[filter_name](filter_opts[filter_name])}
                 )
             else:
                 pygments_lexer.add_filter(
-                    filter_name,
+                    pygments_translations.get(filter_name, filter_name),
                     **{opt_name: filter_opts[filter_name]}
                 )
     escapeinside: str = formatter_opts.get('escapeinside', '')
     if len(escapeinside) == 2:
         pygments_lexer = LatexEmbeddedLexer(escapeinside[0], escapeinside[1], pygments_lexer)
 
-    pygments_formatter = LatexFormatter(**formatter_opts)
+    translated_formatter_opts = {pygments_translations.get(k, k): v for k, v in formatter_opts.items()}
+    pygments_formatter = LatexFormatter(**translated_formatter_opts)
 
     highlighted = pygments_highlight(code, pygments_lexer, pygments_formatter)
     highlighted_path = MintedTempRestrictedPath(data['cachepath']) / minted_opts['highlightfilename']
