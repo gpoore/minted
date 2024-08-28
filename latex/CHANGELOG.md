@@ -323,6 +323,10 @@ released.
    same manner.  The Pygments `gobble` filter is still accessible via the new
    option `gobblefilter` (#379).
 
+*  Standard catcodes are now enforced in reading the optional argument of
+   environments that wrap Pygments output.  This prevents issues with
+   `babel`'s `magyar` (#382).
+
 
 ## v2.9 (2023/12/18)
 

@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/08/27 v3.0.0beta12 Yet another Pygments shim for LaTeX]
+    [2024/08/27 v3.0.0beta13 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{framed}
@@ -1077,6 +1077,21 @@
   \expandafter\minted@VerbatimPygments@i\expandafter{\csname\minted@styleprefix\endcsname}}
 \def\minted@VerbatimPygments@i#1{%
   \VerbatimPygments{#1}{#1}}
+\def\minted@standardcatcodes{%
+  \catcode`\\=0
+  \catcode`\{=1
+  \catcode`\}=2
+  \catcode`\#=6
+  \catcode`\ =10
+  \catcode`\@=11
+  \catcode`\`=12
+  \catcode`\==12
+  \catcode`\+=12
+  \catcode`\.=12
+  \catcode`\,=12
+  \catcode`\[=12
+  \catcode`\]=12
+  \catcode`\%=14}
 \def\minted@defstyle{%
   \edef\minted@tmp{\mintedtexoptvalueof{style}}%
   \expandafter\minted@defstyle@i\expandafter{\minted@tmp}}
@@ -1098,22 +1113,7 @@
    \minted@VerbatimPygments}%
   {\minted@defstyle@load{#1}}}
 \def\minted@catchfiledef#1#2{%
-  \CatchFileDef{#1}{#2}{%
-    \catcode`\\=0
-    \catcode`\{=1
-    \catcode`\}=2
-    \catcode`\#=6
-    \catcode`\ =10
-    \catcode`\@=11
-    \catcode`\`=12
-    \catcode`\==12
-    \catcode`\+=12
-    \catcode`\.=12
-    \catcode`\,=12
-    \catcode`\[=12
-    \catcode`\]=12
-    \catcode`\%=14
-    \endlinechar=-1}}
+  \CatchFileDef{#1}{#2}{\minted@standardcatcodes\endlinechar=-1}}
 \def\minted@defstyle@load#1{%
   \minted@detectconfig
   \ifbool{minted@cache}%
@@ -1331,6 +1331,17 @@
    \pydatabufferkeyedefvalue{inputfilepath}{\minted@inputfilepath}%
    \pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}%
    \minted@highlight@i}}
+\def\minted@def@FV@GetKeyValues@standardcatcodes{%
+  \let\minted@FV@GetKeyValues@orig\FV@GetKeyValues
+  \def\FV@GetKeyValues##1{%
+    \begingroup
+    \minted@standardcatcodes
+    \minted@FV@GetKeyValues@i{##1}}%
+  \def\minted@FV@GetKeyValues@i##1[##2]{%
+    \endgroup
+    \let\FV@GetKeyValues\minted@FV@GetKeyValues@orig
+    \let\minted@FV@GetKeyValues@i\minted@undefined
+    \FV@GetKeyValues{##1}[##2]}}
 \def\minted@highlight@i{%
   \pydatabufferkeyedefvalue{pyopt.lexer}{\minted@lexer}%
   \pydatabufferkeyedefvalue{pyopt.commandprefix}{\minted@styleprefix}%
@@ -1339,7 +1350,9 @@
    {\edef\minted@highlightfilename{\pydatabuffermdfivesum\detokenize{.highlight.minted}}%
     \edef\minted@highlightfilepath{\minted@cachepath\minted@highlightfilename}%
     \IfFileExists{\minted@highlightfilepath}%
-     {\minted@codewrapper{\input{\minted@highlightfilepath}}%
+     {\minted@codewrapper{%
+        \minted@def@FV@GetKeyValues@standardcatcodes
+        \input{\minted@highlightfilepath}}%
       \minted@addcachefilename{\minted@highlightfilename}}%
      {\ifbool{minted@canexec}%
        {\minted@highlight@create}%
@@ -1389,7 +1402,9 @@
         \expandafter\minted@exec@error
       \fi
       \endgroup
-      \minted@codewrapper{\input{\minted@highlightfilepath}}%
+      \minted@codewrapper{%
+        \minted@def@FV@GetKeyValues@standardcatcodes
+        \input{\minted@highlightfilepath}}%
       \ifbool{minted@cache}{\minted@addcachefilename{\minted@highlightfilename}}{}}%
      {\ifx\minted@exec@warning\relax
       \else
