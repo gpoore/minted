@@ -97,16 +97,10 @@ the [`io`](https://docs.python.org/3/library/io.html) module, and the
 
 3.  Some modules and packages such as `json`, `tomllib`, and `latex2pydata`
     provide functions for loading data from files and also functions for
-    loading it from strings or bytes.  These modules and packages are not used
-    directly.  Instead, the string/bytes loading functions (and only these)
-    are imported within the `restricted` subpackage, and then the rest of the
-    codebase imports these functions from `restricted`.  For example, to load
-    JSON data from file, first a `RestrictedPath` instance is used to read the
-    binary data, and then the `json_loads()` function is imported from
-    `restricted` to deserialize the data.  While this is not strictly
-    necessary, it helps to confine library imports with potential security
-    implications to the `restricted` subpackage.  For example, if `json` is
-    never imported directly outside of `restricted`, then there is less of a
+    loading it from strings or bytes.  Only the functions for loading data
+    from strings or bytes are imported from these modules and packages; the
+    full modules and packages are not imported.  For example, `import json` is
+    replaced by `from json import loads as json_loads`.  This reduces the
     danger of thoughtlessly trying to use `json.load()` and then carelessly
     using `open()` instead of `RestrictedPath`.
 

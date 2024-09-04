@@ -10,9 +10,10 @@
 
 from __future__ import annotations
 
+from latex2pydata import loads as latex2pydata_loads
 from typing import Any
 from .messages import Messages
-from .restricted import MintedTempRestrictedPath, latex2pydata_loads
+from .restricted import MintedTempRestrictedPath
 
 
 

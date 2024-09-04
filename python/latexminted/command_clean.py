@@ -11,9 +11,11 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from json import loads as json_loads
+from json import dumps as json_dumps
 from latexrestricted import PathSecurityError
 from .messages import Messages
-from .restricted import json_loads, json_dumps, MintedTempRestrictedPath
+from .restricted import MintedTempRestrictedPath
 
 
 

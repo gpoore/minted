@@ -14,7 +14,4 @@ from ._latexminted_config import latexminted_config
 
 from ._restricted_pathlib import MintedCodeRestrictedPath, MintedTempRestrictedPath
 
-from ._stdlib import json_dumps, json_loads, os_environ
-from ._lib import latex2pydata_loads
-
 from ._load_custom_lexer import load_custom_lexer

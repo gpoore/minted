@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from .restricted import os_environ
+from os import environ as os_environ
 # ruff: noqa: E402
 os_environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
 import argparse
@@ -18,15 +18,6 @@ import sys
 from latex2pydata import __version__ as latex2pydata_version
 from pygments import __version__ as pygments_version
 from .version import __version__
-from .command_batch import batch
-from .command_clean import clean, clean_file, clean_messages, paths_skipped_in_initial_temp_cleaning
-from .command_config import config
-from .command_highlight import highlight
-from .command_styledef import styledef
-from .debug import debug_mv_data
-from .err import LatexMintedConfigError
-from .load_data import load_data
-from .messages import Messages
 
 
 
@@ -41,6 +32,35 @@ def main():
     version = f'latexminted {__version__} (libraries: {library_version})'
     parser.add_argument('--version', action='version', version=version)
     subparsers = parser.add_subparsers(dest='subparser_name')
+
+    # Lazy imports for functions that are designed to work only within LaTeX
+    # shell escape.  These require SELFAUTOLOC and/or TEXSYSTEM environment
+    # variables, which are set by LaTeX.  Without the lazy import, these can
+    # raise errors and prevent `--help` etc. from functioning when `main()` is
+    # not running within LaTeX shell escape.
+    def batch(**kwargs):
+        from .command_batch import batch
+        batch(**kwargs)
+
+    def clean(**kwargs):
+        from .command_clean import clean
+        clean(**kwargs)
+
+    def clean_file(**kwargs):
+        from .command_clean import clean_file
+        clean_file(**kwargs)
+
+    def config(**kwargs):
+        from .command_config import config
+        config(**kwargs)
+
+    def highlight(**kwargs):
+        from .command_highlight import highlight
+        highlight(**kwargs)
+
+    def styledef(**kwargs):
+        from .command_styledef import styledef
+        styledef(**kwargs)
 
     parser_batch = subparsers.add_parser('batch', help='Batch process highlight, styledef, and clean')
     parser_batch.set_defaults(func=batch)
@@ -86,6 +106,12 @@ def main():
     if md5 is None or timestamp is None:
         cmdline_args.func(**func_args)
         sys.exit()
+
+    from .command_clean import clean_messages, paths_skipped_in_initial_temp_cleaning
+    from .debug import debug_mv_data
+    from .err import LatexMintedConfigError
+    from .load_data import load_data
+    from .messages import Messages
 
     clean_messages(md5=md5)
     messages = Messages(md5=md5)
