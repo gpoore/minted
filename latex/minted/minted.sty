@@ -26,11 +26,10 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/08/27 v3.0.0beta13 Yet another Pygments shim for LaTeX]
+    [2024/09/05 v3.0.0beta14 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
-\RequirePackage{framed}
-\RequirePackage{fvextra}[2024/08/28]
+\RequirePackage{fvextra}[2024/09/05]
 \RequirePackage{latex2pydata}[2024/05/16]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
@@ -863,6 +862,10 @@
 \mintedpgfkeyscreate{fv}{
   baselinestretch,
   beameroverlays,
+  backgroundcolor,
+  backgroundcolorvphantom,
+  bgcolor,
+  bgcolorvphantom,
   breakafter,
   breakafterinrun,
   breakaftersymbolpost,
@@ -971,7 +974,6 @@
 }
 \let\minted@lexer\minted@tmplexer
 \mintedpgfkeyscreate{tex}{
-  bgcolor=,
   envname=Verbatim,
   ignorelexererrors=false,
   style=default,
@@ -1242,24 +1244,6 @@
   \expandafter\def\csname\minted@styleprefix Zti\endcsname{\char`\~}%
   \minted@patch@PygmentsStyledef
   \minted@VerbatimPygments}
-\newenvironment{minted@snugshade*}[1]%
- {\def\FrameCommand##1{\hskip\@totalleftmargin
-    \colorbox{#1}{##1}%
-    \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
-  \MakeFramed{\advance\hsize-\width
-    \@totalleftmargin\z@ \linewidth\hsize
-    \advance\labelsep\fboxsep
-    \@setminipage}}%
- {\par\unskip\@minipagefalse\endMakeFramed}
-\newenvironment{minted@colorbg}[1]%
- {\setlength{\OuterFrameSep}{0pt}%
-  \let\minted@tmp\FV@NumberSep
-  \edef\FV@NumberSep{%
-    \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
-  \medskip
-  \begin{minted@snugshade*}{#1}}%
- {\end{minted@snugshade*}%
-  \medskip\noindent}
 \newcounter{minted@FancyVerbLineTemp}
 \def\minted@lexerlinenoson{%
   \ifcsname c@minted@lexer\minted@lexer\endcsname
@@ -1286,16 +1270,7 @@
   \else
     \minted@lexerlinenoson
   \fi
-  \edef\minted@bgcolor{\mintedtexoptvalueof{bgcolor}}%
-  \ifx\minted@bgcolor\@empty
-    \expandafter\@firstoftwo
-  \else
-    \expandafter\@secondoftwo
-  \fi
-  {#1}%
-  {\ifbool{minted@isinline}%
-    {\colorbox{\minted@bgcolor}{#1}}%
-    {\begin{minted@colorbg}{\minted@bgcolor}#1\end{minted@colorbg}}}%
+  #1%
   \ifcsname minted@inputfilepath\endcsname
     \minted@inputlexerlinenosoff
   \else

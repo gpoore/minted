@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/08/27 v3.0.0beta13 Yet another Pygments shim for LaTeX]
+    [2024/09/05 v3.0.0beta14 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -848,10 +848,12 @@
 % Give the |<| and |>| characters their normal text meanings when used with |escapeinside| and |texcomments|, so that \texpkg{beamer} overlays of the form |\only<1>{...}| will work.
 %
 %
-%   \item[bgcolor (string) (\meta{none})]
-%     Background color of the listing.  Be aware that this option has several limitations (described below); see ``Framing alternatives'' below for more powerful alternatives.
+% \item[bgcolor (string) (none)]
+% Background color behind commands and environments.  This is only a basic, lightweight implementation of background colors using |\colorbox|.  For more control of background colors, consider \href{https://ctan.org/pkg/tcolorbox}{\pkg{tcolorbox}} or a similar package, or a custom background color implementation.
 %
-%     The value of this option must \emph{not} be a color command. Instead, it must be a color \emph{name}, given as a string, of a previously-defined color:
+% |bgcolor| prevents line breaks for |\mintinline|. If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=none\}} to turn off the coloring for inline commands.
+%
+% The value of this option must \emph{not} be a color command. Instead, it must be a color \emph{name}, given as a string, of a previously-defined color:
 %
 % \begin{example}
 %   \definecolor{bg}{rgb}{0.95,0.95,0.95}
@@ -862,24 +864,7 @@
 %   \end{minted}
 % \end{example}
 %
-% This option puts \texttt{minted} environments and \texttt{\string\mint} commands in a \texttt{snugshade*} environment from the \texpkg{framed} package, which supports breaks across pages.  (Prior to \mintedpkg\ 2.2, a \texttt{minipage} was used, which prevented page breaks and gave undesirable spacing from surrounding text.)  Be aware that if \texttt{bgcolor} is used with \texttt{breaklines=true}, and a line break occurs just before a page break, then text may extend below the colored background in some instances.  It is best to use a more advanced framing package in those cases; see ``Framing alternatives'' below.
-%
-% This option puts \texttt{\string\mintinline} inside a \texttt{\string\colorbox}, which \textbf{does not allow line breaks}.  If you want to use \texttt{\string\setminted} to set background colors, and only want background colors on \texttt{minted} and \texttt{\string\mint}, you may use \texttt{\string\setmintedinline\{bgcolor=\{\}\}} to turn off the coloring for inline commands.
-%
-% ~
-%
-% \textbf{Framing alternatives}
-%
-% If you want more reliable and advanced options for background colors and framing, you should consider a more advanced framing package such as \texpkg{mdframed} or \texpkg{tcolorbox}.  It is easy to add framing to \mintedpkg\ commands and environments using the \texpkg{etoolbox} package, which is automatically loaded by \mintedpkg.  For example, using \texpkg{mdframed}:
-%\begin{Verbatim}
-%\BeforeBeginEnvironment{minted}{\begin{mdframed}}
-%\AfterEndEnvironment{minted}{\end{mdframed}}
-%\end{Verbatim}
-% Some framing packages also provide built-in commands for such purposes.  For example, \texpkg{mdframed} provides a \texttt{\string\surroundwithmdframed} command, which could be used to add a frame to all \texttt{minted} environments:
-%\begin{Verbatim}
-%\surroundwithmdframed{minted}
-%\end{Verbatim}
-% \texpkg{tcolorbox} even provides a built-in framing environment with \mintedpkg\ support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
+% As an alternative to |bgcolor|, \texpkg{tcolorbox} provides a built-in framing environment with \mintedpkg\ support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
 %\begin{Verbatim}
 %\begin{tcblisting}{<tcb options>,
 %                   minted language=<language>,
@@ -889,6 +874,10 @@
 %\end{tcblisting}
 %\end{Verbatim}
 % \texpkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
+%
+%
+% \item[bgcolorvphantom (macro) (\Verb{\vphantom{\"Apgjy}})]
+% |\vphantom| or similar macro such as |\strut| that is inserted at the beginning of each line of code using |bgcolor|.  This allows the height of the background for each line of code to be customized.  This is primarily useful for customizing the background for |\mintinline| and other inline code.  It will typically have no effect on |minted| environments and other block code unless it is set to a size larger than |\strut|.
 %
 %
 %   \item[breakafter (string) (\meta{none})]
@@ -1497,8 +1486,7 @@
 %    \begin{macrocode}
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
-\RequirePackage{framed}
-\RequirePackage{fvextra}[2024/08/28]
+\RequirePackage{fvextra}[2024/09/05]
 \RequirePackage{latex2pydata}[2024/05/16]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
@@ -2891,6 +2879,10 @@
 \mintedpgfkeyscreate{fv}{
   baselinestretch,
   beameroverlays,
+  backgroundcolor,
+  backgroundcolorvphantom,
+  bgcolor,
+  bgcolorvphantom,
   breakafter,
   breakafterinrun,
   breakaftersymbolpost,
@@ -3014,7 +3006,6 @@
 % \end{itemize}
 %    \begin{macrocode}
 \mintedpgfkeyscreate{tex}{
-  bgcolor=,
   envname=Verbatim,
   ignorelexererrors=false,
   style=default,
@@ -3371,42 +3362,6 @@
 %
 %
 %
-% \subsubsection{Code background colors}
-%
-%
-% \begin{environment}{minted@snugshade*}
-% Define a custom version of \texpkg{framed}'s |snugshade*| that takes a color as argument.  This avoids the need to redefine |shadecolor|.
-%    \begin{macrocode}
-\newenvironment{minted@snugshade*}[1]%
- {\def\FrameCommand##1{\hskip\@totalleftmargin
-    \colorbox{#1}{##1}%
-    \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
-  \MakeFramed{\advance\hsize-\width
-    \@totalleftmargin\z@ \linewidth\hsize
-    \advance\labelsep\fboxsep
-    \@setminipage}}%
- {\par\unskip\@minipagefalse\endMakeFramed}
-%    \end{macrocode}
-% \end{environment}
-%
-%
-% \begin{environment}{minted@colorbg}
-% Environment that applies a background color.  |\FV@NumberSep| is adjusted by |\fboxsep| to ensure that line numbers remain in the same location in the margin regardless of whether |bgcolor| is used.
-%    \begin{macrocode}
-\newenvironment{minted@colorbg}[1]%
- {\setlength{\OuterFrameSep}{0pt}%
-  \let\minted@tmp\FV@NumberSep
-  \edef\FV@NumberSep{%
-    \the\numexpr\dimexpr\minted@tmp+\number\fboxsep\relax sp\relax}%
-  \medskip
-  \begin{minted@snugshade*}{#1}}%
- {\end{minted@snugshade*}%
-  \medskip\noindent}
-%    \end{macrocode}
-% \end{environment}
-%
-%
-%
 % \subsubsection{Lexer-specific line numbering}
 %
 %
@@ -3452,16 +3407,7 @@
   \else
     \minted@lexerlinenoson
   \fi
-  \edef\minted@bgcolor{\mintedtexoptvalueof{bgcolor}}%
-  \ifx\minted@bgcolor\@empty
-    \expandafter\@firstoftwo
-  \else
-    \expandafter\@secondoftwo
-  \fi
-  {#1}%
-  {\ifbool{minted@isinline}%
-    {\colorbox{\minted@bgcolor}{#1}}%
-    {\begin{minted@colorbg}{\minted@bgcolor}#1\end{minted@colorbg}}}%
+  #1%
   \ifcsname minted@inputfilepath\endcsname
     \minted@inputlexerlinenosoff
   \else

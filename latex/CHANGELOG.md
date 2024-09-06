@@ -167,6 +167,12 @@ released.
      be an accurate representation of the code, since some features such as
      `autogobble` require Python.
 
+*  `bgcolor` now uses the new `bgcolor` option from `fvextra` v1.8, rather
+   than `snugshade*` from `framed`.  This resolves incompatibilities between
+   `bgcolor` and `xleftmargin`/`xrightmargin` (#214), eliminates unneeded
+   whitespace before/after the background (#220), and prevents text from
+   overflowing the background (#278).
+
 *  Renamed package options `langlinenos` to `lexerlinenos` and
    `inputlanglinenos` to `inputlexerlinenos`.  The old names are still
    supported.
