@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/05 v3.0.0beta14 Yet another Pygments shim for LaTeX]
+    [2024/09/06 v3.0.0beta15 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1179,6 +1179,9 @@
 %
 % \item[literalenvname (string) (MintedVerbatim)]
 % This is the name of the environment that literally appears in highlighted code output as a wrapper around the code.  It is redefined to be equivalent to |envname|.  There should be few if any situations where modifying |literalenvname| rather than |envname| is actually necessary.
+%
+% \item[listparameters  (macro) (\meta{empty})]
+% \texpkg{fancyvrb} option for setting list-related lengths to modify spacing around lines of code.  For example, |listparameters=\setlength{\topsep}{0pt}| will remove space before and after a |minted| environment.
 %
 % \item[numberfirstline (boolean) (false)]
 % Always number the first line, regardless of |stepnumber|.
@@ -2934,6 +2937,7 @@
   labelposition,
   lastline,
   linenos,
+  listparameters,
   numberblanklines,
   numberfirstline,
   numbers,
