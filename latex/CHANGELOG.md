@@ -170,8 +170,9 @@ released.
 *  `bgcolor` now uses the new `bgcolor` option from `fvextra` v1.8, rather
    than `snugshade*` from `framed`.  This resolves incompatibilities between
    `bgcolor` and `xleftmargin`/`xrightmargin` (#214), eliminates unneeded
-   whitespace before/after the background (#220), and prevents text from
-   overflowing the background (#278).
+   whitespace before/after the background (#220), prevents text from
+   overflowing the background (#278), and provides uniform background height
+   for `\mintinline` (#397).
 
 *  Renamed package options `langlinenos` to `lexerlinenos` and
    `inputlanglinenos` to `inputlexerlinenos`.  The old names are still
@@ -324,6 +325,8 @@ released.
      actually necessary.
 
    - `listparameters`:  Previously unsupported `fancyvrb` option (#256).
+
+   - `breakanywhereinlinestretch`:  New `fvextra` option.
 
 *  `gobble` is now applied to code before syntax highlighting and no longer
    uses the Pygments `gobble` filter, which operates on the token stream

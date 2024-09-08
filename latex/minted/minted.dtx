@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/06 v3.0.0beta15 Yet another Pygments shim for LaTeX]
+    [2024/09/07 v3.0.0beta16 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -913,6 +913,11 @@
 %   \end{minted}
 % \end{longexample}
 % \endgroup
+%
+% \item[breakanywhereinlinestretch (length) (\meta{none})]
+% Stretch glue to insert at potential |breakanywhere| break locations in inline contexts, to give better line widths and avoid overfull |\hbox|.  This allows the spacing between adjacent non-space characters to stretch, so it should not be used when column alignment is important.  For typical line lengths, values between |0.01em| and |0.02em| should be sufficient to provide a cumulative stretch per line that is equal to or greater than the width of one character.
+%
+% This is typically not needed in cases where an overfull |\hbox| only overflows by tiny amount, perhaps a fraction of a pt.  In those cases, the overfull |\hbox| could be ignored, |\hfuzz| could be set to 1pt or 2pt to suppress tiny overfull |\hbox| warnings, or |breakanywheresymbolpre| might be redefined to adjust spacing.
 %
 %   \item[breakanywheresymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
 %     The symbol inserted pre-break for breaks inserted by \texttt{breakanywhere}.
@@ -2891,6 +2896,7 @@
   breakaftersymbolpost,
   breakaftersymbolpre,
   breakanywhere,
+  breakanywhereinlinestretch,
   breakanywheresymbolpost,
   breakanywheresymbolpre,
   breakautoindent,
