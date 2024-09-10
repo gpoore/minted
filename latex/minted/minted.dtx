@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/09 v3.0.0beta17 Yet another Pygments shim for LaTeX]
+    [2024/09/09 v3.0.0beta18 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -116,13 +116,15 @@
   \begingroup\makeatletter\macro@custom@arg@i}
 \def\macro@custom@arg@i#1{%
   \makeatother
+  \par\noindent
   \ifstrempty{#1}%
    {~\par}%
-   {\ttfamily\color{minted@mint}\hspace{-0.5in}%
+   {\ttfamily\color{minted@mint}\hspace*{-0.5in}%
     \macro@custom@arg@split#1,\FV@Sentinel\par}%
   \endgroup}
+\def\macro@custom@arg@spacegobble#1{#1}
 \def\macro@custom@arg@split#1,#2\FV@Sentinel{%
-  \string#1%
+  \expandafter\macro@custom@arg@spacegobble\string#1%
   \if\relax\detokenize{#2}\relax
     \expandafter\@firstoftwo
   \else
@@ -137,11 +139,12 @@
   \makeatother
   \ifstrempty{#1}%
    {~\par}%
-   {\ttfamily\color{minted@mint}\hspace{-0.5in}%
+   {\ttfamily\color{minted@mint}\hspace*{-0.5in}%
     \env@custom@arg@split#1,\FV@Sentinel\par}%
   \endgroup}
+\def\env@custom@arg@spacegobble#1{#1}
 \def\env@custom@arg@split#1,#2\FV@Sentinel{%
-  #1{\textrm{ \textit{(env.)}}}%
+  \env@custom@arg@spacegobble#1{\textrm{ \textit{(env.)}}}%
   \if\relax\detokenize{#2}\relax
     \expandafter\@firstoftwo
   \else
@@ -3162,7 +3165,8 @@
 % Enable \texpkg{fancyvrb} features for Pygments macros.
 %    \begin{macrocode}
 \def\minted@VerbatimPygments{%
-  \expandafter\minted@VerbatimPygments@i\expandafter{\csname\minted@styleprefix\endcsname}}
+  \expandafter\minted@VerbatimPygments@i\expandafter{%
+    \csname\minted@styleprefix\endcsname}}
 \def\minted@VerbatimPygments@i#1{%
   \VerbatimPygments{#1}{#1}}
 %    \end{macrocode}
