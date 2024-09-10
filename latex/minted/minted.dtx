@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/07 v3.0.0beta16 Yet another Pygments shim for LaTeX]
+    [2024/09/09 v3.0.0beta17 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -3442,6 +3442,12 @@
 %
 % Some data such as |jobname|, |timestamp|, and |cachepath| should be written to file, but not used in hashing because otherwise it would unnecessarily make the cache files dependent on irrelevant data.
 %    \begin{macrocode}
+\def\minted@debug@input{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+     minted debug: \string\input\space at
+     \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno}}%
+   {}}
 \def\minted@highlight{%
   \minted@defstyle
   \pydatasetbuffername{minted@tmpdatabuffer}%
@@ -3493,6 +3499,7 @@
     \IfFileExists{\minted@highlightfilepath}%
      {\minted@codewrapper{%
         \minted@def@FV@GetKeyValues@standardcatcodes
+        \minted@debug@input
         \input{\minted@highlightfilepath}}%
       \minted@addcachefilename{\minted@highlightfilename}}%
      {\ifbool{minted@canexec}%
@@ -3545,6 +3552,7 @@
       \endgroup
       \minted@codewrapper{%
         \minted@def@FV@GetKeyValues@standardcatcodes
+        \minted@debug@input
         \input{\minted@highlightfilepath}}%
       \ifbool{minted@cache}{\minted@addcachefilename{\minted@highlightfilename}}{}}%
      {\ifx\minted@exec@warning\relax

@@ -140,7 +140,9 @@ released.
 
 *  New package options:
 
-   - `debug`:  Keep temp files from highlighting to aid in debugging.
+   - `debug`:  Keep temp files from highlighting to aid in debugging.  Also
+     write current file name and line number to log before `\input` of
+     highlighted code (#348).
 
    - `highlightmode`:  Determines when code is highlighted.  The default is
      `fastfirst`.  If a cache for the document exists, then code is

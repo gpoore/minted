@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/09/07 v3.0.0beta16 Yet another Pygments shim for LaTeX]
+    [2024/09/09 v3.0.0beta17 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -1278,6 +1278,12 @@
   \else
     \minted@lexerlinenosoff
   \fi}
+\def\minted@debug@input{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+     minted debug: \string\input\space at
+     \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno}}%
+   {}}
 \def\minted@highlight{%
   \minted@defstyle
   \pydatasetbuffername{minted@tmpdatabuffer}%
@@ -1329,6 +1335,7 @@
     \IfFileExists{\minted@highlightfilepath}%
      {\minted@codewrapper{%
         \minted@def@FV@GetKeyValues@standardcatcodes
+        \minted@debug@input
         \input{\minted@highlightfilepath}}%
       \minted@addcachefilename{\minted@highlightfilename}}%
      {\ifbool{minted@canexec}%
@@ -1381,6 +1388,7 @@
       \endgroup
       \minted@codewrapper{%
         \minted@def@FV@GetKeyValues@standardcatcodes
+        \minted@debug@input
         \input{\minted@highlightfilepath}}%
       \ifbool{minted@cache}{\minted@addcachefilename{\minted@highlightfilename}}{}}%
      {\ifx\minted@exec@warning\relax
