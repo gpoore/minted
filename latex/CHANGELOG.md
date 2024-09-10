@@ -37,7 +37,8 @@ released.
    Python package in a Python installation.  This automatically installs
    `latex2pydata`, `latexrestricted`, and Pygments as dependencies.
    `latexminted` is available from the
-   [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).  Then install plugin packages for Pygments within the same Python installation.
+   [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).  Then
+   install plugin packages for Pygments within the same Python installation.
 
 *  The new `latexminted` Python executable is designed to be compatible with
    the security requirements for restricted shell escape, so that in the
@@ -62,7 +63,8 @@ released.
 
 *  Errors and warnings that occur within Python are now reported as `minted`
    package errors and warnings within LaTeX in nearly all cases.  It should no
-   longer be necessary to look through the compile log for Python errors and warnings.  A temp file `*.errlog.minted` containing Python traceback
+   longer be necessary to look through the compile log for Python errors and
+   warnings.  A temp file `*.errlog.minted` containing Python traceback
    information is created in some cases when errors cannot be fully reported
    within LaTeX or more details may be needed.
 
@@ -71,7 +73,8 @@ released.
    This consists of a LaTeX package, available from
    [CTAN](https://ctan.org/pkg/latex2pydata), and a Python package, available
    from [PyPI](https://pypi.org/project/latex2pydata/).  The LaTeX package can
-   typically be installed with your TeX distribution's package manager.  The Python package is automatically installed within your TeX distribution when
+   typically be installed with your TeX distribution's package manager.  The
+   Python package is automatically installed within your TeX distribution when
    `minted` is installed.
 
 *  On the LaTeX side, all syntax highlighting settings are now serialized in
@@ -81,10 +84,10 @@ released.
    Python are now named using MD5 hashes, instead of using a sanitized version
    of document `\jobname`.  This eliminates an entire class of security issues
    and bugs related to escaping and quoting command-line arguments (#180,
-   #276, #298, #322, #338).  It also eliminates bugs related to processing
-   settings as a sequence of command-line options, since `pygmentize`
-   accumulates some options that are used multiple times rather than
-   overwriting earlier values with later values (#258, #337).
+   #276, #298, #322, #338, #354).  It also eliminates bugs related to
+   processing settings as a sequence of command-line options, since
+   `pygmentize` accumulates some options that are used multiple times rather
+   than overwriting earlier values with later values (#258, #337).
 
 *  Options are now handled with `pgfkeys` and `pgfopts`, instead of
    `keyval` and `kvoptions`.
@@ -132,8 +135,8 @@ released.
      avoid, while new features that are implemented purely within Python have
      made it impossible in some cases to typeset code using only LaTeX.  The
      new package options `placeholder` and `verbatim` offer alternatives when
-     maximum compilation speed is needed or the `minted` Python executable is
-     unavailable.
+     maximum compilation speed is needed or the `latexminted` Python
+     executable is unavailable.
 
 *  New package options:
 
@@ -163,16 +166,17 @@ released.
      is enabled automatically when working with PGF/TikZ externalization.
 
    - `verbatim`:  Instead of highlighting code, attempt to typeset it verbatim
-     without using the `minted` Python executable.  This is not guaranteed to
-     be an accurate representation of the code, since some features such as
-     `autogobble` require Python.
+     without using the `latexminted` Python executable.  This is not
+     guaranteed to be an accurate representation of the code, since some
+     features such as `autogobble` require Python.
 
 *  `bgcolor` now uses the new `bgcolor` option from `fvextra` v1.8, rather
    than `snugshade*` from `framed`.  This resolves incompatibilities between
    `bgcolor` and `xleftmargin`/`xrightmargin` (#214), eliminates unneeded
    whitespace before/after the background (#220), prevents text from
    overflowing the background (#278), and provides uniform background height
-   for `\mintinline` (#397).
+   for `\mintinline` (#397).  Because `bgcolor` now introduces no additional
+   whitespace or padding, existing documents may require some modification.
 
 *  Renamed package options `langlinenos` to `lexerlinenos` and
    `inputlanglinenos` to `inputlexerlinenos`.  The old names are still
