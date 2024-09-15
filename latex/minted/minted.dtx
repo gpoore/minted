@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/15 v3.0.0beta20 Yet another Pygments shim for LaTeX]
+    [2024/09/15 v3.0.0beta21 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -870,6 +870,10 @@
 %\end{tcblisting}
 %\end{Verbatim}
 % \texpkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
+%
+%
+% \item[bgcolorpadding (length) (none)]
+% Padding when |bgcolor| is set.  For inline commands and for environments based on |BVerbatim|, this sets |\fboxsep| for the |\colorbox| that is used to create the background color.  For environments based on |Verbatim|, \texpkg{fancyvrb}'s frame options are used instead, particularly |framesep| and |fillcolor|.  See the \texpkg{fvextra} documentation for implementation details.
 %
 %
 % \item[bgcolorvphantom (macro) (\Verb{\vphantom{\"Apgjy}})]
@@ -2893,6 +2897,7 @@
   backgroundcolor,
   backgroundcolorvphantom,
   bgcolor,
+  bgcolorpadding,
   bgcolorvphantom,
   breakafter,
   breakafterinrun,

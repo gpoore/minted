@@ -180,6 +180,10 @@ released.
    for `\mintinline` (#397).  Because `bgcolor` now introduces no additional
    whitespace or padding, existing documents may require some modification.
 
+   Added new option `bgcolorpadding` for modifying padding in background color
+   regions.  Added new option `bgcolorvphantom` for setting height of
+   background color in inline contexts.
+
 *  Renamed package options `langlinenos` to `lexerlinenos` and
    `inputlanglinenos` to `inputlexerlinenos`.  The old names are still
    supported.
