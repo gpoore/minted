@@ -66,6 +66,7 @@ other_keys_unchecked_str_value: set[str] = set([
     'commandprefix',
     'encoding',
     'literalenvname',
+    'literatecomment',
     'escapeinside',
     'lexer',
     'rangestartstring',
@@ -80,6 +81,7 @@ all_keys = bool_keys | nonnegative_int_or_none_keys | positive_int_keys | set(ot
 code_keys = set([
     'autogobble',
     'gobble',
+    'literatecomment',
     'rangestartstring',
     'rangestartafterstring',
     'rangestopstring',
@@ -239,7 +241,7 @@ def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, enco
 
 
 def preprocess_code(code: str, *, messages: Messages,
-                    autogobble: bool, gobble: int,
+                    autogobble: bool, gobble: int, literatecomment: str,
                     rangestartstring: str, rangestartafterstring: str, rangestopstring: str, rangestopbeforestring: str,
                     rangeregex: str, rangeregexmatchnumber: int, rangeregexdotall: bool, rangeregexmultiline: bool) -> str | None:
     if rangeregex and any([rangestartstring, rangestartafterstring, rangestopstring, rangestopbeforestring]):
@@ -302,6 +304,11 @@ def preprocess_code(code: str, *, messages: Messages,
             return
         code = code[:index]
 
+    if literatecomment:
+        code_lines = code.splitlines(True)
+        if all(line.startswith(literatecomment) for line in code_lines):
+            len_literatecomment = len(literatecomment)
+            code = ''.join(line[len_literatecomment:] for line in code_lines)
     if autogobble:
         code = textwrap.dedent(code)
     if gobble:

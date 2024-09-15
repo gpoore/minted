@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/09 v3.0.0beta19 Yet another Pygments shim for LaTeX]
+    [2024/09/15 v3.0.0beta20 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -46,6 +46,7 @@
 \usepackage[svgnames]{xcolor}
 \usepackage{graphicx}
 \usepackage[lexerlinenos, highlightmode=immediate]{minted}
+\setminted{literatecomment=\%, autogobble}
 
 \usepackage{calc}
 \usepackage{multicol}
@@ -124,7 +125,7 @@
   \endgroup}
 \def\macro@custom@arg@spacegobble#1{#1}
 \def\macro@custom@arg@split#1,#2\FV@Sentinel{%
-  \expandafter\macro@custom@arg@spacegobble\string#1%
+  \expandafter\string\macro@custom@arg@spacegobble#1%
   \if\relax\detokenize{#2}\relax
     \expandafter\@firstoftwo
   \else
@@ -162,26 +163,35 @@
   colorlinks=true,
   allcolors=minted@linkcolor,
 }
-%
-% Shamelessly stolen from https://blog.karssen.org/2009/11/15/a-latex-example-environment/
+
+\newenvironment{mintedminted}%
+ {\VerbatimEnvironment
+  \begin{minted}}%
+ {\end{minted}}
+
+
 \newenvironment{example}
   {\VerbatimEnvironment
-   \begin{VerbatimOut}[gobble=3]{example.out}}
+   \begin{VerbatimOut}[gobble=1]{example.out}}
   {\end{VerbatimOut}%
-   \vspace{1ex}%
    \setlength{\parindent}{0pt}%
-   \fbox{\begin{minipage}{0.5\linewidth}%
+   \vspace{1em}%
+   \fbox{%
+     \vspace{1ex}%
+     \begin{minipage}{0.5\linewidth-2em-\fboxsep}%
      \inputminted[resetmargins]{latex}{example.out}%
-   \end{minipage}%
-   \hspace{0.05\linewidth}%
-   \begin{minipage}{0.45\linewidth-2\fboxsep}%
+     \end{minipage}%
+     \hspace{4em}%
+     \begin{minipage}{0.5\linewidth-2em-\fboxsep}%
      \input{example.out}%
-   \end{minipage}%
-   \vspace{1ex}}}
+     \end{minipage}%
+     \vspace{1ex}}%
+   \vspace{1em}}
+
 
 \newenvironment{longexample}
   {\VerbatimEnvironment
-   \begin{VerbatimOut}[gobble=3]{example.out}}
+   \begin{VerbatimOut}[gobble=1]{example.out}}
   {\end{VerbatimOut}%
    \vspace{1ex}%
    \setlength{\parindent}{0pt}%
@@ -218,10 +228,16 @@
 \edef\hashchar{\string#}
 \makeatother
 
-\setlength{\parindent}{0pt}
-\addtolength{\parskip}{0.5\baselineskip}
+%\setlength{\parindent}{0pt}
+%\addtolength{\parskip}{0.5\baselineskip}
 
 \def\warn{\textcolor{red}{\large\textbf{\textsf{WARNING}}}}
+
+
+\newenvironment{mintedexample}%
+ {\VerbatimEnvironment
+  \begin{minted}}%
+ {\end{minted}}
 
 \begin{document}
 \DocInput{minted.dtx}
@@ -255,9 +271,7 @@
 % {\Large\textbf{\textcolor{red}{WARNING: This is the development version of \mintedpkg.  This software has not been officially released and is not intended for general use.  The documentation will not be updated with v3 features until further testing and feature finalization have occurred.  See CHANGELOG for current details about v3 features and changes.}}}
 %
 % \begin{abstract}
-%   \noindent\mintedpkg\ is a package that facilitates expressive syntax highlighting
-%   using the powerful \app{Pygments} library. The package also provides options to
-%   customize the highlighted source code output.
+%   \noindent\mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{\app{Pygments}} library.  It also provides options for customizing the highlighted source code output, including features implemented in Python such as selecting snippets of code with regular expressions.
 %
 % \vspace{0.5in}
 % \noindent The original development of \mintedpkg\ version 3 was funded by a \href{https://tug.org/tc/devfund/grants.html}{\TeX\ Development Fund grant} from the \href{https://tug.org/}{\TeX\ Users Group} in 2023.
@@ -283,45 +297,27 @@
 %
 %
 %
-% \mintedpkg\ is a package that allows formatting source code in \LaTeX.
-% For example:
-% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \begin{minted}{<language>}
-%     <code>
-%   \end{minted}
-% \end{VerbatimOut}
-% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
+% \mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{\app{Pygments}} library.  The general strategy is to wrap code in a command or environment that captures it verbatim, like this:
+%\begin{mintedexample}[frame=single]{latex}
+%\begin{minted}{<language>}
+%<code>
+%\end{minted}
+%\end{mintedexample}
 %
-% will highlight a piece of code in a chosen language.
-% The appearance can be customized with a number of options and color schemes.
+% Then the code is passed to Python, highlighted with \app{Pygments}, and passed back to \LaTeX\ for inclusion in the document.  Here is an example with Ruby code, showing the \LaTeX\ source and then the highlighted output:
 %
-% Unlike some other packages, most notably \texpkg{listings}, \mintedpkg\ requires
-% the installation of additional software, \app{Pygments}.
-% This may seem like a disadvantage, but there are also significant advantages.
-%
-% \app{Pygments} provides superior syntax highlighting compared to conventional packages.
-% For example, \texpkg{listings} basically only highlights strings, comments and keywords.
-% \app{Pygments}, on the other hand, can be completely customized to highlight any kind of token the
-% source language might support.
-% This might include special formatting sequences inside strings, numbers, different kinds of
-% identifiers and exotic constructs such as HTML tags.
-%
-% Some languages make this especially desirable.
-% Consider the following Ruby code as an extreme, but at the same time typical, example:
-%
-% \begin{minted}[gobble=3]{ruby}
+% \begin{example}
+% \begin{minted}{ruby}
 %   class Foo
 %     def init
 %       pi = Math::PI
-%       @var = "Pi is approx. #{pi}"
+%       @var = "Pi = #{pi}..."
 %     end
 %   end
 % \end{minted}
+% \end{example}
 %
-% Here we have four different colors for identifiers (five, if you count keywords) and escapes from
-% inside strings, none of which pose a problem for \app{Pygments}.
-%
-% Additionally, installing \app{Pygments} is actually incredibly easy (see the next section).
+% Because \mintedpkg\ uses \app{Pygments} and other Python software, it can provide more highlighting features than are practical in syntax highlighting packages like \href{ https://ctan.org/pkg/listings}{\texpkg{listings}} that are implemented purely in \LaTeX.  In the past, this reliance on external software brought several disadvantages, including a requirement for separately installing \app{Pygments}.  As of \mintedpkg\ version 3, all Python software including \app{Pygments} is bundled with the \LaTeX\ package when it is installed with a \TeX\ package manager, and no dependencies must be installed separately.
 %
 %
 % \section{Installation}
@@ -1184,6 +1180,13 @@
 %
 % \item[literalenvname (string) (MintedVerbatim)]
 % This is the name of the environment that literally appears in highlighted code output as a wrapper around the code.  It is redefined to be equivalent to |envname|.  There should be few if any situations where modifying |literalenvname| rather than |envname| is actually necessary.
+%
+%
+% \item[literatecomment (single macro or backslash-escaped string) (\meta{none})]
+% This is for compatibility with literate programming formats, such as the |.dtx| format commonly used for writing \LaTeX\ packages.  If all lines of code begin with \meta{literatecomment}, then \meta{literatecomment} is removed from the beginning of all lines.  For example, for |.dtx|, |literatecomment=\%|.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
 %
 % \item[listparameters  (macro) (\meta{empty})]
 % \texpkg{fancyvrb} option for setting list-related lengths to modify spacing around lines of code.  For example, |listparameters=\setlength{\topsep}{0pt}| will remove space before and after a |minted| environment.
@@ -2855,7 +2858,7 @@
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
     \ifcat\relax\noexpand#2%
       \expandafter\expandafter\expandafter\minted@opthandler@deforrestrictedescape@i
-        \expandafter\@gobble\string#1\FV@Sentinel{#1}{#2}%
+        \expandafter\@gobble\string#2\FV@Sentinel{#1}{#2}%
     \else
       \FVExtraDetokenizeREscVArg{\expandafter\def\csname#1\endcsname}{#2}%
     \fi
@@ -2992,6 +2995,7 @@
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
   codetagify=,
   escapeinside=,
+  literatecomment=,
   rangestartstring=,
   rangestartafterstring=,
   rangestopstring=,

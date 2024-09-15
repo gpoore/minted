@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/09/09 v3.0.0beta17 Yet another Pygments shim for LaTeX]
+    [2024/09/15 v3.0.0beta20 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -843,7 +843,7 @@
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
     \ifcat\relax\noexpand#2%
       \expandafter\expandafter\expandafter\minted@opthandler@deforrestrictedescape@i
-        \expandafter\@gobble\string#1\FV@Sentinel{#1}{#2}%
+        \expandafter\@gobble\string#2\FV@Sentinel{#1}{#2}%
     \else
       \FVExtraDetokenizeREscVArg{\expandafter\def\csname#1\endcsname}{#2}%
     \fi
@@ -959,6 +959,7 @@
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
   codetagify=,
   escapeinside=,
+  literatecomment=,
   rangestartstring=,
   rangestartafterstring=,
   rangestopstring=,
@@ -1078,7 +1079,8 @@
   \minted@patch@PygmentsZhy
   \minted@patch@ignorelexererrors}
 \def\minted@VerbatimPygments{%
-  \expandafter\minted@VerbatimPygments@i\expandafter{\csname\minted@styleprefix\endcsname}}
+  \expandafter\minted@VerbatimPygments@i\expandafter{%
+    \csname\minted@styleprefix\endcsname}}
 \def\minted@VerbatimPygments@i#1{%
   \VerbatimPygments{#1}{#1}}
 \def\minted@standardcatcodes{%

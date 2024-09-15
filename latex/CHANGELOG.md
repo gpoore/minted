@@ -330,6 +330,12 @@ released.
      situations where modifying `literalenvname` rather than `envname` is
      actually necessary.
 
+   - `literatecomment`:   This is for compatibility with literate programming
+     formats, such as the `.dtx` format commonly used for writing LaTeX
+     packages.  If all lines of code begin with `<literatecomment>`, then
+     `<literatecomment>` is removed from the beginning of all lines.  For
+     example, for `.dtx`, `literatecomment=\%`.
+
    - `listparameters`:  Previously unsupported `fancyvrb` option (#256).
 
    - `breakanywhereinlinestretch`:  New `fvextra` option.
