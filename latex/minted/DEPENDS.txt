@@ -1,7 +1,6 @@
 catchfile
 etoolbox
 float
-framed
 fvextra
 latex2pydata
 newfloat

@@ -259,6 +259,7 @@
 % \GetFileInfo{minted.sty}
 %
 % \newcommand{\texpkg}[1]{\textsf{\detokenize{#1}}}
+% \newcommand{\pypkg}[1]{\textsf{\detokenize{#1}}}
 % \newcommand{\mintedpkg}{\texpkg{minted}}
 % \newcommand{\app}[1]{\textsf{#1}}
 %
@@ -322,73 +323,82 @@
 %
 % \section{Installation}
 %
-% \subsection{Prerequisites}
+% \subsection{Package manager}
 %
-% \app{Pygments} is written in Python, so make sure that you have Python 2.6 or later installed on your system.  This may be easily checked from the command line:
+% Installation will typically be simpler and faster using your \TeX\ distribution's package manager.  Start your package manager's graphical user interface, or use the relevant command below:
+% \begin{itemize}
+% \item TeX Live: |tlmgr install minted|
+% \item MiKTeX: |mpm --admin --install=minted|
+% \end{itemize}
+% When the \mintedpkg\ package is installed, it includes the |latexminted| Python executable and all required Python libraries including \app{Pygments}.  For these to function correctly, Python 3.8+ must be installed and on |PATH| when the |latexminted| executable runs.
 %
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ python --version
-%   Python 2.7.5
-% \end{Verbatim}
-%
-% If you don't have Python installed, you can download it from the \href{https://www.python.org/download/}{Python website} or
-% use your operating system's package manager.
-%
-% Some Python distributions include \texpkg{Pygments} (see some of the options under ``Alternative Implementations'' on the Python site).  Otherwise, you will need to install \texpkg{Pygments} manually. This may  be done by installing \href{https://pypi.python.org/pypi/setuptools}{\app{setuptools}}, which facilitates the distribution of Python applications.  You can then install \app{Pygments} using the following command:
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ sudo easy_install Pygments
-% \end{Verbatim}
-% Under Windows, you will not need the |sudo|, but may need to run the command prompt as administrator.  \texpkg{Pygments} may also be installed with |pip|:
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ pip install Pygments
-% \end{Verbatim}
-%
-% If you already have \app{Pygments} installed, be aware that the latest version is recommended (at least 1.4 or later).  Some features, such as |escapeinside|, will only work with 2.0+.  \mintedpkg\ may work with versions as early as 1.2, but there are no guarantees.
-%
-%
-% \subsection{Required packages}
-%
-% \mintedpkg\ requires that the following packages be available and reasonably up to date on your system.  All of these ship with recent \TeX\ distributions.
-%
-% \begin{multicols}{3}
-% \begingroup
-% \setlength\parskip{0pt}
-% \setlength\topsep{0pt}
-% \begin{list}{\textrm{\labelitemi}}{\ttfamily}
-%   \item keyval
-%   \item kvoptions
-%   \item fancyvrb
-%   \item fvextra
-%   \item upquote
-%   \item float
-%   \item ifthen
-%   \item calc
-%   \item ifplatform
-%   \item pdftexcmds
-%   \item etoolbox
-%   \item xstring
-%   \item xcolor
-%   \item lineno
-%   \item framed
-%   \item shellesc (for luatex 0.87+)
-%   \item catchfile
-%
-%   ~
-% \end{list}
-% \endgroup
+% The \mintedpkg\ package has the \LaTeX\ package dependencies listed below.  Depending on your \TeX\ distribution and configuration, these may be installed automatically when \mintedpkg\ is installed.
+% \begin{multicols}{4}
+% \begin{itemize}
+% \setlength{\itemsep}{0pt}
+% \setlength{\parskip}{0pt}
+% \setlength{\parsep}{0pt}
+% \item \texpkg{catchfile}
+% \item \texpkg{etoolbox}
+% \item \texpkg{float}
+% \item \texpkg{fvextra}
+% \item \texpkg{latex2pydata}
+% \item \texpkg{newfloat}
+% \item \texpkg{pdftexcmds}
+% \item \texpkg{pgfkeys}
+% \item \texpkg{pgfopts}
+% \item \texpkg{shellesc}
+% \item \texpkg{xcolor}
+% \end{itemize}
 % \end{multicols}
 %
 %
-% \subsection{Installing \mintedpkg}
-% \label{sec:installing:installing}
+% \subsection{Manual installation}
 %
-% You can probably install \mintedpkg\ with your \TeX\ distribution's package manager.  Otherwise, or if you want the absolute latest version, you can install it manually by following the directions below.
+% \mintedpkg\ source files are available at  \href{https://github.com/gpoore/minted}{|github.com/gpoore/minted|}.  There is also \href{https://ctan.org/pkg/minted}{|ctan.org/pkg/minted|}.
 %
-% You may download |minted.sty| from the
-% \href{https://github.com/gpoore/minted}{project's homepage}.  We have to install the file so that \TeX\ is able to find it.
-% In order to do that, please refer to the
-% \href{https://www.tex.ac.uk/cgi-bin/texfaq2html?label=inst-wlcf}{\TeX{} FAQ}.
-% If you just want to experiment with the latest version, you could locate your current |minted.sty| in your \TeX\ installation and replace it with the latest version.  Or you could just put the latest |minted.sty| in the same directory as the file you wish to use it with.
+% Install |minted.sty| (and |minted2.sty| and |minted1.sty| if desired) within your \TeX\ installation.  For TeX Live, it may be best to put style files under |TEXMFLOCAL|, which can be located by running |kpsewhich --var-value TEXMFLOCAL|.  For example, you might put the files in |<texlive>/<year>/texmf-local/tex/latex/local/minted|.  For further details, consult your \TeX\ distribution's documentation, or an online guide such as \href{https://en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}{\Verb{en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}} or \href{https://texfaq.org/}{\Verb|texfaq.org|}.  After installing the |.sty| files, make TeX aware of the new files by running |texhash| or |mktexlsr| (TeX Live), or |initexmf --update-fndb| (MiKTeX).
+%
+% Next, install the Python side of the package.  Python 3.8+ is required.  There are two options:  Install the \pypkg{latexminted} package and dependencies within a Python installation (typically easier), or install them within your \TeX\ installation.
+%
+% Note that if you are only using the \texpkg{minted2} package for backward compatibility with \mintedpkg\ version 2, you do not need \pypkg{latexminted}.   \texpkg{minted2} only requires the Pygments package, which can be installed with something like |pip install pygments|, |conda install anaconda::pygments|, or |brew install pygments|, depending on your operating system and Python distribution.  You may need to modify the command depending on system versus user installation and depending on virtual environments.
+%
+% \subsubsection{Option 1 (recommended):  Install \pypkg{latexminted} within Python installation}
+%
+% If your Python distribution is compatible with \href{https://pypi.org/}{The Python Package Index (PyPI)}, this can be accomplished by running |pip install latexminted|.  This will install \pypkg{latexminted} plus all dependencies including Pygments.  You may need to modify the command depending on whether you want a system or user (|--user|) installation, depending on whether you are using virtual environments, and depending on whether something like |pip3| is needed instead of |pip|.
+%
+% If you cannot or do not wish to use PyPI via |pip|, install the following packages manually or from other sources.
+% \begin{itemize}
+% \setlength{\itemsep}{0pt}
+% \setlength{\parskip}{0pt}
+% \setlength{\parsep}{0pt}
+% \item \pypkg{latexminted}:  \url{https://pypi.org/project/latexminted/}
+% \item \pypkg{latexrestricted}:  \url{https://pypi.org/project/latexrestricted/}
+% \item \pypkg{latex2pydata}:  \url{https://pypi.org/project/latex2pydata/}
+% \item Pygments:  \url{https://pypi.org/project/Pygments/}
+% \end{itemize}
+%
+% \subsubsection{Option 2:  Install \pypkg{latexminted} within \TeX\ installation}
+%
+% This approach is more involved and essentially replicates the process that is performed automatically when using a \TeX\ package manager.
+%
+% Install the |latexminted.py| executable within your \TeX\ installation.  This should typically be within a |scripts| directory.  When TeX Live installs \mintedpkg\ with its package manager, this is something like |<texlive>/<year>/texmf-dist/scripts/minted|.
+%
+% Download Python wheels (|*.whl|) for the following Python packages, and place them in the same location as |latexminted.py|.
+% \begin{itemize}
+% \setlength{\itemsep}{0pt}
+% \setlength{\parskip}{0pt}
+% \setlength{\parsep}{0pt}
+% \item \pypkg{latexminted}:  \url{https://pypi.org/project/latexminted/}
+% \item \pypkg{latexrestricted}:  \url{https://pypi.org/project/latexrestricted/}
+% \item \pypkg{latex2pydata}:  \url{https://pypi.org/project/latex2pydata/}
+% \item Pygments:  \url{https://pypi.org/project/Pygments/}
+% \end{itemize}
+%
+% Under non-Windows operating systems, create a symlink called |latexminted| in the \TeX\ binary directory or another appropriate location that points to |latexminted.py|.  When TeX Live installs \mintedpkg\ with its package manager, this is something like |<texlive>/<year>/bin/<architecture>|.
+%
+% Under Windows, a launcher executable for |latexminted.py| needs to be created.  When TeX Live installs \mintedpkg\ with its package manager, it creates a copy of |runscript.exe| named |latexminted.exe| within the \TeX\ binary directory, which is something like |<texlive>/<year>/bin/windows|.
+%
 %
 %
 % \section{Basic usage}
