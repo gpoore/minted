@@ -51,6 +51,7 @@
 \usepackage{calc}
 \usepackage{multicol}
 \usepackage[hyperindex]{hyperref}
+\usepackage{cleveref}
 
 \newcommand{\env}[1]{\texttt{#1}}
 
@@ -181,7 +182,7 @@
      \begin{minipage}{0.5\linewidth-2em-\fboxsep}%
      \inputminted[resetmargins]{latex}{example.out}%
      \end{minipage}%
-     \hspace{4em}%
+     \hspace{2em}\vrule\hspace{2em}%
      \begin{minipage}{0.5\linewidth-2em-\fboxsep}%
      \input{example.out}%
      \end{minipage}%
@@ -403,35 +404,17 @@
 %
 % \section{Basic usage}
 %
-% \subsection{Preliminary}
-% \label{sec:basic:preliminary}
+% \subsection{The \Verb{latexminted} Python executable and shell escape}
 %
-% Since \mintedpkg\ makes calls to the outside world (that is, \app{Pygments}), you need to tell the
-% \LaTeX{} processor about this by passing it the |-shell-escape| option or it won't allow such calls.
-% In effect, instead of calling the processor like this:
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ latex input
-% \end{Verbatim}
+% The \mintedpkg\ package operates by passing code to the |latexminted| Python executable, which performs syntax highlighting and then returns the highlighted code in \LaTeX\ format.
 %
-% you need to call it like this:
+% Currently, |latexminted| requires special permission to run.  \LaTeX\ must be called with the |-shell-escape| option (TeX Live) or the |-enable-write18| option (MiKTeX).  Note that using |-shell-escape| or |-enable-write18| allows \LaTeX\ to run potentially arbitrary commands on your system.  These should only be used when necessary, with documents from trusted sources.
 %
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ latex -shell-escape input
-% \end{Verbatim}
-%
-% The same holds for other processors, such as |pdflatex| or |xelatex|.
-%
-% You should be aware that using |-shell-escape| allows \LaTeX\ to run potentially arbitrary commands on your system.  It is probably best to use |-shell-escape| only when you need it, and to use it only with documents from trusted sources.
-%
-%
-% \subsubsection*{Working with OS X}
-%
-% If you are using \mintedpkg\ with some versions/configurations of OS X, and are using caching with a large number of code blocks ($>256$), you may receive an error like
-%\begin{Verbatim}
-%OSError: [Errno 24] Too many open files:
-%\end{Verbatim}
-% This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use the OS X commands |launchctl limit maxfiles| or |ulimit -n| to increase the number of files that may be used.
-%
+% |latexminted| is designed to be compatible with the security requirements for restricted shell escape.  Once |latexminted| finishes the security review for restricted shell escape executables, it will function automatically without |-shell-escape| or |-enable-write18|, so long as the default restricted shell escape has not been disabled.  It is possible to benefit from these enhanced security capabilities immediately and avoid the need for |-shell-escape| or |-enable-write18| by manually designating |latexminted| as a trusted executable.
+% \begin{itemize}
+% \item TeX Live:  Copy the variable |shell_escape_commands| from the distribution |texmf.cnf| (something like |<texlive>/<yr>/texmf-dist/web2c/texmf.cnf|) into the user |texmf.cnf| (something like |<texlive>/<yr>/texmf.cnf|), and then add |latexminted| to the |shell_escape_commands| list.  The location of the |texmf.cnf| files can be determined by running |kpsewhich -all texmf.cnf|.  Note that under Windows, this only works when |latexminted| is installed within a TeX Live installation; it is not compatible with |latexminted| being installed in a Python installation.
+% \item MiKTeX:  Add a line |AllowedShellCommands[] = latexminted| to the existing list of allowed commands in |miktex.ini|.  You may want to modify the user-scoped configuration instead of the system-wide configuration.  See the \href{https://docs.miktex.org/manual/miktex.ini.html}{MiKTeX documentation} for more details, particularly |initexmf --edit-config-file| and |initexmf --set-config-value|.
+% \end{itemize}
 %
 %
 % \subsection{A minimal complete example}
@@ -442,9 +425,10 @@
 %   \documentclass{article}
 %
 %   \usepackage{minted}
+%   \usepackage[svgnames]{xcolor}
 %
 %   \begin{document}
-%   \begin{minted}{c}
+%   \begin{minted}[bgcolor=Beige, bgcolorpadding=0.5em]{c}
 %   int main() {
 %       printf("hello, world");
 %       return 0;
@@ -452,55 +436,47 @@
 %   \end{minted}
 %   \end{document}
 % \end{VerbatimOut}
-% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
+% \inputminted[frame=single]{latex}{minted.doc.out}
 %
-% By compiling the source file like this:
+% This document can be compiled by running ``|pdflatex -shell-escape minimal|''
+% to produce the following output in |minimal.pdf|:
 %
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ pdflatex -shell-escape minimal
-% \end{Verbatim}
-%
-% we end up with the following output in |minimal.pdf|:
-%
-% \hfill
-% \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
-%   \inputminted[firstline=7,lastline=10]{c}{minted.doc.out}
-% \end{minipage}}
-% \hfill\hfill
+% \begin{center}
+% \begin{minipage}{0.6\textwidth}
+% \inputminted[rangeregex=\^\\s*int.+?\\\}, rangeregexdotall=true, rangeregexmultiline=true, bgcolor=Beige, bgcolorpadding=0.5em]{c}{minted.doc.out}
+% \end{minipage}
+% \end{center}
 %
 %
 % \subsection{Formatting source code}
 %
 % \DescribeEnv{minted}
-% Using \mintedpkg\ is straightforward. For example, to highlight some Python source code we might use
-% the following code snippet (result on the right):
+% The |minted| environment highlights a block of code:
 %
 % \begin{example}
-%   \begin{minted}{python}
-%   def boring(args = None):
-%       pass
-%   \end{minted}
+% \begin{minted}{python}
+% def boring(args = None):
+%     pass
+% \end{minted}
 % \end{example}
 %
-% Optionally, the environment accepts a number of options in |key=value| notation, which are described
-% in more detail below.
+% The environment accepts a number of optional arguments in |key=value| notation.  These are described in \cref{sec:options:macro}.
 %
 % To use \mintedpkg\ with a language that is not supported by Pygments, or simply to disable highlighting, set the language to |text|:  |\begin{minted}{text}|.
 %
 %
 % \DescribeMacro{\mint}
-% For a single line of source code, you can alternatively use a shorthand notation:
+% For a single line of source code, you can use |\mint| as a shorthand for |minted|:
 %
 % \begin{example}
-%   \mint{python}|import this|
+% \mint{python}/import this/
 % \end{example}
 %
 % This typesets a single line of code using a command rather than an environment, so it saves a little typing, but its output is equivalent to that of the |minted| environment.
 %
 % The code is delimited by a pair of identical characters, similar to how  |\verb| works.  The complete syntax is \cmd\mint\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim},
 % where the code delimiter can be almost any punctuation character.
-% The \meta{code} may also be delimited with matched curly braces |{}|, so long as \meta{code} itself does not contain unmatched curly braces.
-% Again, this command supports a number of options described below.
+% The \meta{code} may also be delimited with paired curly braces |{}|, so long as \meta{code} itself does not contain unpaired curly braces.
 %
 % Note that the |\mint| command \textbf{is not for inline use}.  Rather, it is a shortcut for |minted| when only a single line of code is present.  The |\mintinline| command is provided for inline use.
 %
@@ -509,49 +485,44 @@
 % Code can be typeset inline:
 %
 % \begin{example}
-%   X\mintinline{python}{print(x**2)}X
+% \mintinline{py}{print("Hello!")}
 % \end{example}
 %
 % The syntax is  \cmd\mintinline\oarg{options}\marg{language}\meta{delim}\meta{code}\meta{delim}.  The delimiters can be a single repeated character, just like for \cmd{\verb}.  They can also be a pair of curly braces, |{}|.  Curly braces are required when \cmd{\mintinline} is used in a movable argument, such as in a \cmd{\section}.
 %
-% Unlike \cmd{\verb}, \cmd{\mintinline} can usually be used inside other commands.  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unmatched curly braces.  For example, \cmd{\mintinline} typically works in \cmd{\footnote} and \cmd{\section}!  Note that some document classes or packages, such as \texpkg{memoir}, redefine \cmd{\section} or have options that modify it in ways that are incompatible with \cmd{\mintinline}.  If you use \cmd{\mintinline} inside \cmd{\section} or otherwise in a movable argument, you should experiment to make sure it is compatible with your document configuration.  You may also want to consider \texpkg{fvextra}'s \cmd{\Verb} or \cmd{\EscVerb} as an alternative.
+% Unlike \cmd{\verb}, \cmd{\mintinline} can usually be used inside other commands.  The main exception is when the code contains the percent \texttt{\%} or hash \texttt{\#} characters, or unpaired curly braces.  For example, \cmd{\mintinline} typically works in \cmd{\footnote} and \cmd{\section}!  Note that some document classes or packages, such as \texpkg{memoir}, redefine \cmd{\section} or have options that modify it in ways that are incompatible with \cmd{\mintinline}.  If you use \cmd{\mintinline} inside \cmd{\section} or otherwise in a movable argument, you should experiment to make sure it is compatible with your document configuration.  You may also want to consider \texpkg{fvextra}'s \cmd{\Verb} or \cmd{\EscVerb} as an alternative.
 %
 % The code typesetting for \cmd{\mintinline} is based on \texpkg{fvextra}'s \cmd{\Verb}.  See the \href{https://github.com/gpoore/fvextra/}{\texpkg{fvextra} documentation on \cmd{\Verb}} for additional details about functionality and limitations.
 %
 % \DescribeMacro{\inputminted}
-% Finally, there's the |\inputminted| command to read and format whole files.
+% Finally, there's the |\inputminted| command to input external files.
 % Its syntax is \cmd\inputminted\oarg{options}\marg{language}\marg{filename}.
-%
-% \warn:  \meta{filename} is used to generate a shell command for highlighing the file.  Due to limitations in the design of \mintedpkg\ and limitations with TeX as a programming language, there is currently no escaping or sanitization of the filename as part of this process.  Providing a malformed filename can execute arbitrary system commands.  For example, providing ``|file.txt; touch file2.txt|'' as \meta{filename} could highlight one file while subsequently creating a new file.  (Issue \href{https://github.com/gpoore/minted/issues/338}{\#338}.)
 %
 %
 % \subsection{Using different styles}
 %
 % \DescribeMacro{\usemintedstyle}
-% Instead of using the default style you may choose another stylesheet provided by \app{Pygments}.  This may be done via the following:
 %
-% \mint[frame=lines]{latex}/\usemintedstyle{name}/
+% \DescribeMacro{\setminted}
+% Instead of using the default highlighting style you may choose another style provided by \app{Pygments}.  There are two equivalent ways to do this:
 %
-% The full syntax is \cmd\usemintedstyle\oarg{language}\marg{style}.  The style may be set for the document as a whole (no language specified), or only for a particular language.  Note that the style may also be set via \cmd\setminted\ and via the optional argument for each command and environment.\footnote{Version 2.0 added the optional language argument and removed the restriction that the command be used in the preamble.}
+% \begin{minted}{latex}
+% \usemintedstyle{name}
+% \setminted{style=name}
+% \end{minted}
 %
-% Highlighting styles with examples can be viewed online at \href{https://pygments.org/styles/}{pygments.org/styles}.  It is possible to preview your code with different styles using the online demo at \href{https://pygments.org/demo/}{pygments.org/demo}.  Available styles can also be listed by executing the following command on the command line:
+% The |\setminted| approach has the advantage that other \mintedpkg\ options are accepted as well; |\usemintedstyle| is restricted to style modifications.  The full syntax is \cmd\usemintedstyle\oarg{language}\marg{style} and \cmd\setminted\oarg{language}\marg{key=value}.  The style may be set for the document as a whole (no language specified), or only for a particular language.  Note that the style may also be set via the optional argument for each command and environment.
 %
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ pygmentize -L styles
-% \end{Verbatim}
+% Highlighting styles with examples are at \href{https://pygments.org/styles/}{pygments.org/styles}.  It is possible to preview your code with different styles using the online demo at \href{https://pygments.org/demo/}{pygments.org/demo}.  Available styles can also be listed by running the command |pygmentize -L styles|.
 %
-%
-% Creating your own styles is also easy. Just follow the instructions provided on the
+% It is also possible to create your own styles.  See the instructions on the
 % \href{https://pygments.org/docs/styles/#creating-own-styles}{\texpkg{Pygments} website}.
 %
 %
 % \subsection{Supported languages}
 %
-% \app{Pygments} supports hundreds of different programming languages, template languages, and other markup languages.  To see an exhaustive list of the currently supported languages, use the command
+% \app{Pygments} supports hundreds of different programming languages, template languages, and other markup languages.  The list of currently supported languages is at \href{https://pygments.org/docs/lexers/}{pygments.org/docs/lexers/}. You can also run |pygmentize -L lexers|.
 %
-% \begin{Verbatim}[gobble=3,commandchars=\\\{\}]
-%   \$ pygmentize -L lexers
-% \end{Verbatim}
 %
 %
 % \section{Floating listings}\label{sec:float}
@@ -619,6 +590,19 @@
 % |\listoflistingscaption|:
 %
 % \mint[frame=lines]{latex}/\renewcommand{\listoflistingscaption}{List of Program Code}/
+%
+%
+%
+% \section{Configuration}
+%
+%
+% \subsection{macOS compatibility}
+%
+% If you are using \mintedpkg\ with some versions/configurations of macOS, and are using caching with a large number of code blocks ($>256$), you may receive a Python error during syntax highlighting that looks like this:
+%\begin{Verbatim}
+%OSError: [Errno 24] Too many open files:
+%\end{Verbatim}
+% This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use the commands |launchctl limit maxfiles| or |ulimit -n| to increase the number of files that may be used.
 %
 %
 % \section{Options}
@@ -760,6 +744,7 @@
 %
 %
 % \subsection{Macro option usage}
+% \label{sec:options:macro}
 %
 % All \mintedpkg\ highlighting commands accept the same set of options.
 % Options are specified as a comma-separated list of |key=value| pairs.
