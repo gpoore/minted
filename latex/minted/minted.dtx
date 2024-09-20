@@ -191,17 +191,20 @@
 
 
 \newenvironment{longexample}
-  {\VerbatimEnvironment
-   \begin{VerbatimOut}[gobble=1]{example.out}}
-  {\end{VerbatimOut}%
-   \vspace{1ex}%
-   \setlength{\parindent}{0pt}%
-   \fbox{\begin{minipage}{\linewidth-2\fboxsep}%
-     \inputminted[resetmargins]{latex}{example.out}%
-     ~\hrulefill~
-     \input{example.out}%
-   \end{minipage}%
-   \vspace{1ex}}}
+ {\VerbatimEnvironment
+  \begin{VerbatimOut}[gobble=1]{example.out}}
+ {\end{VerbatimOut}%
+  \vspace{1em}%
+  \setlength{\parindent}{0pt}%
+  \fbox{
+    \vspace{1ex}%
+    \begin{minipage}{\linewidth-2\fboxsep}%
+    \inputminted[resetmargins]{latex}{example.out}%
+    ~\hrulefill~
+    \input{example.out}%
+    \end{minipage}%
+    \vspace{1ex}}%
+  \vspace{1em}}
 
 \def\minted@printopt#1(#2) (#3){%
   \vspace{0.1in}%
@@ -528,25 +531,17 @@
 % \section{Floating listings}\label{sec:float}
 %
 % \DescribeEnv{listing}
-% \mintedpkg\ provides the |listing| environment to wrap around a source code block.  This puts the code into a floating box, with the default placement |tbp| like figures and tables.  You can also provide a |\caption| and a |\label| for such a listing in the usual way (that is, as for the |figure| and |table| environments):
-% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \begin{listing}[H]
-%     \mint{cl}/(car (cons 1 '(2)))/
-%     \caption{Example of a listing.}
-%     \label{lst:example}
-%   \end{listing}
+% \mintedpkg\ provides a |listing| environment that can be used to wrap code blocks.  This puts the code in a floating box similar to a figure or table, with default placement |tbp|.  You can also provide a |\caption| and a |\label|:
 %
-%   Listing \ref{lst:example} contains an example of a listing.
-% \end{VerbatimOut}
-% \inputminted[gobble=2,frame=lines]{latex}{minted.doc.out}
+% \begin{longexample}
+% \begin{listing}[H]
+% \mint{cl}/(car (cons 1 '(2)))/
+% \caption{Example of a listing.}
+% \label{lst:example}
+% \end{listing}
 %
-% will yield:
-%
-% \hfill
-% \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
-%   \input{minted.doc.out}
-% \end{minipage}}
-% \hfill\hfill
+% Listing \ref{lst:example} contains an example of a listing.
+% \end{longexample}
 %
 % The default |listing| placement can be modified easily.  When the package option |newfloat=false| (default), the \texpkg{float} package is used to create the |listing| environment.  Placement can be modified by redefining |\fps@listing|.  For example,
 %\begin{verbatim}
@@ -580,16 +575,18 @@
 % Refer to the \texpkg{newfloat} and \texpkg{caption} documentation for additional information.
 %
 % \DescribeMacro{\listingscaption}
-% (Only applies when package option |newfloat| is not used.) The string ``Listing'' in a listing's caption can be changed.
-% To do this, simply redefine the macro |\listingscaption|, for example:
+% This allows the string ``Listing'' in a listing's caption to be customized.  It only applies when package option |newfloat=false|.  For example:
 %
-% \mint[frame=lines]{latex}/\renewcommand{\listingscaption}{Program code}/
+%\begin{verbatim}
+%\renewcommand{\listingscaption}{Program code}
+%\end{verbatim}
 %
 % \DescribeMacro{\listoflistingscaption}
-% (Only applies when package option |newfloat| is not used.) Likewise, the caption of the listings list, ``List of Listings,'' can be changed by redefining
-% |\listoflistingscaption|:
+% This allows the caption of the listings list, ``List of Listings,'' to be customized. It only applies when package option |newfloat=false|. For example:
 %
-% \mint[frame=lines]{latex}/\renewcommand{\listoflistingscaption}{List of Program Code}/
+%\begin{verbatim}
+%\renewcommand{\listoflistingscaption}{List of Program Code}
+%\end{verbatim}
 %
 %
 %
