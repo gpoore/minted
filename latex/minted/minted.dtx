@@ -192,7 +192,7 @@
 
 \newenvironment{longexample}
  {\VerbatimEnvironment
-  \begin{VerbatimOut}[gobble=1]{example.out}}
+  \FVExtraReadOArgBeforeVEnv{\longexample@i}}
  {\end{VerbatimOut}%
   \vspace{1em}%
   \setlength{\parindent}{0pt}%
@@ -201,10 +201,18 @@
     \begin{minipage}{\linewidth-2\fboxsep}%
     \inputminted[resetmargins]{latex}{example.out}%
     ~\hrulefill~
+    \expandafter\fvset\expandafter{\longexample@arg}%
     \input{example.out}%
     \end{minipage}%
     \vspace{1ex}}%
   \vspace{1em}}
+\begingroup
+\catcode`\^^M=\active%
+\gdef\longexample@i#1{%
+  \def\longexample@arg{#1}%
+  \begin{VerbatimOut}[gobble=1]{example.out}^^M}%
+\endgroup
+
 
 \def\minted@printopt#1(#2) (#3){%
   \vspace{0.1in}%
@@ -669,87 +677,40 @@
 %
 % \DescribeMacro{chapter}
 % To control how \LaTeX{} counts the |listing| floats, you can pass either the
-% |section| or |chapter| option when loading the \mintedpkg\ package.
+% |chapter| or |section| option when loading the \mintedpkg\ package.
 % For example, the following will cause listings to be counted by chapter:
 %
-% \mint[frame=lines]{latex}/\usepackage[chapter]{minted}/
+% \begin{minted}{latex}
+% \usepackage[chapter]{minted}
+% \end{minted}
 %
 %
 % \DescribeMacro{cache=\meta{boolean} (default:~true)}
-% \mintedpkg\ works by saving code to a temporary file, highlighting the code via \app{Pygments} and saving the output to another temporary file, and inputting the output into the \LaTeX\ document.  This process can become quite slow if there are several chunks of code to highlight.  To avoid this, the package provides a |cache| option.  This is on by default.
+% \mintedpkg\ works by saving code to a temporary file, highlighting it with Pygments, and then passing the result back to \LaTeX\ for inclusion in the document.  This process can become quite slow if there are several chunks of code to highlight.  To avoid this, the package provides a |cache| option.  This is on by default.
 %
-% The |cache| option creates a directory |_minted-|\meta{jobname} in the document's root directory (this may be customized with the |cachedir| option).\footnote{The directory is actually named using a ``sanitized'' copy of \meta{jobname}, in which spaces and asterisks have been replaced by underscores, and double quotation marks have been stripped.  If the file name contains spaces, \texttt{\string\jobname} will contain a quote-wrapped name, except under older versions of MiKTeX which used the name with spaces replaced by asterisks.  Using a ``sanitized'' \meta{jobname} is simpler than accomodating the various escaping conventions.}  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  In most cases, caching will significantly speed up document compilation.
-%
-% Cached files that are no longer in use are automatically deleted.\footnote{This depends on the main auxiliary file not being deleted or becoming corrupted.  If that happens, you could simply delete the cache directory and start over.}
+% The |cache| option creates a directory |_minted| in the document's root directory (this may be customized with the |cachedir| option).  Files of highlighted code are stored in this directory, so that the code will not have to be highlighted again in the future.  Cache files that are no longer used are automatically deleted.  In most cases, caching will significantly speed up document compilation.
 %
 %
-% \DescribeMacro{cachedir=\meta{directory} (def:~\_minted-\meta{jobname})}
-% This allows the directory in which cached files are stored to be specified.  Paths should use forward slashes, even under Windows.
+% \DescribeMacro{cachedir=\meta{directory} (default:~\_minted)}
+% This allows the directory in which cache files are stored to be customized.  Paths should use forward slashes, even under Windows.  Special characters must be escaped with |\string| or |\detokenize|.
 %
-% Special characters must be escaped.  For example, |cachedir=~/mintedcache| would not work because the tilde |~| would be converted into the \LaTeX\ commands for a non-breaking space, rather than being treated literally.  Instead, use |\string~/mintedcache|, |\detokenize{~/mintedcache}|, or an equivalent solution.
-%
-% Paths may contain spaces, but only if the entire \meta{directory} is wrapped in curly braces |{}|, and only if the spaces are quoted.  For example,
-%\begin{Verbatim}
-%cachedir = {\detokenize{~/"minted cache"/"with spaces"}}
-%\end{Verbatim}
-%
-% Note that the cache directory is relative to the |outputdir|, if an |outputdir| is specified.
+% Note that the cache directory is relative to |-output-directory| or equivalently the  |TEXMF_OUTPUT_DIRECTORY| environment variable, if that is set.
 %
 %
 % \DescribeMacro{debug=\meta{boolean} (default:~false)}
-% Keep temp files for aid in debugging.
+% Provide additional information for aid in debugging.  This keeps temp files that are used in generating highlighted code and also writes additional information to the log.
 %
-%
-% \DescribeMacro{finalizecache=\meta{boolean} (default:~false)}
-% In some cases, it may be desirable to use \mintedpkg\ in an environment in which |-shell-escape| is not allowed.  A document might be submitted to a publisher or preprint server or used with an online service that does not support |-shell-escape|.  This is possible as long as \mintedpkg\ content does not need to be modified.
-%
-% Compiling with the |finalizecache| option prepares the cache for use in an environment without |-shell-escape|.\footnote{Ordinarily, cache files are named using an MD5 hash of highlighting settings and highlighted text.  \texttt{finalizecache} renames cache files using a \texttt{listing<number>.pygtex} scheme.  This makes it simpler to match up document content and cache files, and is also necessary for the XeTeX engine since prior to TeX Live 2016 it lacked the built-in MD5 capabilities that pdfTeX and LuaTeX have.}  Once this has been done, the |finalizecache| option may be swapped for the |frozencache| option, which will then use the frozen (static) cache in the future, without needing |-shell-escape|.
-%
-%
-% \DescribeMacro{fontencoding=\meta{encoding} (default:~\meta{doc~encoding})}
-% Set font encoding used for typesetting code.
-%
-% For example, |fontencoding=T1|.
 %
 % \DescribeMacro{frozencache=\meta{boolean} (default:~false)}
-% Use a frozen (static) cache created with the |finalizecache| option.  When |frozencache| is on, |-shell-escape| is not needed, and Python and Pygments are not required.  In addition, any external files accessed through |\inputminted| are no longer necessary.
+% Use a frozen (static) cache.  When |frozencache=true|, Python and Pygments are not required, and any external files accessed through |\inputminted| are no longer necessary.  If a cache file is missing, an error will be reported and there will be no attempt to generate the missing cache file.
 %
-% \textbf{This option must be used with care.  A document \emph{must} be in final form, as far as \mintedpkg\ is concerned, \emph{before} \texttt{frozencache} is turned on, and the document \emph{must} have been compiled with \texttt{finalizecache}.   When this option is on, \mintedpkg\ content cannot be modified, except by editing the cache files directly.  Changing any \mintedpkg\ settings that require Pygments or Python is not possible.  If \mintedpkg\ content is incorrectly modified after \texttt{frozencache} is turned on, \mintedpkg\ \emph{cannot} detect the modification.}
-%
-% If you are using |frozencache|, and want to verify that \mintedpkg\ settings or content have not been modified in an invalid fashion, you can test the cache using the following procedure.
-% \begin{enumerate}
-% \item Obtain a copy of the cache used with |frozencache|.
-% \item Compile the document in an environment that supports |-shell-escape|, with |finalizecache=true| and |frozencache=false|.  This essentially regenerates the frozen (static) cache.
-% \item Compare the original cache with the newly generated cache.  Under Linux and OS X, you could use |diff|; under Windows, you probably want |fc|.  If \mintedpkg\ content and settings have not been modified in an invalid fashion, all files will be identical (assuming that compatible versions of Pygments are used for both caches).
-% \end{enumerate}
+% When using |frozencache| with |-output-directory|, the |cachedir| package option       should be used to specify a full relative path to the cache (for example, |cachedir=./<output_directory>/_minted|).
 %
 %
-% \DescribeMacro{draft=\meta{boolean} (default:~false)}
-% This uses \texpkg{fancyvrb} alone for all typesetting; \app{Pygments} is not used.  This trades syntax highlighting and some other \app{minted} features for faster compiling.  Performance should be essentially the same as using \texpkg{fancyvrb} directly; no external temporary files are used.  Note that if you are not changing much code between compiles, the difference in performance between caching and draft mode may be minimal.  Also note that |draft| settings are typically inherited from the document class.
+% \DescribeMacro{inputlexerlinenos=\meta{boolean} (default:~false)}
+% This enables |lexerlinenos| and causes it to apply to |\inputminted| (and custom commands based on it) in addition to |minted| environments and |\mint| commands (and custom environments/commands based on them).
 %
-% Draft mode does not support |autogobble|.  Regular |gobble|, |linenos|, and most other options not related to syntax highlighting will still function in draft mode.
-%
-% Documents can usually be compiled without shell escape in draft mode.  The \texpkg{ifplatform} package may issue a warning about limited functionality due to shell escape being disabled, but this may be ignored in almost all cases.  (Shell escape is only really required if you have an unusual system configuration such that the |\ifwindows| macro must fall back to using shell escape to determine the system.  See the \texpkg{ifplatform} documentation for more details:  \url{https://www.ctan.org/pkg/ifplatform}.)
-%
-% If the |cache| option is set, then all existing cache files will be kept while draft mode is on.  This allows caching to be used intermitently with draft mode without requiring that the cache be completely recreated each time.  Automatic cleanup of cached files will resume as soon as draft mode is turned off.  (This assumes that the auxiliary file has not been deleted in the meantime; it contains the cache history and allows automatic cleanup of unused files.)
-%
-%
-% \DescribeMacro{final=\meta{boolean} (default:~true)}
-% This is the opposite of |draft|; it is equivalent to |draft=false|.  Again, note that |draft| and |final| settings are typically inherited from the document class.
-%
-%
-% \DescribeMacro{inputlanglinenos=\meta{boolean} (default:~false)}
-% This enables |langlinenos| and causes it to apply to |\inputminted| (and custom commands based on it) in addition to |minted| environments and |\mint| commands (and custom environments/commands based on them).
-%
-% The regular |langlinenos| option treats all code within a document's |.tex| files as having one set of line numbering per language, and then treats each inputted source file as having its own separate numbering.  |inputlanglinenos| defines a single numbering per language, regardless of where code originates.
-%
-%
-% \DescribeMacro{kpsewhich=\meta{boolean} (default:~false)}
-% This option uses |kpsewhich| to locate files that are to be highlighted.  Some build tools such as |texi2pdf| function by modifying |TEXINPUTS|; in some cases, users may customize |TEXINPUTS| as well.  The |kpsewhich| option allows \mintedpkg\ to work with such configurations.
-%
-% This option may add a noticeable amount of overhead on some systems, or with some system configurations.
-%
-% This option does \emph{not} make \mintedpkg\ work with the |-output-directory| and |-aux-directory| command-line options for \LaTeX.  For those, see the |outputdir| package option.
+% The regular |lexerlinenos| option treats all code within a document's |.tex| files as having one set of line numbering per language, and then treats each inputted source file as having its own separate numbering.  |inputlexerlinenos| defines a single numbering per lexer, regardless of where code originates.
 %
 %
 % \DescribeMacro{lexerlinenos=\meta{boolean} (default:~false)}
@@ -757,41 +718,29 @@
 %
 % \mintedpkg\ uses the \texpkg{fancyvrb} package behind the scenes for the code typesetting.  \texpkg{fancyvrb} provides an option |firstnumber| that allows the starting line number of an environment to be specified.  For convenience, there is an option |firstnumber=last| that allows line numbering to pick up where it left off.  The |lexerlinenos| option makes |firstnumber| work for each lexer (language) individually with all |minted| and |\mint| usages.  For example, consider the code and output below.
 %
-% \begin{VerbatimOut}[gobble=1]{minted.doc.out}
-%   \begin{minted}[linenos]{python}
-%   def f(x):
-%       return x**2
-%   \end{minted}
+% \begin{longexample}[xleftmargin=1em]
+% \begin{minted}[linenos]{python}
+% def f(x):
+%     return x**2
+% \end{minted}
 %
-%   \begin{minted}[linenos]{ruby}
-%   def func
-%       puts "message"
-%   end
-%   \end{minted}
+% \begin{minted}[linenos]{ruby}
+% def func
+%     puts "message"
+% end
+% \end{minted}
 %
-%   \begin{minted}[linenos, firstnumber=last]{python}
-%   def g(x):
-%       return 2*x
-%   \end{minted}
-% \end{VerbatimOut}
-% \inputminted[frame=single, rulecolor=minted@linkcolor]{latex}{minted.doc.out}
-% \hfill
-% \colorbox{minted@samplebg}{\begin{minipage}{0.6\textwidth}
-%   \input{minted.doc.out}
-% \end{minipage}}
-% \hfill\hfill
+% \begin{minted}[linenos, firstnumber=last]{python}
+% def g(x):
+%     return 2*x
+% \end{minted}
+% \end{longexample}
 %
 % Without the |lexerlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.  Rather, it would pick up with the Ruby line numbering.
 %
 %
 % \DescribeMacro{newfloat=\meta{boolean} (default:~false)}
 % By default, the |listing| environment is created using the \texpkg{float} package.  The |newfloat| option creates the environment using \texpkg{newfloat} instead.  This provides better integration with the \texpkg{caption} package.
-%
-%
-% \DescribeMacro{outputdir=\meta{directory} (default:~\meta{none})}
-% The |-output-directory| and |-aux-directory| (MiKTeX) command-line options for \LaTeX\ cause problems for \mintedpkg, because the \mintedpkg\ temporary files are saved in |<outputdir>|, but \mintedpkg\ still looks for them in the document root directory.  There is no way to access the value of the command-line option so that \mintedpkg\ can automatically look in the right place.  But it is possible to allow the output directory to be specified manually as a package option.
-%
-% The output directory should be specified using an absolute path or a path relative to the document root directory.  Paths should use forward slashes, even under Windows.  Special characters must be escaped, while spaces require quoting and need the entire \meta{directory} to be wrapped in curly braces |{}|.  See |cachedir| above for examples of escaping and quoting.
 %
 %
 % \DescribeMacro{section}
@@ -1165,6 +1114,8 @@
 %     |tt|, |courier| and |helvetica| are pre-defined.
 %   \item[fontseries (series name) (auto \textrm{-- the same as the current font})]
 %     The font series to use.
+% \item [fontencoding (font encoding) (\meta{doc~encoding})]
+% Set font encoding used for typesetting code.  For example, |fontencoding=T1|.
 %   \item[fontsize (font size) (auto \textrm{-- the same as the current font})]
 %     The size of the font to use, as a size command, e.g. |\footnotesize|.
 %   \item[fontshape (font shape) (auto \textrm{-- the same as the current font})]

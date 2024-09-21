@@ -117,7 +117,7 @@ released.
       containing files with sequentially numbered names (#342).  When using
       `frozencache` with `-output-directory`, the `cachedir` package option
       should be used to specify a full relative path to the cache (for
-      example, `cachedir=./<outputdir>/_minted`).
+      example, `cachedir=./<output_directory>/_minted`).
 
    - `outputdir`:  No longer needed (#268).  TeX Live 2024+ saves a custom
      output directory from `-output-directory` in the environment variable
