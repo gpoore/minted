@@ -707,6 +707,16 @@
 % When using |frozencache| with |-output-directory|, the |cachedir| package option       should be used to specify a full relative path to the cache (for example, |cachedir=./<output_directory>/_minted|).
 %
 %
+% \DescribeMacro{highlightmode=\meta{string} (default:~fastfirst)}
+% Determines when code is highlighted.
+%
+% The default is |fastfirst|.  If a cache for the document exists, then code is highlighted immediately.  If a cache for the document does not exist, then typeset a placeholder instead of code and highlight all code at the end of the document.  This will require a second compile before code is typeset, but because all code is highlighted at once, there is less overhead and the total time required can be significantly less for documents that include many code snippets.
+%
+% The alternatives are |fast| (always highlight at end of document, requiring a second compile) and |immediate| (always highlight immediately, so no second compile is needed).  |immediate| should be used when typesetting code in external temp files that are overwritten during compilation.
+%
+% When code is highlighted at the end of the document with |fast| or |fastfirst|, any error and warning messages will refer to a location at the end of the document rather than the original code location, since highlighting occurred at the end of the document.  In this case, messages are supplemented with original \LaTeX\ source file names and line numbers to aid in debugging.
+%
+%
 % \DescribeMacro{inputlexerlinenos=\meta{boolean} (default:~false)}
 % This enables |lexerlinenos| and causes it to apply to |\inputminted| (and custom commands based on it) in addition to |minted| environments and |\mint| commands (and custom environments/commands based on them).
 %
@@ -737,10 +747,15 @@
 % \end{longexample}
 %
 % Without the |lexerlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.  Rather, it would pick up with the Ruby line numbering.
+
 %
 %
 % \DescribeMacro{newfloat=\meta{boolean} (default:~false)}
 % By default, the |listing| environment is created using the \texpkg{float} package.  The |newfloat| option creates the environment using \texpkg{newfloat} instead.  This provides better integration with the \texpkg{caption} package.
+%
+%
+% \DescribeMacro{placeholder=\meta{boolean} (default:~false)}
+% Instead of typesetting code, insert a placeholder.  This is enabled automatically when working with PGF/TikZ externalization.
 %
 %
 % \DescribeMacro{section}
@@ -748,7 +763,11 @@
 % |section| or |chapter| option when loading the \mintedpkg\ package.
 %
 %
-% \subsection{Macro option usage}
+% \DescribeMacro{verbatim=\meta{boolean} (default:~false)}
+% Instead of highlighting code, attempt to typeset it verbatim without using the |latexminted| Python executable.  This is not guaranteed to be an accurate representation of the code, since some features such as |autogobble| require Python.
+%
+%
+% \subsection{Options for commands and environments}
 % \label{sec:options:macro}
 %
 % All \mintedpkg\ highlighting commands accept the same set of options.
