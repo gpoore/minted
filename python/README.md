@@ -30,27 +30,37 @@ executed.
 
 ## Configuration
 
-`latexminted` loads configuration from `.latexminted_config` files.  It loads
-these from the following locations:
+Several `minted` settings with security implications can be customized with a
+config file `.latexminted_config`.  This config file is loaded by the
+`latexminted` Python executable when it runs.
 
-  * User home directory, as found by Python's `pathlib.Path.home()`.
+The `latexminted` Python executable looks for `.latexminted_config` files in
+the following locations:
 
-  * `TEXMFHOME`, as obtained from `latexrestricted.TEXMFHOME`.  Under MiKTeX
-    on systems with multiple MiKTeX installations, this will be the
-    `TEXMFHOME` from the first MiKTeX installation on `PATH`.  Under TeX Live
-    and on systems with only a single MiKTeX installation, `TEXMFHOME` will
-    always correspond to the currently active TeX installation.  See the
-    `latexrestricted` documentation for details.
+  * User home directory, as found by Python's
+    [pathlib.Path.home()](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home).
+
+  * `TEXMFHOME`.  With MiKTeX on systems with multiple MiKTeX installations,
+    this will be the `TEXMFHOME` from the first MiKTeX installation on `PATH`.
+    With TeX Live on Windows systems with multiple TeX Live installations,
+    this will be the `TEXMFHOME` from the first TeX Live installation on
+    `PATH`.  In all other cases, `TEXMFHOME` will correspond to the currently
+    active TeX installation.  See the
+    [`latexrestricted`](https://github.com/gpoore/latexrestricted)
+    documentation for details.  `latexrestricted` is used by the `latexminted`
+    Python executable to retrieve the value of `TEXMFHOME`.
 
   * The current TeX working directory.  Note that `enable_cwd_config` must be
-    set true in the `.latexminted_config` in the user home directory or in the
-    `TEXMFHOME` directory to enable this; `.latexminted_config` in the current
-    TeX working directory is not enabled by default for security reasons.
+    set `true` in the `.latexminted_config` in the user home directory or in
+    the `TEXMFHOME` directory to enable this; `.latexminted_config` in the
+    current TeX working directory is not enabled by default for security
+    reasons.  Even when a config file in the current TeX working directory is
+    enabled, it cannot be used to modify certain security-related settings.
 
 Overall configuration is derived by merging all config files, with later files
 in the list above having precedence over earlier files.  Boolean and string
 values are overwritten by later config files.   Collection values (currently
-only sets) are merged with earlier values.
+only sets derived from lists) are merged with earlier values.
 
 ### File format
 
@@ -72,7 +82,7 @@ be encoded as UTF-8.
 
   - `file_path_analysis: "resolve" | "string" = "resolve"`:  This specifies
     how `latexminted` determines whether files are readable and writable.
-    Relative files paths are always treated as being relative to the current
+    Relative file paths are always treated as being relative to the current
     TeX working directory.
 
     With `resolve`, any symlinks in file paths are resolved with the file
@@ -112,6 +122,18 @@ be encoded as UTF-8.
   custom lexers are prohibited, because loading custom lexers is equivalent to
   arbitrary code execution.
 
+  By default, it is assumed that custom lexer files implement a class `CustomLexer`.  This can be modified by including the lexer class name with the file name, separated by a colon.  For example:
+
+  ```
+  "custom_lexers": {
+    "mylexer.py:LexerClassName": "<sha256>"
+  }
+  ```
+
   Note that this only applies to custom lexers in standalone Python files.
   Lexers that are installed within Python as plugin packages work
-  automatically with Pygments and do not need to be enabled.
+  automatically with Pygments and do not need to be enabled separately.
+  However, in that case it is necessary to install `latexminted` and Pygments
+  within a Python installation.  When TeX package managers install
+  `latexminted` and Pygments within a TeX installation, these are not
+  compatible with Pygments plugin packages.

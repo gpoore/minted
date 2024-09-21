@@ -336,6 +336,8 @@
 % \end{itemize}
 % When the \mintedpkg\ package is installed, it includes the |latexminted| Python executable and all required Python libraries including \app{Pygments}.  For these to function correctly, Python 3.8+ must be installed and on |PATH| when the |latexminted| executable runs.
 %
+% Note that if you plan to use Pygments plugin packages, you will need to install the \pypkg{latexminted} Python package and dependencies including Pygments within a Python installation.  The Python libraries installed by a \TeX\ package manager within a \TeX\ installation are not compatible with plugin packages.  After installing \pypkg{latexminted} within a Python installation, make sure that its |latexminted| executable has precedence on |PATH|.
+%
 % The \mintedpkg\ package has the \LaTeX\ package dependencies listed below.  Depending on your \TeX\ distribution and configuration, these may be installed automatically when \mintedpkg\ is installed.
 % \begin{multicols}{4}
 % \begin{itemize}
@@ -363,7 +365,7 @@
 %
 % Install |minted.sty| (and |minted2.sty| and |minted1.sty| if desired) within your \TeX\ installation.  For TeX Live, it may be best to put style files under |TEXMFLOCAL|, which can be located by running |kpsewhich --var-value TEXMFLOCAL|.  For example, you might put the files in |<texlive>/<year>/texmf-local/tex/latex/local/minted|.  For further details, consult your \TeX\ distribution's documentation, or an online guide such as \href{https://en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}{\Verb{en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}} or \href{https://texfaq.org/}{\Verb|texfaq.org|}.  After installing the |.sty| files, make TeX aware of the new files by running |texhash| or |mktexlsr| (TeX Live), or |initexmf --update-fndb| (MiKTeX).
 %
-% Next, install the Python side of the package.  Python 3.8+ is required.  There are two options:  Install the \pypkg{latexminted} package and dependencies within a Python installation (typically easier), or install them within your \TeX\ installation.
+% Next, install the Python side of the package.  Python 3.8+ is required.  There are two options:  Install the \pypkg{latexminted} package and dependencies within a Python installation (typically easier, and required for compatibility with Pygments plugin packages), or install them within your \TeX\ installation.
 %
 % Note that if you are only using the \texpkg{minted2} package for backward compatibility with \mintedpkg\ version 2, you do not need \pypkg{latexminted}.   \texpkg{minted2} only requires the Pygments package, which can be installed with something like |pip install pygments|, |conda install anaconda::pygments|, or |brew install pygments|, depending on your operating system and Python distribution.  You may need to modify the command depending on system versus user installation and depending on virtual environments.
 %
@@ -418,6 +420,13 @@
 % \item TeX Live:  Copy the variable |shell_escape_commands| from the distribution |texmf.cnf| (something like |<texlive>/<yr>/texmf-dist/web2c/texmf.cnf|) into the user |texmf.cnf| (something like |<texlive>/<yr>/texmf.cnf|), and then add |latexminted| to the |shell_escape_commands| list.  The location of the |texmf.cnf| files can be determined by running |kpsewhich -all texmf.cnf|.  Note that under Windows, this only works when |latexminted| is installed within a TeX Live installation; it is not compatible with |latexminted| being installed in a Python installation.
 % \item MiKTeX:  Add a line |AllowedShellCommands[] = latexminted| to the existing list of allowed commands in |miktex.ini|.  You may want to modify the user-scoped configuration instead of the system-wide configuration.  See the \href{https://docs.miktex.org/manual/miktex.ini.html}{MiKTeX documentation} for more details, particularly |initexmf --edit-config-file| and |initexmf --set-config-value|.
 % \end{itemize}
+%
+% For the |latexminted| Python executable to correctly inherit security settings from \LaTeX, there are requirements for system configuration when multiple \TeX\ installations are present.
+% \begin{itemize}
+% \item With MiKTeX on systems with multiple MiKTeX installations, the desired MiKTeX installation must be the first MiKTeX installation on |PATH|.
+% \item With TeX Live on Windows systems with multiple TeX Live installations, the desired TeX Live installation must be the first TeX Live installation on |PATH|.
+% \end{itemize}
+% See the \href{https://github.com/gpoore/latexrestricted}{\pypkg{latexrestricted}} documentation for details.
 %
 %
 % \subsection{A minimal complete example}
@@ -593,13 +602,63 @@
 % \section{Configuration}
 %
 %
+% \subsection{\mintedpkg\ config file \Verb{.latexminted_config}}
+%
+% Several \mintedpkg\ settings with security implications can be customized with a config file |.latexminted_config|.  This config file is loaded by the |latexminted| Python executable when it runs.
+%
+% The |latexminted| Python executable looks for |.latexminted_config| files in the following locations:
+% \begin{itemize}
+% \item User home directory, as found by Python's \href{https://docs.python.org/3/library/pathlib.html#pathlib.Path.home}{|pathlib.Path.home()|}.
+% \item |TEXMFHOME|.  With MiKTeX on systems with multiple MiKTeX installations, this will be the |TEXMFHOME| from the first MiKTeX installation on |PATH|.  With TeX Live on Windows systems with multiple TeX Live installations, this will be the |TEXMFHOME| from the first TeX Live installation on |PATH|.  In all other cases, |TEXMFHOME| will correspond to the currently active \TeX\ installation.  See the \href{https://github.com/gpoore/latexrestricted}{\pypkg{latexrestricted}} documentation for details.  \pypkg{latexrestricted} is used by the |latexminted| Python executable to retrieve the value of |TEXMFHOME|.
+% \item The current \TeX\ working directory.  Note that |enable_cwd_config| must be set |true| in the |.latexminted_config| in the user home directory or in the |TEXMFHOME| directory to enable this; |.latexminted_config| in the current \TeX\ working directory is not enabled by default for security reasons.  Even when a config file in the current \TeX\ working directory is enabled, it cannot be used to modify certain security-related settings.
+% \end{itemize}
+%
+% Overall configuration is derived by merging all config files, with later files in the list above having precedence over earlier files.  Boolean and string values are overwritten by later config files.   Collection values (currently only sets derived from lists) are merged with earlier values.
+%
+% The |.latexminted_config| file may be in Python literal format (dicts and lists of strings and bools), JSON, or TOML (requires Python 3.11+).  It must be encoded as UTF-8.
+%
+%
+% \subsubsection*{Config settings}
+%
+% \begin{description}
+% \item[{\Verb/security: dict[str, str | bool]/}]  These settings relate to |latexminted| security.  They can only be set in |.latexminted_config| in the user home directory or in |TEXMFHOME|.  They cannot be set in |.latexminted_config| in the current \TeX\ working directory.
+%   \begin{description}
+%   \item[\Verb|enable_cwd_config: bool = False|]  Load a |.latexminted_config| file from the current \TeX\ working directory if it exists.  This is disabled by default because the config file can enable |custom_lexers|, which is equivalent to arbitrary code execution.
+%   \item[\Verb/file_path_analysis: "resolve" | "string" = "resolve"/]  This specifies how |latexminted| determines whether files are readable and writable.  Relative file paths are always treated as being relative to the current \TeX\ working directory.
+%
+%   With |resolve|, any symlinks in file paths are resolved with the file system before paths are compared with permitted \LaTeX\ read/write locations.  Arbitrary relative paths including ``|..|'' are allowed so long as the final location is permitted.
+%
+%   With |string|, paths are analyzed as strings in comparing them with permitted \LaTeX\ read/write locations.  This follows the approach taken in \TeX's file system security.  Paths cannot contain ``|..|'' to access a parent directory, even if the parent directory is a valid location.  Because symlinks are not resolved with the file system, it is possible to access locations outside permitted \LaTeX\ read/write locations, if the permitted locations contain symlinks to elsewhere.
+%
+%  \item[{\Verb|permitted_pathext_file_extensions: list[str]|}]  As a security measure under Windows, \LaTeX\ cannot write files with file extensions in |PATHEXT|, such as |.bat| and |.exe|.  This setting allows |latexminted| to write files with the specified file extensions, overriding \LaTeX\ security.  File extensions should be in the form ``|.<ext>|'', for example, ``|.bat|''.  This setting is used in extracting source code from \LaTeX\ documents and saving it in standalone source files.
+%
+%   When these file extensions are enabled for writing, as a security measure |latexminted| will only allow them to be created in \textbf{subdirectories} of the current \TeX\ working directory, |TEXMFOUTPUT|, and |TEXMF_OUTPUT_DIRECTORY|.  These files cannot be created directly under the \TeX\ working directory, |TEXMFOUTPUT|, and |TEXMF_OUTPUT_DIRECTORY| because those locations are more likely to be used as a working directory in a shell, and thus writing executable files in those locations would increase the risk of accidental code execution.
+%   \end{description}
+%
+% \item[{\Verb/custom_lexers: dict[str, str | list[str]]/}]  This is a mapping of custom lexer file names to SHA256 hashes.  Only custom lexers with these file names and the corresponding hashes are permitted.  Lists of hashes are allowed to permit multiple versions of a lexer with a given file name.  All other custom lexers are prohibited, because loading custom lexers is equivalent to arbitrary code execution.
+%
+% By default, it is assumed that custom lexer files implement a class |CustomLexer|.  This can be modified by including the lexer class name with the file name, separated by a colon.  For example:
+%\begin{verbatim}
+%"custom_lexers": {
+%  "mylexer.py:LexerClassName": "<sha256>"
+%}
+%\end{verbatim}
+%
+% Note that this only applies to custom lexers in standalone Python files.  Lexers that are installed within Python as plugin packages work automatically with Pygments and do not need to be enabled separately.  However, in that case it is necessary to install \pypkg{latexminted} and Pygments within a Python installation.  When \TeX\ package managers install \pypkg{latexminted} and Pygments within a \TeX\ installation, these are not compatible with Pygments plugin packages.
+% \end{description}
+%
+%
 % \subsection{macOS compatibility}
 %
 % If you are using \mintedpkg\ with some versions/configurations of macOS, and are using caching with a large number of code blocks ($>256$), you may receive a Python error during syntax highlighting that looks like this:
 %\begin{Verbatim}
 %OSError: [Errno 24] Too many open files:
 %\end{Verbatim}
-% This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use the commands |launchctl limit maxfiles| or |ulimit -n| to increase the number of files that may be used.
+% This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use one of the following commands to increase the number of files that may be used:
+% \begin{itemize}
+% \item |launchctl limit maxfiles|
+% \item |ulimit -n|
+% \end{itemize}
 %
 %
 % \section{Options}
