@@ -3,12 +3,6 @@
 
 ## v3.0.0 (dev)
 
-Until `minted` v3.0 is released, this should be considered the authoritative
-list of modifications from v2.9.  The documentation in `minted.dtx` will not
-be updated to reflect all changes until v3.0 is released.  The changes
-described below are not guaranteed to be final until `minted` v3.0 is
-released.
-
 *  Backward compatibility:  The new `minted2` package provides the features of
    `minted` v2.9, the final release before v3.  No additional v2 releases are
    planned; no changes to the `minted2` package are expected.

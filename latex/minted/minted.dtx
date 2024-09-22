@@ -190,6 +190,13 @@
    \vspace{1em}}
 
 
+\begingroup
+\catcode`\^^M=\active%
+\gdef\longexample@i#1{%
+  \def\longexample@arg{#1}%
+  \begin{VerbatimOut}[gobble=1]{example.out}^^M}%
+\endgroup
+
 \newenvironment{longexample}
  {\VerbatimEnvironment
   \FVExtraReadOArgBeforeVEnv{\longexample@i}}
@@ -206,12 +213,6 @@
     \end{minipage}%
     \vspace{1ex}}%
   \vspace{1em}}
-\begingroup
-\catcode`\^^M=\active%
-\gdef\longexample@i#1{%
-  \def\longexample@arg{#1}%
-  \begin{VerbatimOut}[gobble=1]{example.out}^^M}%
-\endgroup
 
 
 \def\minted@printopt#1(#2) (#3){%
@@ -412,6 +413,47 @@
 % Under non-Windows operating systems, create a symlink called |latexminted| in the \TeX\ binary directory or another appropriate location that points to |latexminted.py|.  When TeX Live installs \mintedpkg\ with its package manager, this is something like |<texlive>/<year>/bin/<architecture>|.
 %
 % Under Windows, a launcher executable for |latexminted.py| needs to be created.  When TeX Live installs \mintedpkg\ with its package manager, it creates a copy of |runscript.exe| named |latexminted.exe| within the \TeX\ binary directory, which is something like |<texlive>/<year>/bin/windows|.
+%
+%
+%
+% \section{Migrating from \mintedpkg\ version 2}
+%
+% \mintedpkg\ version 3 is a complete rewrite from version 2.9.  A brief summary of changes is provided below.  For full details, see |CHANGELOG_MINTED_LATEX_PACKAGE.md|.
+%
+% \subsubsection*{Backward compatibility}
+%
+% The new \texpkg{minted2} package provides the features of \texpkg{minted} version 2.9, the final release before version 3.  No additional version 2 releases are planned; no changes to the \texpkg{minted2} package are expected.
+%
+%
+% \subsubsection*{New features and changes}
+%
+% \begin{itemize}
+% \item Version 3 uses a new \mintedpkg-specific Python executable called |latexminted| to perform syntax highlighting.  This executable is specifically designed to meet the security requirements for restricted shell escape programs.  Once it has passed a security review and is accepted by \TeX\ distributions, it will be possible to highlight code without |-shell-escape| and its attendant security vulnerabilities.
+%
+%   Syntax highlighting is still performed with Pygments, but the |pygmentize| executable included with Pygments is no longer used.
+%
+% When \mintedpkg\ is installed with a \TeX\ package manager, the new |latexminted| executable and all Python libraries including Pygments are installed within the \TeX\ installation.  A separate step to install Pygments is no longer necessary.
+%
+% \item Temporary files are no longer created unless code needs to be highlighted.  There is a new naming scheme for temporary files and for cache files.
+%
+% \item New package options:  |debug| (additional debug info during compilation), |highlightmode| (modify when code is highlighted for faster compilation), |placeholder| (insert a placeholder instead of code), and |verbatim| (insert verbatim approximation of code).
+%
+% \item Renamed package options |langlinenos| to |lexerlinenos| and |inputlanglinenos| to |inputlexerlinenos|.  The old names are still supported.
+%
+% \item |bgcolor| now uses the new |bgcolor| option from \texpkg{fvextra} v1.8.  Because |bgcolor| now introduces no additional whitespace or padding, existing documents may require some modification.  Added new option |bgcolorpadding| for modifying padding in background color regions.  Added new option |bgcolorvphantom| for setting height of background color in inline contexts.  When more sophisticated background colors are needed, \texpkg{tcolorbox} or a similar package should be used.
+%
+% \item The default cache directory name is now |_minted|.  All files within a directory now share the same cache, instead of having separate per-document caches.  Document-specific caching as in |minted| version 2 can be restored using the package option |cachedir|.
+%
+% \item |\newminted| now creates an environment that takes an optional argument consisting of options, instead of taking no argument.
+%
+% \item File encoding changes:  The new |latexminted| executable assumes that \LaTeX\ output files are UTF-8, and saves highlighted code as UTF-8.  That is, LaTeX should be      configured so that everything is UTF-8.  The |encoding| option now defaults to UTF-8.  It is only used in decoding files for |\inputminted| and commands based on it.  The |outencoding| option is no longer supported.
+%
+% \item Added new options for including ranges of code based on literal string delimiters or regular expressions:  |rangestartstring|, |rangestartafterstring|, |rangestopstring|, |rangestopbeforestring|, |rangeregex|.
+%
+% \item There is now support for custom lexers in standalone Python files.  See the documentation for the new |.latexminted_config| configuration files for details.
+%
+% \item Several package options are no longer supported and result in errors or warnings.  The package options |finalizecache|, |outputdir|, and |kpsewhich| are no longer needed given new \mintedpkg\ version 3 capabilities.  The package options |draft| and |final| no longer have any effect and will soon be removed altogether.  The new package options |placeholder| and |verbatim| are available in cases where using highlighted code should be completely avoided.
+% \end{itemize}
 %
 %
 %
