@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/21 v3.0.0beta22 Yet another Pygments shim for LaTeX]
+    [2024/09/22 v3.0.0beta23 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1097,8 +1097,10 @@
 % Allows |breaksymbolsepright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
 %
 %
-%   \item[codetagify (list of strings) (XXX, TODO, FIXME, BUG, NOTE)]
-%     Highlight special code tags in comments and docstrings.  The list of strings may be comma-delimited or space-delimited.
+% \item[codetagify (single macro or backslash-escaped string) (XXX,TODO,FIXME,BUG,NOTE)]
+% Highlight special code tags in comments and docstrings.
+%
+% The value must be a list of strings, either comma-delimited or space-delimited.  The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
 % \item[curlyquotes (boolean) (false)]
 % By default, the backtick \texttt{\textasciigrave} and typewriter single quotation mark \texttt{\textquotesingle} always appear literally, instead of becoming the left and right curly single quotation marks \texttt{`'}.  This option allows these characters to be replaced by the curly quotation marks when that is desirable.
@@ -1122,8 +1124,10 @@
 % Note that |envname| is the name of the environment that wraps typeset code, but it is \emph{not} the name of the environment that literally appears in highlighted code output.  Highlighted code output uses the |MintedVerbatim| environment by default, and then |MintedVerbatim| is redefined based on |envname|.  This allows a single cache file to be used in multiple contexts.  The name of the environment that literally appears in highlighted code output can be modified with |literalenvname|, but there should be few if any situations where that is actually necessary.
 %
 %
-%   \item[escapeinside (string) (\meta{none})]
-%   Escape to \LaTeX\ between the two characters specified in \meta{string}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).
+%   \item[escapeinside (single macro or backslash-escaped two-character string) (\meta{none})]
+%   Escape to \LaTeX\ between the two characters specified.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).
 %
 % \textbf{Escaping does not work inside strings and comments (for comments, there is \texttt{texcomments}).  Escaping is ``fragile'' with some lexers.}  Due to the way that Pygments implements \texttt{escapeinside}, any ``escaped'' \LaTeX\ code that resembles a string or comment for the current lexer may break \texttt{escapeinside}.  There is a \href{https://github.com/pygments/pygments/issues/825}{Pygments issue} for this case.  Additional details and a limited workaround for some scenarios are available on the \href{https://github.com/gpoore/minted/issues/70#issuecomment-111729930}{\mintedpkg\ GitHub site}.
 %
@@ -1290,6 +1294,50 @@
 %
 %   \item[python3 (boolean) (true)] \appliesto{PythonConsoleLexer}
 %     Specifies whether Python 3 highlighting is applied.
+%
+%
+% \item[rangeregex (single macro or backslash-escaped string) (\meta{none})]
+% Select code that matches this regular expression.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+%
+% \item[rangeregexmatchnumber (integer) (1)]
+% If there are multiple non-overlapping matches for |rangeregex|, this determines which is used.
+%
+%
+% \item[rangeregexdotall (boolean) (false)]
+% ``|.|'' matches any character including the newline.
+%
+%
+% \item[rangeregexmultiline (boolean) (false)]
+% ``|^|'' and ``|$|'' match at internal newlines, not just at the start/end of the string.
+%
+%
+% \item[rangestartafterstring (single macro or backslash-escaped string) (\meta{none})]
+% Select code starting immediately after this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+%
+% \item[rangestartstring (single macro or backslash-escaped string) (\meta{none})]
+% Select code starting with this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+%
+% \item[rangestopbeforestring (single macro or backslash-escaped string) (\meta{none})]
+% Select code ending immediately before this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+%
+% \item [rangestopstring (single macro or backslash-escaped string) (\meta{none})]
+% Select code ending with this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+%
 %   \item[resetmargins (boolean) (false)]
 %     Resets the left margin inside other environments.
 %   \item[rulecolor (color command) (black)]
@@ -3027,7 +3075,6 @@
 %
 % \paragraph{\mintedpkg\ (passed to Python)}
 % \begin{itemize}
-% \item |escapeinside|:  The wrapper macro deals with an argument that should be a single macro containing escape characters, or two characters possibly with backslash escapes.
 % \item PHP should use |startinline| for |\mintinline|.
 % \end{itemize}
 %    \begin{macrocode}
@@ -3041,6 +3088,9 @@
   literalenvname=MintedVerbatim,
   mathescape<true>=false,
   python3<true>=true,
+  rangeregexmatchnumber=1,
+  rangeregexdotall<true>=false,
+  rangeregexmultiline<true>=false,
   startinline<true>=false,
   stripall<true>=false,
   stripnl<true>=false,
@@ -3056,9 +3106,6 @@
   rangestopstring=,
   rangestopbeforestring=,
   rangeregex=,
-  rangeregexmatchnumber=1,
-  rangeregexdotall=false,
-  rangeregexmultiline=false,
 }
 \let\minted@tmplexer\minted@lexer
 \def\minted@lexer{php}

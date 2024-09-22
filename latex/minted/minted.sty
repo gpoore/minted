@@ -26,7 +26,8 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/09/21 v3.0.0beta22 Yet another Pygments shim for LaTeX]
+    [2024/09/22 v3.0.0beta23 Yet another Pygments shim for LaTeX]
+
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -951,6 +952,9 @@
   literalenvname=MintedVerbatim,
   mathescape<true>=false,
   python3<true>=true,
+  rangeregexmatchnumber=1,
+  rangeregexdotall<true>=false,
+  rangeregexmultiline<true>=false,
   startinline<true>=false,
   stripall<true>=false,
   stripnl<true>=false,
@@ -966,9 +970,6 @@
   rangestopstring=,
   rangestopbeforestring=,
   rangeregex=,
-  rangeregexmatchnumber=1,
-  rangeregexdotall=false,
-  rangeregexmultiline=false,
 }
 \let\minted@tmplexer\minted@lexer
 \def\minted@lexer{php}
