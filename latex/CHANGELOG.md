@@ -28,7 +28,7 @@ released.
 *  Installing the `minted` package now also installs the `latexminted` Python
    executable and all required Python libraries, including Pygments, within
    your TeX distribution.  These require Python >= 3.8.  If the default Python
-   version on PATH is < 3.8, then the `latexminted` Python executable will
+   version on `PATH` is < 3.8, then the `latexminted` Python executable will
    attempt to locate a more recent version and run itself with that version in
    a subprocess.
 
@@ -126,7 +126,7 @@ released.
      other cases.
 
    - `kpsewhich`:  No longer needed.  `kpsewhich` is now automatically
-     invoked as necessary by the `minted` Python executable in locating
+     invoked as necessary by the `latexminted` Python executable in locating
      files.
 
    - `draft` and `final`:  These no longer have any effect and result in a
@@ -265,9 +265,9 @@ released.
    - `rangeregexmultiline` [default=`false`]:  `^` and `$` match at
      internal newlines, not just at the start/end of the string.
 
-   If line numbers are displayed, they are based off of the range of code that
-   is selected; code that is discarded in selecting the range is not
-   considered in calculating line numbers.
+   If line numbers are displayed, they are based on the range of code that is
+   selected; code that is discarded in selecting the range is not considered
+   in calculating line numbers.
 
    String values and regular expressions can be set using text with backslash
    escapes, in a manner analogous to regular (non-raw) Python strings.  Any
@@ -295,12 +295,13 @@ released.
    since they are equivalent to arbitrary code execution and are thus a
    significant security risk.  To enable custom lexers, create a file
    `.latexminted_config`.  This can be in your home directory (as found by
-   Python's `pathlib.Path.home()`) or in TEXMFHOME or a similar location with
-   other LaTeX config files; if this file is found in both locations, settings
-   from the TeX location overwrite settings from the home directory.  This
-   file must contain data in Python literal, JSON, or TOML format.  TOML
-   requires Python >= 3.11.  The data must contain an entry equivalent to this
-   Python data:
+   Python's `pathlib.Path.home()`) or in `TEXMFHOME`; if this file is found in
+   both locations, settings from the TeX location overwrite settings from the
+   home directory.  It is also possible to enable a `.latexminted_config` file
+   in your document directory; see the documentation for
+   `.latexminted_config`.  This file must contain data in Python literal,
+   JSON, or TOML format.  TOML requires Python >= 3.11.  The data must contain
+   an entry equivalent to this Python data:
    ```
    {
       "custom_lexers": {

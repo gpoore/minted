@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/22 v3.0.0beta23 Yet another Pygments shim for LaTeX]
+    [2024/09/22 v3.0.0beta24 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -537,6 +537,7 @@
 %
 % It is also possible to create your own styles.  See the instructions on the
 % \href{https://pygments.org/docs/styles/#creating-own-styles}{\texpkg{Pygments} website}.
+% \mintedpkg\ only supports style names that match the regular expression |^[0-9A-Za-z_-]+$|.
 %
 %
 % \subsection{Supported languages}
@@ -643,16 +644,20 @@
 %   When these file extensions are enabled for writing, as a security measure |latexminted| will only allow them to be created in \textbf{subdirectories} of the current \TeX\ working directory, |TEXMFOUTPUT|, and |TEXMF_OUTPUT_DIRECTORY|.  These files cannot be created directly under the \TeX\ working directory, |TEXMFOUTPUT|, and |TEXMF_OUTPUT_DIRECTORY| because those locations are more likely to be used as a working directory in a shell, and thus writing executable files in those locations would increase the risk of accidental code execution.
 %   \end{description}
 %
-% \item[{\Verb/custom_lexers: dict[str, str | list[str]]/}]  This is a mapping of custom lexer file names to SHA256 hashes.  Only custom lexers with these file names and the corresponding hashes are permitted.  Lists of hashes are allowed to permit multiple versions of a lexer with a given file name.  All other custom lexers are prohibited, because loading custom lexers is equivalent to arbitrary code execution.
-%
-% By default, it is assumed that custom lexer files implement a class |CustomLexer|.  This can be modified by including the lexer class name with the file name, separated by a colon.  For example:
+% \item[{\Verb/custom_lexers: dict[str, str | list[str]]/}]  This is a mapping of custom lexer file names to SHA256 hashes.  Only custom lexers with these file names and the corresponding hashes are permitted.  Lists of hashes are allowed to permit multiple versions of a lexer with a given file name.  All other custom lexers are prohibited, because loading custom lexers is equivalent to arbitrary code execution.  For example:
 %\begin{verbatim}
 %"custom_lexers": {
-%  "mylexer.py:LexerClassName": "<sha256>"
+%  "mylexer.py": "<sha256>"
 %}
 %\end{verbatim}
 %
-% Note that this only applies to custom lexers in standalone Python files.  Lexers that are installed within Python as plugin packages work automatically with Pygments and do not need to be enabled separately.  However, in that case it is necessary to install \pypkg{latexminted} and Pygments within a Python installation.  When \TeX\ package managers install \pypkg{latexminted} and Pygments within a \TeX\ installation, these are not compatible with Pygments plugin packages.
+% By default, it is assumed that custom lexer files implement a class |CustomLexer|.  This can be modified by including the lexer class name with the file name, separated by a colon, when the lexer is used.  For example:
+%
+%\begin{verbatim}
+%\inputminted{./<path>/mylexer.py:LexerClass}{<file>}
+%\end{verbatim}
+%
+% Note that |custom_lexers| only applies to custom lexers in standalone Python files.  Lexers that are installed within Python as plugin packages work automatically with Pygments and do not need to be enabled separately.  However, in that case it is necessary to install \pypkg{latexminted} and Pygments within a Python installation.  When \TeX\ package managers install \pypkg{latexminted} and Pygments within a \TeX\ installation, these are not compatible with Pygments plugin packages.
 % \end{description}
 %
 %
@@ -1073,7 +1078,6 @@
 %
 %   \item[breaksymbolright (string) (\meta{none})]
 %     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
-
 %
 %
 % \item[breaksymbolsep (dimension) (\meta{breaksymbolsepleftnchars})]
@@ -1301,6 +1305,8 @@
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
 %
 % \item[rangeregexmatchnumber (integer) (1)]
 % If there are multiple non-overlapping matches for |rangeregex|, this determines which is used.
@@ -1319,11 +1325,15 @@
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
 %
 % \item[rangestartstring (single macro or backslash-escaped string) (\meta{none})]
 % Select code starting with this string.
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
 %
 %
 % \item[rangestopbeforestring (single macro or backslash-escaped string) (\meta{none})]
@@ -1331,11 +1341,15 @@
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
 %
 % \item [rangestopstring (single macro or backslash-escaped string) (\meta{none})]
 % Select code ending with this string.
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
 %
 %
 %   \item[resetmargins (boolean) (false)]
