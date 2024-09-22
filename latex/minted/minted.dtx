@@ -915,11 +915,13 @@
 %   \item[breakafterinrun] (boolean) (true)
 %     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
-%   \item[breakaftersymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
-%     The symbol inserted pre-break for breaks inserted by \texttt{breakafter}.
 %
 %   \item[breakaftersymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakafter}.
+%
+%   \item[breakaftersymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
+%     The symbol inserted pre-break for breaks inserted by \texttt{breakafter}.
+%
 %
 %   \item[breakanywhere (boolean) (false)]
 %     Break lines anywhere, not just at spaces, when \texttt{breaklines=true}.
@@ -938,11 +940,14 @@
 %
 % This is typically not needed in cases where an overfull |\hbox| only overflows by tiny amount, perhaps a fraction of a pt.  In those cases, the overfull |\hbox| could be ignored, |\hfuzz| could be set to 1pt or 2pt to suppress tiny overfull |\hbox| warnings, or |breakanywheresymbolpre| might be redefined to adjust spacing.
 %
-%   \item[breakanywheresymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
-%     The symbol inserted pre-break for breaks inserted by \texttt{breakanywhere}.
 %
 %   \item[breakanywheresymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakanywhere}.
+%
+%
+%   \item[breakanywheresymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
+%     The symbol inserted pre-break for breaks inserted by \texttt{breakanywhere}.
+%
 %
 %   \item[breakautoindent (boolean) (true)]
 %     When a line is broken, automatically indent the continuation lines to the indentation level of the first line.  When \texttt{breakautoindent} and \texttt{breakindent} are used together, the indentations add.  This  indentation is combined with \texttt{breaksymbolindentleft} to give the total actual left indentation.  Does not apply to \texttt{\string\mintinline}.
@@ -963,11 +968,14 @@
 %   \item[breakbeforeinrun] (boolean) (true)
 %     When \texttt{breakbefore} is used, group all adjacent identical characters together, and only allow a break before the first character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
-%   \item[breakbeforesymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
-%     The symbol inserted pre-break for breaks inserted by \texttt{breakbefore}.
 %
 %   \item[breakbeforesymbolpost (string) (\meta{none})]
 %     The symbol inserted post-break for breaks inserted by \texttt{breakbefore}.
+%
+%
+%   \item[breakbeforesymbolpre (string) (\string\,\string\footnotesize\string\ensuremath\{\_\string\rfloor\}, \,\footnotesize\ensuremath{_\rfloor})]
+%     The symbol inserted pre-break for breaks inserted by \texttt{breakbefore}.
+%
 %
 %   \item[breakbytoken (boolean) (false)]
 %   Only break lines at locations that are not within tokens; prevent tokens from being split by line breaks.  By default, \texttt{breaklines} causes line breaking at the space nearest the margin.  While this minimizes the number of line breaks that are necessary, it can be inconvenient if a break occurs in the middle of a string or similar token.
@@ -1033,16 +1041,6 @@
 %   \item[breaksymbol (string) (breaksymbolleft)]
 %     Alias for \texttt{breaksymbolleft}.
 %
-%   \item[breaksymbolleft (string) (\string\tiny\string\ensuremath\{\string\hookrightarrow\}, {\tiny\ensuremath{\hookrightarrow}})]
-%     The symbol used at the beginning (left) of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbolleft} to an empty string (``\texttt{=,}'' or ``\texttt{=\{\}}'').  The symbol is wrapped within curly braces \texttt{\{\}} when used, so there is no danger of formatting commands such as \texttt{\string\tiny} ``escaping.''
-%
-%     The \texttt{\string\hookrightarrow} and \texttt{\string\hookleftarrow} may be further customized by the use of the \texttt{\string\rotatebox} command provided by \texpkg{graphicx}.  Additional arrow-type symbols that may be useful are available in the \texpkg{dingbat} (\texttt{\string\carriagereturn}) and \texpkg{mnsymbol} (hook and curve arrows) packages, among others.
-%
-%     Does not apply to \texttt{\string\mintinline}.
-%
-%   \item[breaksymbolright (string) (\meta{none})]
-%     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
-%
 %
 % \item[breaksymbolindent (dimension) (\meta{breaksymbolindentleftnchars})]
 % Alias for |breaksymbolindentleft|.
@@ -1064,6 +1062,18 @@
 %
 % \item[breaksymbolindentrightnchars (integer) (4)]
 % This allows |breaksymbolindentright| to be specified as an integer number of characters rather than as a dimension (assumes a fixed-width font).
+%
+%
+%   \item[breaksymbolleft (string) (\string\tiny\string\ensuremath\{\string\hookrightarrow\}, {\tiny\ensuremath{\hookrightarrow}})]
+%     The symbol used at the beginning (left) of continuation lines when \texttt{breaklines=true}.  To have no symbol, simply set \texttt{breaksymbolleft} to an empty string (``\texttt{=,}'' or ``\texttt{=\{\}}'').  The symbol is wrapped within curly braces \texttt{\{\}} when used, so there is no danger of formatting commands such as \texttt{\string\tiny} ``escaping.''
+%
+%     The \texttt{\string\hookrightarrow} and \texttt{\string\hookleftarrow} may be further customized by the use of the \texttt{\string\rotatebox} command provided by \texpkg{graphicx}.  Additional arrow-type symbols that may be useful are available in the \texpkg{dingbat} (\texttt{\string\carriagereturn}) and \texpkg{mnsymbol} (hook and curve arrows) packages, among others.
+%
+%     Does not apply to \texttt{\string\mintinline}.
+%
+%   \item[breaksymbolright (string) (\meta{none})]
+%     The symbol used at breaks (right) when \texttt{breaklines=true}. Does not appear at the end of the very last segment of a broken line.
+
 %
 %
 % \item[breaksymbolsep (dimension) (\meta{breaksymbolsepleftnchars})]
@@ -1093,6 +1103,11 @@
 % \item[curlyquotes (boolean) (false)]
 % By default, the backtick \texttt{\textasciigrave} and typewriter single quotation mark \texttt{\textquotesingle} always appear literally, instead of becoming the left and right curly single quotation marks \texttt{`'}.  This option allows these characters to be replaced by the curly quotation marks when that is desirable.
 %
+%
+%   \item[encoding (string) (UTF-8)]
+%   File encoding used by |\inputminted| and derived commands when reading files.
+%
+%
 % \item[envname (string) (\textrm{\texttt{Verbatim}, or \texttt{VerbEnv} for inline})]
 % This is the name of the environment that wraps typeset code.  By default, it is |Verbatim| in block contexts and |VerbEnv| in inline contexts (|\setminted| versus |\setmintedinline|).  This is compatible with \texpkg{fancyvrb}'s |BVerbatim|.
 %
@@ -1106,8 +1121,6 @@
 %
 % Note that |envname| is the name of the environment that wraps typeset code, but it is \emph{not} the name of the environment that literally appears in highlighted code output.  Highlighted code output uses the |MintedVerbatim| environment by default, and then |MintedVerbatim| is redefined based on |envname|.  This allows a single cache file to be used in multiple contexts.  The name of the environment that literally appears in highlighted code output can be modified with |literalenvname|, but there should be few if any situations where that is actually necessary.
 %
-%   \item[encoding (string) (UTF-8)]
-%   File encoding used by |\inputminted| and derived commands when reading files.
 %
 %   \item[escapeinside (string) (\meta{none})]
 %   Escape to \LaTeX\ between the two characters specified in \meta{string}.  All code between the two characters will be interpreted as \LaTeX\ and typeset accordingly.  This allows for additional formatting.  The escape characters need not be identical.  Special \LaTeX\ characters must be escaped when they are used as the escape characters (for example, \texttt{escapeinside=\textbackslash\#\textbackslash\%}).
@@ -1132,17 +1145,29 @@
 %     All lines before that line are ignored and do not appear in the output.
 %   \item[firstnumber (auto \| last \| integer) (auto = 1)]
 %     Line number of the first line.
+%
+%
+% \item [fontencoding (font encoding) (\meta{doc~encoding})]
+% Set font encoding used for typesetting code.  For example, |fontencoding=T1|.
+%
+%
 %   \item[fontfamily (family name) (tt)]
 %     The font family to use.
 %     |tt|, |courier| and |helvetica| are pre-defined.
+%
+%
 %   \item[fontseries (series name) (auto\textrm{ -- the same as the current font})]
 %     The font series to use.
-% \item [fontencoding (font encoding) (\meta{doc~encoding})]
-% Set font encoding used for typesetting code.  For example, |fontencoding=T1|.
-%   \item[fontsize (font size) (auto\textrm{ -- the same as the current font})]
-%     The size of the font to use, as a size command, e.g. |\footnotesize|.
+%
+%
 %   \item[fontshape (font shape) (auto\textrm{ -- the same as the current font})]
 %     The font shape to use.
+%
+%
+%   \item[fontsize (font size) (auto\textrm{ -- the same as the current font})]
+%     The size of the font to use, as a size command, e.g. |\footnotesize|.
+%
+%
 %   \item[formatcom (command) (\meta{none})]
 %     A format to execute before printing verbatim text.
 %   \item[frame (none \| leftline \| topline \| bottomline \| lines \| single) (none)]
@@ -1174,6 +1199,22 @@
 % This highlights a single line or a range of lines based on line numbers.  For example, |highlightlines={1, 3-4}|.  The line numbers refer to the line numbers that would appear if |linenos=true|, etc.  They do not refer to original or actual line numbers before adjustment by |firstnumber|.
 %
 % The highlighting color can be customized with |highlightcolor|.
+%
+%
+%   \item[ignorelexererrors (boolean) (false)]
+%     When lexer errors are shown in highlighted output (default), they are typically displayed as red boxes that surround the relevant text.  When lexer errors are ignored, the literal text that caused lexer errors is shown but there is no indication that it caused errors.
+%
+%   \begin{longexample}
+%   \begin{minted}{python}
+%   variable = !!!
+%   \end{minted}
+%   \end{longexample}
+%
+%   \begin{longexample}
+%   \begin{minted}[ignorelexererrors=true]{python}
+%   variable = !!!
+%   \end{minted}
+%   \end{longexample}
 %
 %
 %   \item[keywordcase (lower \| upper \| capitalize \| none) (none)]
@@ -1209,6 +1250,11 @@
 %   \end{minted}
 % \end{example}
 %
+%
+% \item[listparameters  (macro) (\meta{empty})]
+% \texpkg{fancyvrb} option for setting list-related lengths to modify spacing around lines of code.  For example, |listparameters=\setlength{\topsep}{0pt}| will remove space before and after a |minted| environment.
+%
+%
 % \item[literalenvname (string) (MintedVerbatim)]
 % This is the name of the environment that literally appears in highlighted code output as a wrapper around the code.  It is redefined to be equivalent to |envname|.  There should be few if any situations where modifying |literalenvname| rather than |envname| is actually necessary.
 %
@@ -1219,8 +1265,15 @@
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
 %
-% \item[listparameters  (macro) (\meta{empty})]
-% \texpkg{fancyvrb} option for setting list-related lengths to modify spacing around lines of code.  For example, |listparameters=\setlength{\topsep}{0pt}| will remove space before and after a |minted| environment.
+%   \item[mathescape (boolean) (false)]
+%     Enable \LaTeX{} math mode inside comments.
+%     Usage as in package \texpkg{listings}.
+%     See the note under \texttt{escapeinside} regarding math and ligatures.
+%
+%
+%   \item[numberblanklines (boolean) (true)]
+%     Enables or disables numbering of blank lines.
+%
 %
 % \item[numberfirstline (boolean) (false)]
 % Always number the first line, regardless of |stepnumber|.
@@ -1228,12 +1281,8 @@
 %
 %   \item[numbers (left \| right \| both \| none) (none)]
 %     Essentially the same as |linenos|, except the side on which the numbers appear may be specified.
-%   \item[mathescape (boolean) (false)]
-%     Enable \LaTeX{} math mode inside comments.
-%     Usage as in package \texpkg{listings}.
-%     See the note under \texttt{escapeinside} regarding math and ligatures.
-%   \item[numberblanklines (boolean) (true)]
-%     Enables or disables numbering of blank lines.
+%
+%
 %   \item[numbersep (dimension) (12pt)]
 %     Gap between numbers and start of line.
 %   \item[obeytabs (boolean) (false)]
@@ -1247,22 +1296,12 @@
 %     The color of the frame.
 %   \item[samepage (boolean) (false)]
 %     Forces the whole listing to appear on the same page, even if it doesn't fit.
-%   \item[ignorelexererrors (boolean) (false)]
-%     When lexer errors are shown in highlighted output (default), they are typically displayed as red boxes that surround the relevant text.  When lexer errors are ignored, the literal text that caused lexer errors is shown but there is no indication that it caused errors.
 %
-%   \begin{longexample}
-%   \begin{minted}{python}
-%   variable = !!!
-%   \end{minted}
-%   \end{longexample}
 %
-%   \begin{longexample}
-%   \begin{minted}[ignorelexererrors=true]{python}
-%   variable = !!!
-%   \end{minted}
-%   \end{longexample}
 %   \item[showspaces (boolean) (false)]
 %     Enables visible spaces: \verb*/visible spaces/.
+%
+%
 %   \item[showtabs (boolean) (false)]
 %     Enables visible tabs---only works in combination with |obeytabs|.
 %
@@ -1277,8 +1316,8 @@
 %
 %   \item[startinline (boolean) (false)] \appliesto{PHP}
 %     Specifies that the code starts in PHP mode, i.e., leading |<?php| is omitted.
-%   \item[style] (string) (\meta{default})
-%     Sets the stylesheet used by \app{Pygments}.
+%
+%
 %   \item[stepnumber (integer) (1)]
 %     Interval at which line numbers appear.
 %
@@ -1295,6 +1334,10 @@
 %     Strip all leading and trailing whitespace from the input.
 %   \item[stripnl (boolean) (false)]
 %     Strip leading and trailing newlines from the input.
+%
+%
+%   \item[style] (string) (\meta{default})
+%     Sets the stylesheet used by \app{Pygments}.
 %
 %
 % \item[tab (macro) ({\rmfamily\texpkg{fancyvrb}'s} \string\FancyVerbTab, \FancyVerbTab)]
