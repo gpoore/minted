@@ -59,7 +59,7 @@ positive_int_keys: set[str] = set([
     'rangeregexmatchnumber',
 ])
 other_keys_value_sets: dict[str, set[str]] = {
-    'keywordcase': set(['lower', 'upper' or 'capitalize']),
+    'keywordcase': set(['lower', 'upper', 'capitalize', 'none']),
 }
 other_keys_unchecked_str_value: set[str] = set([
     'codetagify',
@@ -165,7 +165,10 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
                 messages.append_error(rf'Key "{k}" has invalid value \detokenize{{"{v}"}} (expected positive integer)')
         elif k in other_keys_value_sets:
             if v in other_keys_value_sets[k]:
-                current_opts[k] = v
+                if v == 'none':
+                    current_opts[k] = None
+                else:
+                    current_opts[k] = v
             else:
                 valid_options = ', '.join(f'"{opt}"' for opt in other_keys_value_sets[k])
                 messages.append_error(rf'Key "{k}" has invalid value \detokenize{{"{v}"}} (expected {valid_options})')

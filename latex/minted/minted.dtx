@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/15 v3.0.0beta21 Yet another Pygments shim for LaTeX]
+    [2024/09/21 v3.0.0beta22 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -747,7 +747,6 @@
 % \end{longexample}
 %
 % Without the |lexerlinenos| option, the line numbering in the second Python environment would not pick up where the first Python environment left off.  Rather, it would pick up with the Ruby line numbering.
-
 %
 %
 % \DescribeMacro{newfloat=\meta{boolean} (default:~false)}
@@ -770,7 +769,7 @@
 % \subsection{Options for commands and environments}
 % \label{sec:options:macro}
 %
-% All \mintedpkg\ highlighting commands accept the same set of options.
+% All \mintedpkg\ highlighting commands and environment accept the same set of options.
 % Options are specified as a comma-separated list of |key=value| pairs.
 % For example, we can specify that the lines should be numbered:
 %
@@ -786,8 +785,6 @@
 % \end{example}
 %
 % An option value of |true| may also be omitted entirely (including the ``|=|'').
-% To customize the display of the line numbers further, override the |\theFancyVerbLine| command.
-% Consult the \texpkg{fancyvrb} documentation for details.
 %
 % |\mint| accepts the same options:
 %
@@ -798,7 +795,7 @@
 % Here's another example: we want to use the \LaTeX{} math mode inside comments:
 %
 % \begin{example}
-%   \begin{minted}[mathescape]{python}
+%   \begin{minted}[mathescape]{py}
 %   # Returns $\sum_{i=1}^{n}i$
 %   def sum_from_one_to(n):
 %       r = range(1, n + 1)
@@ -808,22 +805,25 @@
 %
 % To make your \LaTeX{} code more readable you might want to indent the code inside a |minted|
 % environment.
-% The option |gobble| removes these unnecessary whitespace characters from the output.  There is also an |autogobble| option that detects the length of this whitespace automatically.
+% The option |gobble| removes a specified number of characters from the output.  There is also an |autogobble| option that automatically removes indentation (dedents code).
 %
+% \begingroup
+% \setminted{autogobble=false}
 % \begin{example}
-%   \begin{minted}[gobble=2,
-%     showspaces]{python}
+% \begin{minted}[showspaces]{py}
 %     def boring(args = None):
 %         pass
-%   \end{minted}
+% \end{minted}
 %
-%   versus
+% versus
 %
-%   \begin{minted}[showspaces]{python}
+% \begin{minted}[gobble=4,
+%   showspaces]{py}
 %     def boring(args = None):
 %         pass
-%   \end{minted}
+% \end{minted}
 % \end{example}
+% \endgroup
 %
 % \DescribeMacro{\setminted}
 % You may wish to set options for the document as a whole, or for an entire lexer (language).  This is possible via \cmd\setminted\oarg{lexer}\marg{key=value,...}.  Lexer-specific options override document-wide options.  Individual command and environment options override lexer-specific options.
@@ -1172,8 +1172,8 @@
 % The highlighting color can be customized with |highlightcolor|.
 %
 %
-%   \item[keywordcase] (string) (lower)
-%     Changes capitalization of keywords.  Takes |lower|, |upper|, or |capitalize|.
+%   \item[keywordcase] (string) (none)
+%     Changes capitalization of keywords.  Takes |lower|, |upper|, |capitalize|, or |none|.
 %   \item[label (string) (\emph{empty})]
 %     Add a label to the top, the bottom or both of the frames around the code.
 %     See the \texpkg{fancyvrb} documentation for more information and examples.
@@ -3008,7 +3008,7 @@
   funcnamehighlighting<true>=true,
   gobble=0,
   gobblefilter=0,
-  keywordcase=lower,
+  keywordcase=none,
   literalenvname=MintedVerbatim,
   mathescape<true>=false,
   python3<true>=true,
