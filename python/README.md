@@ -1,4 +1,4 @@
-# `latexminted` — Python executable for LaTeX minted package
+# `latexminted` — Python library for LaTeX minted package
 
 This Python package provides the Python side of the LaTeX
 [`minted`](https://github.com/gpoore/minted) package.  It performs syntax

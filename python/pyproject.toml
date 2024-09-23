@@ -4,7 +4,7 @@ requires = ['setuptools']
 
 [project]
 name = 'latexminted'
-description = 'Python executable for LaTeX minted package'
+description = 'Python library for LaTeX minted package'
 readme = 'README.md'
 requires-python = '>= 3.8'
 authors = [
@@ -39,7 +39,7 @@ classifiers = [
 [project.urls]
 homepage = 'https://github.com/gpoore/minted/tree/main/python/'
 repository = 'https://github.com/gpoore/minted'
-changelog = 'https://github.com/gpoore/minted/blob/main/python/CHANGELOG.md'
+changelog = 'https://github.com/gpoore/minted/blob/main/python/CHANGELOG_LATEXMINTED_PYTHON_PACKAGE.md'
 
 
 [project.scripts]
