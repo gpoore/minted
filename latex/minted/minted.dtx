@@ -105,9 +105,8 @@
   \small}
 
 \definecolor{minted@mint}{HTML}{0B610B}
-\definecolor{minted@samplebg}{HTML}{F0F0E0}
 \colorlet{minted@linkcolor}{minted@mint}
-%
+
 \def\PrintDescribeMacro#1{\strut \MacroFont\textcolor{minted@linkcolor}{\string #1\ }}
 \let\PrintDescribeEnv\PrintDescribeMacro
 \let\PrintMacroName\PrintDescribeMacro
@@ -239,12 +238,15 @@
  {\par}
 
 \edef\hashchar{\string#}
+
+
+\renewcommand*\l@subsection{\@dottedtocline{2}{1.5em}{3em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{4.5em}{3.8em}}
+
+
 \makeatother
 
-%\setlength{\parindent}{0pt}
-%\addtolength{\parskip}{0.5\baselineskip}
 
-\def\warn{\textcolor{red}{\large\textbf{\textsf{WARNING}}}}
 
 
 \newenvironment{mintedexample}%
@@ -281,8 +283,6 @@
 % \date{\fileversion~from \filedate}
 %
 % \maketitle
-%
-% {\Large\textbf{\textcolor{red}{WARNING: This is the development version of \mintedpkg.  This software has not been officially released and is not intended for general use.  The documentation will not be updated with v3 features until further testing and feature finalization have occurred.  See CHANGELOG for current details about v3 features and changes.}}}
 %
 % \begin{abstract}
 %   \noindent\mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{\app{Pygments}} library.  It also provides options for customizing the highlighted source code output, including features implemented in Python such as selecting snippets of code with regular expressions.
