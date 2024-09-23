@@ -1,79 +1,17 @@
 # `minted` — highlighted source code for LaTeX
 
 
-## Development status
-
-This is the development branch for `minted` version 3.0.  Beta releases are
-now available.  Essentially all planned new features have been implemented
-and should be usable.  However, the beta is not intended for general use.
-Additional testing and security review are still needed.
-
-The documentation in `minted.dtx` will not be updated to reflect all changes
-until v3.0 is released.  Refer to `latex/CHANGELOG.md` for the current list
-of changes from v2.9.
-
-Steps for installing the current beta version:
-
-1.  Install `minted.sty` (and `minted2.sty` if you need backward compatibility
-    with v2.9).  These are located under `latex/minted/`.  To test one or both
-    of these with a single document, simply download them and put them in the
-    same directory (folder) with the document.  To try them with multiple
-    documents, you can install them within your TeX distribution.  You could
-    simply replace the existing `minted.sty`, but it will typically be better
-    to put the files under `TEXMFLOCAL`, which can be located by running
-    `kpsewhich --var-value TEXMFLOCAL`.  For example, you might put the files
-    under `<path>/texmf-local/tex/latex/local/minted`.
-
-2.  Install the new Python executable and required libraries.  There are two
-    ways to do this.  The first method is equivalent to the process that will
-    be performed automatically once `minted` v3.0 is released and available
-    from CTAN; the second method is an alternative that may be simpler for
-    testing.
-
-      * Download `latexminted.py` from `latex/restricted/` in this repository.
-        Put it under `texmf-dist/scripts/minted` in your TeX installation.  At
-        the beginning of the `latexminted.py` file are links to three Python
-        wheels that are the dependencies for the script.  Download these
-        wheels and put them in the same directory (folder) as
-        `latexminted.py`.
-
-        Under Windows, an additional step is required.  The following
-        description is for TeX Live; an equivalent process is needed for
-        MiKTeX.  Within the TeX installation under `bin/windows/`, create a
-        copy of `runscript.exe` and then rename the copy to `latexminted.exe`.
-
-        Under other operating system, you may need to make `latexminted.py`
-        executable.
-
-      * Alternative:  Install the new Python package `latexminted`, available
-        from the
-        [Python Package Index (PyPI)](https://pypi.org/project/latexminted/).
-        For example, `python -m pip install latexminted`.  Depending on your
-        system configuration, you may want `python3` instead of `python`, may
-        need to add `--user`, or may need to make other modifications to the
-        installation command.  It is also possible to download the Python
-        source from the `python/` directory in this repository and install
-        `latexminted` that way.  When the `latexminted` Python package is
-        installed, it will also install `latex2pydata` and Pygments, and
-        create a `latexminted` executable.
-
-3.  Run `texhash` to update TeX's index with the new files.
-
-Development of v3.0 is thanks to a
-[TeX Development Fund grant](https://tug.org/tc/devfund/grants.html) from the
-[TeX Users Group](https://tug.org/).
-
-
-
 ## Overview
 
-`minted` is a LaTeX package that facilitates expressive syntax highlighting
-using the Pygments library.  The package also provides options to customize
-the highlighted source code output using `fancyvrb`.
+`minted` is a LaTeX package that provides syntax highlighting using the
+[Pygments](https://pygments.org/) library.  The package also provides options
+for customizing the highlighted source code output, including features
+implemented in Python such as selecting snippets of code with regular
+expressions.
 
-For instance, this code:
+For example, this LaTeX code
 
-``` latex
+```latex
 \begin{minted}[mathescape,
                linenos,
                numbersep=5pt,
@@ -90,20 +28,18 @@ const double pi = 3.1415926535
 \end{minted}
 ```
 
-will produce the following rendering:
+will produce the following when compiled with LaTeX
 
-![screenshot](https://i.stack.imgur.com/OLUjl.png)
+![screenshot](https://raw.githubusercontent.com/gpoore/minted/main/readme_example.png)
 
-See the [documentation](https://github.com/gpoore/minted/blob/master/source/minted.pdf)
+See the [documentation](https://github.com/gpoore/minted/blob/main/latex/minted/minted.pdf)
 for examples and installation instructions.
 
 
 ## Availability
 
 `minted` is distributed with both TeX Live and MiKTeX. It is also available
-from [CTAN](https://www.ctan.org/pkg/minted).  In any case,
-[Python](https://python.org/) and [Pygments](https://pygments.org/download/)
-need to be installed separately.
+from [CTAN](https://www.ctan.org/pkg/minted).
 
 
 ## License
