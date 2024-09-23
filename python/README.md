@@ -120,13 +120,11 @@ be encoded as UTF-8.
   and the corresponding hashes are permitted.  Lists of hashes are allowed to
   permit multiple versions of a lexer with a given file name.  All other
   custom lexers are prohibited, because loading custom lexers is equivalent to
-  arbitrary code execution.
-
-  By default, it is assumed that custom lexer files implement a class `CustomLexer`.  This can be modified by including the lexer class name with the file name, separated by a colon.  For example:
+  arbitrary code execution.  For example:
 
   ```
   "custom_lexers": {
-    "mylexer.py:LexerClassName": "<sha256>"
+    "mylexer.py": "<sha256>"
   }
   ```
 
