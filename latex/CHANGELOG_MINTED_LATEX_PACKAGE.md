@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.0.0 (dev)
+## v3.0.0 (2024/09/22)
 
 *  Backward compatibility:  The new `minted2` package provides the features of
    `minted` v2.9, the final release before v3.  No additional v2 releases are

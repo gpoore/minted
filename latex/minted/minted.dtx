@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/22 v3.0.0beta24 Yet another Pygments shim for LaTeX]
+    [2024/09/22 v3.0.0 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -285,7 +285,7 @@
 % \maketitle
 %
 % \begin{abstract}
-%   \noindent\mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{\app{Pygments}} library.  It also provides options for customizing the highlighted source code output, including features implemented in Python such as selecting snippets of code with regular expressions.
+%   \noindent\mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{Pygments} library.  It also provides options for customizing the highlighted source code output, including features implemented in Python such as selecting snippets of code with regular expressions.
 %
 % \vspace{0.5in}
 % \noindent The original development of \mintedpkg\ version 3 was funded by a \href{https://tug.org/tc/devfund/grants.html}{\TeX\ Development Fund grant} from the \href{https://tug.org/}{\TeX\ Users Group} in 2023.
@@ -311,14 +311,14 @@
 %
 %
 %
-% \mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{\app{Pygments}} library.  The general strategy is to wrap code in a command or environment that captures it verbatim, like this:
+% \mintedpkg\ provides syntax highlighting using the \href{https://pygments.org/}{Pygments} library.  The general strategy is to wrap code in a command or environment that captures it verbatim, like this:
 %\begin{mintedexample}[frame=single]{latex}
 %\begin{minted}{<language>}
 %<code>
 %\end{minted}
 %\end{mintedexample}
 %
-% Then the code is passed to Python, highlighted with \app{Pygments}, and passed back to \LaTeX\ for inclusion in the document.  Here is an example with Ruby code, showing the \LaTeX\ source and then the highlighted output:
+% Then the code is passed to Python, highlighted with Pygments, and passed back to \LaTeX\ for inclusion in the document.  Here is an example with Ruby code, showing the \LaTeX\ source and then the highlighted output:
 %
 % \begin{example}
 % \begin{minted}{ruby}
@@ -331,7 +331,7 @@
 % \end{minted}
 % \end{example}
 %
-% Because \mintedpkg\ uses \app{Pygments} and other Python software, it can provide more highlighting features than are practical in syntax highlighting packages like \href{ https://ctan.org/pkg/listings}{\texpkg{listings}} that are implemented purely in \LaTeX.  In the past, this reliance on external software brought several disadvantages, including a requirement for separately installing \app{Pygments}.  As of \mintedpkg\ version 3, all Python software including \app{Pygments} is bundled with the \LaTeX\ package when it is installed with a \TeX\ package manager, and no dependencies must be installed separately.
+% Because \mintedpkg\ uses Pygments and other Python software, it can provide more highlighting features than are practical in syntax highlighting packages like \href{ https://ctan.org/pkg/listings}{\texpkg{listings}} that are implemented purely in \LaTeX.  In the past, this reliance on external software brought several disadvantages, including a requirement for separately installing Pygments.  As of \mintedpkg\ version 3, all Python software including Pygments is bundled with the \LaTeX\ package when it is installed with a \TeX\ package manager, and no dependencies must be installed separately.
 %
 %
 % \section{Installation}
@@ -343,7 +343,7 @@
 % \item TeX Live: |tlmgr install minted|
 % \item MiKTeX: |mpm --admin --install=minted|
 % \end{itemize}
-% When the \mintedpkg\ package is installed, it includes the |latexminted| Python executable and all required Python libraries including \app{Pygments}.  For these to function correctly, Python 3.8+ must be installed and on |PATH| when the |latexminted| executable runs.
+% When the \mintedpkg\ package is installed, it includes the |latexminted| Python executable and all required Python libraries including Pygments.  For these to function correctly, Python 3.8+ must be installed and on |PATH| when the |latexminted| executable runs.
 %
 % Note that if you plan to use Pygments plugin packages, you will need to install the \pypkg{latexminted} Python package and dependencies including Pygments within a Python installation.  The Python libraries installed by a \TeX\ package manager within a \TeX\ installation are not compatible with plugin packages.  After installing \pypkg{latexminted} within a Python installation, make sure that its |latexminted| executable has precedence on |PATH|.
 %
@@ -372,7 +372,7 @@
 %
 % \mintedpkg\ source files are available at  \href{https://github.com/gpoore/minted}{|github.com/gpoore/minted|}.  There is also \href{https://ctan.org/pkg/minted}{|ctan.org/pkg/minted|}.
 %
-% Install |minted.sty| (and |minted2.sty| and |minted1.sty| if desired) within your \TeX\ installation.  For TeX Live, it may be best to put style files under |TEXMFLOCAL|, which can be located by running |kpsewhich --var-value TEXMFLOCAL|.  For example, you might put the files in |<texlive>/<year>/texmf-local/tex/latex/local/minted|.  For further details, consult your \TeX\ distribution's documentation, or an online guide such as \href{https://en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}{\Verb{en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}} or \href{https://texfaq.org/}{\Verb|texfaq.org|}.  After installing the |.sty| files, make TeX aware of the new files by running |texhash| or |mktexlsr| (TeX Live), or |initexmf --update-fndb| (MiKTeX).
+% Install |minted.sty| (and |minted2.sty| and |minted1.sty| if desired) within your \TeX\ installation.  For TeX Live, it may be best to put style files under |TEXMFLOCAL|, which can be located by running |kpsewhich --var-value TEXMFLOCAL|.  For example, you might put the files in |<texlive>/<year>/texmf-local/tex/latex/local/minted|.  For further details, consult your \TeX\ distribution's documentation, or an online guide such as \href{https://en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}{\Verb{en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages}} or \href{https://texfaq.org/}{\Verb|texfaq.org|}.  After installing the |.sty| files, make \TeX\ aware of the new files by running |texhash| or |mktexlsr| (TeX Live), or |initexmf --update-fndb| (MiKTeX).
 %
 % Next, install the Python side of the package.  Python 3.8+ is required.  There are two options:  Install the \pypkg{latexminted} package and dependencies within a Python installation (typically easier, and required for compatibility with Pygments plugin packages), or install them within your \TeX\ installation.
 %
@@ -397,7 +397,7 @@
 %
 % This approach is more involved and essentially replicates the process that is performed automatically when using a \TeX\ package manager.
 %
-% Install the |latexminted.py| executable within your \TeX\ installation.  This should typically be within a |scripts| directory.  When TeX Live installs \mintedpkg\ with its package manager, this is something like |<texlive>/<year>/texmf-dist/scripts/minted|.
+% Install the |latexminted.py| executable within your \TeX\ installation.  (It is part of the \mintedpkg\ \LaTeX\ package, separate from the \pypkg{latexminted} Python package.)  This should typically be within a |scripts| directory.  When TeX Live installs \mintedpkg\ with its package manager, this is something like |<texlive>/<year>/texmf-dist/scripts/minted|.
 %
 % Download Python wheels (|*.whl|) for the following Python packages, and place them in the same location as |latexminted.py|.
 % \begin{itemize}
@@ -566,7 +566,7 @@
 % \DescribeMacro{\usemintedstyle}
 %
 % \DescribeMacro{\setminted}
-% Instead of using the default highlighting style you may choose another style provided by \app{Pygments}.  There are two equivalent ways to do this:
+% Instead of using the default highlighting style you may choose another style provided by Pygments.  There are two equivalent ways to do this:
 %
 % \begin{minted}{latex}
 % \usemintedstyle{name}
@@ -584,7 +584,7 @@
 %
 % \subsection{Supported languages}
 %
-% \app{Pygments} supports hundreds of different programming languages, template languages, and other markup languages.  The list of currently supported languages is at \href{https://pygments.org/docs/lexers/}{pygments.org/docs/lexers/}. You can also run |pygmentize -L lexers|.
+% Pygments supports hundreds of different programming languages, template languages, and other markup languages.  The list of currently supported languages is at \href{https://pygments.org/docs/lexers/}{pygments.org/docs/lexers/}. You can also run |pygmentize -L lexers|.
 %
 %
 %
@@ -1079,7 +1079,7 @@
 % \end{longexample}
 % \endgroup
 %
-%     Automatic line breaks are limited with \app{Pygments} styles that use a colored background behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \texpkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
+%     Automatic line breaks are limited with Pygments styles that use a colored background behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \texpkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
 %\begin{Verbatim}
 %\AtBeginEnvironment{minted}{\renewcommand{\colorbox}[3][]{#3}}
 %\end{Verbatim}
@@ -1441,7 +1441,7 @@
 %
 %
 %   \item[style] (string) (\meta{default})
-%     Sets the stylesheet used by \app{Pygments}.
+%     Sets the stylesheet used by Pygments.
 %
 %
 % \item[tab (macro) ({\rmfamily\texpkg{fancyvrb}'s} \string\FancyVerbTab, \FancyVerbTab)]
