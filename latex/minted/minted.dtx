@@ -1805,6 +1805,10 @@
   \endgroup
 \fi
 %    \end{macrocode}
+% To unify the structure of this macro to be able to compare it using |\ifx| it has to be converted to a string.
+%    \begin{macrocode}
+\xdef\minted@timestamp{\expandafter\detokenize\expandafter{\minted@timestamp}}
+%    \end{macrocode}
 % \end{macro}
 %
 %
@@ -2519,6 +2523,12 @@
   \ifx\minted@executable@version\relax
     \expandafter\minted@detectconfig@noexecutable
   \else
+%    \end{macrocode}
+% The category codes inside the time stamps may differ depending on how the timestamp was defined.
+% They are converted to strings so that the comparison will not fail depending on the category codes.
+%    \begin{macrocode}
+    \xdef\minted@config@timestamp{\expandafter\detokenize\expandafter{\minted@config@timestamp}}%
+    \xdef\minted@executable@timestamp{\expandafter\detokenize\expandafter{\minted@executable@timestamp}}%
     \expandafter\minted@detectconfig@ii
   \fi}
 \def\minted@detectconfig@noexecutable{%
