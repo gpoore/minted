@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/09/22 v3.0.0 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -276,7 +276,7 @@
     Package option "final" no longer has any effect with minted v3+},
 }
 \ProcessPgfOptions{/minted/pkg}
-\ifbool{minted@cache}{}{\def\minted@cachedir{}}%
+\ifbool{minted@cache}{}{\minted@pgfopts{highlightmode=immediate,cachedir=,}}
 \ifbool{minted@newfloat}{\RequirePackage{newfloat}}{\RequirePackage{float}}
 \ifcsname tikzifexternalizing\endcsname
   \ifx\tikzifexternalizing\relax

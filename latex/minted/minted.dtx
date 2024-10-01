@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/09/22 v3.0.0 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -756,7 +756,7 @@
 %
 %
 % \DescribeMacro{highlightmode=\meta{string} (default:~fastfirst)}
-% Determines when code is highlighted.
+% Determines when code is highlighted.  This only has an effect when |cache=true|.
 %
 % The default is |fastfirst|.  If a cache for the document exists, then code is highlighted immediately.  If a cache for the document does not exist, then typeset a placeholder instead of code and highlight all code at the end of the document.  This will require a second compile before code is typeset, but because all code is highlighted at once, there is less overhead and the total time required can be significantly less for documents that include many code snippets.
 %
@@ -2162,7 +2162,7 @@
 %
 %    \begin{macrocode}
 \ProcessPgfOptions{/minted/pkg}
-\ifbool{minted@cache}{}{\def\minted@cachedir{}}%
+\ifbool{minted@cache}{}{\minted@pgfopts{highlightmode=immediate,cachedir=,}}
 \ifbool{minted@newfloat}{\RequirePackage{newfloat}}{\RequirePackage{float}}
 \ifcsname tikzifexternalizing\endcsname
   \ifx\tikzifexternalizing\relax

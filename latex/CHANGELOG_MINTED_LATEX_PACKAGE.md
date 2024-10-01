@@ -1,5 +1,11 @@
 # Changelog — minted LaTeX package
 
+## v3.1.0 (dev)
+
+*  Fixed bug when `cache=false`.  When caching is disabled, `highlightmode` is
+   now set to `immediate`.
+
+
 
 ## v3.0.0 (2024/09/22)
 
@@ -348,6 +354,7 @@
 *  Standard catcodes are now enforced in reading the optional argument of
    environments that wrap Pygments output.  This prevents issues with
    `babel`'s `magyar` (#382).
+
 
 
 ## v2.9 (2023/12/18)
