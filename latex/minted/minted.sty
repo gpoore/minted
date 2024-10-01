@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/01 v3.1.0dev1 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev2 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -1342,7 +1342,8 @@
         \input{\minted@highlightfilepath}}%
       \minted@addcachefilename{\minted@highlightfilename}}%
      {\ifbool{minted@canexec}%
-       {\minted@highlight@create}%
+       {\minted@iffasthighlightmode@buffertempfile
+        \minted@highlight@create}%
        {\minted@error{Cannot highlight code (minted executable is unavailable or
           disabled); attempting to typeset without highlighting}%
         \minted@highlight@fallback}}}%
@@ -1408,6 +1409,101 @@
       \minted@highlight@fallback}}}
 \def\minted@highlight@fallback{%
   \minted@insertplaceholder}
+\begingroup
+\def\minted@set@tempfileextension#1{%
+  \if\relax\detokenize{#1}\relax
+  \else
+    \expandafter\global\expandafter
+      \let\csname minted@buffertempfileextension@#1\endcsname\relax
+  \fi}
+\minted@forcsvlist{\minted@set@tempfileextension}{
+  listing,
+  out,
+  outfile,
+  output,
+  temp,
+  tempfile,
+  tmp,
+  verb,
+  vrb,
+}
+\endgroup
+\begingroup
+\catcode`\/=12
+\catcode`\.=12
+\gdef\minted@iffasthighlightmode@buffertempfile{%
+  \ifbool{minted@fasthighlightmode}%
+   {\ifcsname minted@inputfilepath\endcsname
+      \expandafter\@firstofone
+    \else
+      \expandafter\@gobble
+    \fi
+     {\expandafter
+        \minted@iffasthighlightmode@buffertempfile@i\minted@inputfilepath/\FV@Sentinel}}%
+   {}}
+\gdef\minted@iffasthighlightmode@buffertempfile@i#1/#2\FV@Sentinel{%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+   {\minted@iffasthighlightmode@buffertempfile@ii#1.\FV@Sentinel}%
+   {\minted@iffasthighlightmode@buffertempfile@i#2\FV@Sentinel}}
+\gdef\minted@iffasthighlightmode@buffertempfile@ii#1.#2\FV@Sentinel{%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\@gobble
+  \else
+    \expandafter\@firstofone
+  \fi
+   {\minted@iffasthighlightmode@buffertempfile@iii#2\FV@Sentinel}}
+\gdef\minted@iffasthighlightmode@buffertempfile@iii#1.\FV@Sentinel{%
+  \ifcsname minted@buffertempfileextension@#1\endcsname
+    \expandafter\@firstofone
+  \else
+    \expandafter\@gobble
+  \fi
+   {\minted@iffasthighlightmode@buffertempfile@iv}}
+\endgroup
+\def\minted@iffasthighlightmode@buffertempfile@iv{%
+  \begingroup
+  \setcounter{minted@tmpcodebufferlength}{0}%
+  \newread\minted@intempfile
+  \openin\minted@intempfile=\minted@inputfilepath
+  \let\do\@makeother\FVExtraDoSpecials
+  \loop\unless\ifeof\minted@intempfile
+    \read\minted@intempfile to\minted@intempfileline
+    \stepnewcounter{minted@tmpcodebufferlength}%
+    \expandafter\global\expandafter\let\csname
+      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
+      \endcsname\minted@intempfileline
+  \repeat
+  \closein\minted@intempfile
+  \endgroup
+  \edef\minted@inputfilemdfivesum@check{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
+    \expandafter\@gobble
+  \else
+    \expandafter\@firstofone
+  \fi
+   {\VerbatimClearBuffer[buffername=minted@tmpcodebuffer]}%
+  \ifnum\value{minted@tmpcodebufferlength}>0\relax
+    \expandafter\@firstofone
+  \else
+    \expandafter\@gobble
+  \fi
+   {\minted@iffasthighlightmode@buffertempfile@v}}
+\def\minted@iffasthighlightmode@buffertempfile@v{%
+  \pydatabufferkey{code}%
+  \pydatabuffermlvaluestart
+  \setcounter{minted@tmpcnt}{1}%
+  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@tmpcodebufferlength}\relax
+    \expandafter\let\expandafter
+      \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
+    \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
+    \stepcounter{minted@tmpcnt}%
+  \repeat
+  \pydatabuffermlvalueend
+  \VerbatimClearBuffer[buffername=minted@tmpcodebuffer]}
 \newcommand{\setminted}[2][]{%
   \ifstrempty{#1}%
    {\pgfkeys{/minted/global/.cd,#2}}%

@@ -2,6 +2,13 @@
 
 ## v3.1.0 (dev)
 
+*  Temporary files with common file extensions are now automatically detected
+   and processed correctly regardless of `highlightmode` (#401).  Previously,
+   `highlightmode=immediate` was needed for working with temp files that are
+   overwritten or deleted during compilation; the default
+   `highlightmode=fastfirst` gave an error message during the first compile
+   but worked correctly during subsequent compiles.
+
 *  Fixed bug when `cache=false`.  When caching is disabled, `highlightmode` is
    now set to `immediate`.
 
