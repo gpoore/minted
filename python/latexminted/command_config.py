@@ -47,7 +47,7 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
                         tex_cachepath = (openout_root / tex_cachedir).relative_to(MintedTempRestrictedPath.tex_cwd()).as_posix()
                     except ValueError:
                         tex_cachepath = (openout_root / tex_cachedir).as_posix()
-                if not tex_cachepath.endswith('/'):
+                if tex_cachepath and not tex_cachepath.endswith('/'):
                     tex_cachepath += '/'
                 config_lines.append(rf'\gdef\minted@config@cachepath{{{tex_cachepath}}}%')
                 config_file.write('\n'.join(config_lines))
