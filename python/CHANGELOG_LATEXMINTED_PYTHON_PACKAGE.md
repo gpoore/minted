@@ -2,6 +2,13 @@
 
 ## v0.2.0 (dev)
 
+*  In a cache, `*.index.minted` files are now overwritten only when the data
+   they contain is modified.  This fixes compatibility with build tools
+   (T-F-S/tcolorbox/issues/294).
+
+*  Fixed a bug that could prevent a cache from being fully cleaned when it is
+   shared by multiple documents.
+
 *  All file reading and writing for files received from/sent to LaTeX is now
    UTF-8 (#411).
 

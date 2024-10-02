@@ -81,16 +81,17 @@ def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: di
     timestamp_date = date.fromisoformat(f'{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}')
     cache_path = MintedTempRestrictedPath(data['cachepath'])
     current_index_name = f'_{md5}.index.minted'
-    used_cache_files: set[str] = set()
-    used_cache_files.add(current_index_name)
+    current_index_cache_files: set[str] = set()
+    current_index_cache_files.add(current_index_name)
     if additional_cache_file_names is not None:
-        used_cache_files.update(additional_cache_file_names)
-    used_cache_files.update(data['cachefiles'])
+        current_index_cache_files.update(additional_cache_file_names)
+    current_index_cache_files.update(data['cachefiles'])
 
+    old_current_index_cache_files: set[str] = set()
+    used_cache_files: set[str] = set()
+    used_cache_files.update(current_index_cache_files)
+    did_delete_old_index: bool = False
     for index_path in cache_path.glob('*.index.minted'):
-        if index_path.name == current_index_name:
-            continue
-
         try:
             index_data = json_loads(index_path.read_bytes())
         except PathSecurityError:
@@ -110,6 +111,7 @@ def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: di
             # Delete index files more than 30 days old
             try:
                 index_path.unlink(missing_ok=True)
+                did_delete_old_index = True
             except PathSecurityError:
                 messages.append_error(
                     rf'Cannot delete file \detokenize{{"{index_data.name}"}} outside working directory, \detokenize{{TEXMFOUTPUT}}, and \detokenize{{TEXMF_OUTPUT_DIRECTORY}}'
@@ -118,25 +120,30 @@ def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: di
                 messages.append_error(rf'Insufficient permission to delete outdated cache file \detokenize{{"{index_path.name}"}}')
             continue
 
-        used_cache_files.add(index_path.name)
-        used_cache_files.update(index_data['cachefiles'])
+        if index_path.name == current_index_name:
+            old_current_index_cache_files.update(index_data['cachefiles'])
+        else:
+            used_cache_files.update(index_data['cachefiles'])
 
-    for minted_path in cache_path.glob('*.minted'):
-        if minted_path.name not in used_cache_files:
-            try:
-                minted_path.unlink(missing_ok=True)
-            except PathSecurityError:
-                messages.append_error(
-                    rf'Cannot delete file \detokenize{{"{minted_path.name}"}} outside working directory, \detokenize{{TEXMFOUTPUT}}, and \detokenize{{TEXMF_OUTPUT_DIRECTORY}}'
-                )
-            except PermissionError:
-                messages.append_error(rf'Insufficient permission to delete unused cache file \detokenize{{"{minted_path.name}"}}')
+    if did_delete_old_index or current_index_cache_files != old_current_index_cache_files:
+        for minted_path in cache_path.glob('*.minted'):
+            if minted_path.name not in used_cache_files:
+                try:
+                    minted_path.unlink(missing_ok=True)
+                except PathSecurityError:
+                    messages.append_error(
+                        rf'Cannot delete file \detokenize{{"{minted_path.name}"}} outside working directory, \detokenize{{TEXMFOUTPUT}}, and \detokenize{{TEXMF_OUTPUT_DIRECTORY}}'
+                    )
+                except PermissionError:
+                    messages.append_error(rf'Insufficient permission to delete unused cache file \detokenize{{"{minted_path.name}"}}')
 
+    if current_index_cache_files == old_current_index_cache_files:
+        return
     new_index_data = {
         'jobname': data['jobname'],
         'md5': md5,
         'timestamp': timestamp,
-        'cachefiles': sorted(used_cache_files),
+        'cachefiles': sorted(current_index_cache_files),
     }
     new_index_path = cache_path / current_index_name
     try:
