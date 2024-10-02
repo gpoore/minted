@@ -46,9 +46,13 @@ def main():
         from .command_clean import clean
         clean(**kwargs)
 
-    def clean_file(**kwargs):
-        from .command_clean import clean_file
-        clean_file(**kwargs)
+    def clean_config(**kwargs):
+        from .command_clean import clean_config_temp
+        clean_config_temp(**kwargs)
+
+    def clean_temp(**kwargs):
+        from .command_clean import clean_temp_except_errlog
+        clean_temp_except_errlog(**kwargs)
 
     def config(**kwargs):
         from .command_config import config
@@ -66,41 +70,52 @@ def main():
     parser_batch.set_defaults(func=batch)
     parser_batch.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_batch.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_batch.add_argument('md5', help=r'MD5 hash based \jobname')
+    parser_batch.add_argument('md5', help=r'MD5 hash based on \jobname')
 
     parser_clean = subparsers.add_parser('clean', help='Clean up temp files and unused cache files')
     parser_clean.set_defaults(func=clean)
     parser_clean.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_clean.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_clean.add_argument('md5', help=r'MD5 hash based \jobname')
+    parser_clean.add_argument('md5', help=r'MD5 hash based on \jobname')
 
-    parser_cleanfile = subparsers.add_parser('cleanfile', help='Clean up a particular temp file')
-    parser_cleanfile.set_defaults(func=clean_file)
-    parser_cleanfile.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_cleanfile.add_argument('file', help='File to clean')
+    parser_cleanconfig = subparsers.add_parser('cleanconfig', help='Clean up config temp file')
+    parser_cleanconfig.set_defaults(func=clean_config)
+    parser_cleanconfig.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
+    parser_cleanconfig.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
+    parser_cleanconfig.add_argument('md5', help=r'MD5 hash based on \jobname')
+
+    parser_cleantemp = subparsers.add_parser('cleantemp', help='Clean up temp files')
+    parser_cleantemp.set_defaults(func=clean_temp)
+    parser_cleantemp.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
+    parser_cleantemp.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
+    parser_cleantemp.add_argument('md5', help=r'MD5 hash based on \jobname')
 
     parser_config = subparsers.add_parser('config', help='Detect configuration and save it to file for \\input')
     parser_config.set_defaults(func=config)
     parser_config.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_config.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_config.add_argument('md5', help=r'MD5 hash based \jobname')
+    parser_config.add_argument('md5', help=r'MD5 hash based on \jobname')
 
     parser_highlight = subparsers.add_parser('highlight', help='Highlight code and save it to file for \\input')
     parser_highlight.set_defaults(func=highlight)
     parser_highlight.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_highlight.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_highlight.add_argument('md5', help=r'MD5 hash based \jobname')
+    parser_highlight.add_argument('md5', help=r'MD5 hash based on \jobname')
 
     parser_styledef = subparsers.add_parser('styledef', help='Generate highlighting style definition and save it to file for \\input')
     parser_styledef.set_defaults(func=styledef)
     parser_styledef.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
     parser_styledef.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_styledef.add_argument('md5', help=r'MD5 hash based \jobname')
+    parser_styledef.add_argument('md5', help=r'MD5 hash based on \jobname')
 
     cmdline_args = parser.parse_args()
 
-    func_keys = set(['md5', 'file', 'timestamp', 'debug'])
+    func_keys = set(['md5', 'timestamp', 'debug'])
     func_args = {k: v for k, v in vars(cmdline_args).items() if k in func_keys}
+    if cmdline_args.subparser_name in ('cleanconfig', 'cleantemp'):
+        # Some functions don't need all arguments
+        func_args.pop('debug')
+        func_args.pop('timestamp')
     md5: str | None = func_args.get('md5')
     timestamp: str | None = func_args.get('timestamp')
     if md5 is None or timestamp is None:

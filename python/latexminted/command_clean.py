@@ -24,19 +24,10 @@ paths_skipped_in_initial_temp_cleaning: set[MintedTempRestrictedPath] = set()
 
 all_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
 all_roles_less_errlog = [x for x in all_roles if x != 'errlog']
+config_roles = ['config']
 message_roles = ['message', 'errlog']
 
 
-
-
-def clean_file(*, file: str, debug: bool):
-    if debug:
-        return
-    for path in MintedTempRestrictedPath.tex_roots():
-        try:
-            (path / file).unlink(missing_ok=True)
-        except (PermissionError, PathSecurityError):
-            pass
 
 
 def clean_messages(*, md5: str):
@@ -74,6 +65,10 @@ def clean_initial_temp(*, md5: str):
 
 def clean_temp_except_errlog(*, md5: str):
     _clean_temp(md5=md5, roles=all_roles_less_errlog, skipped=None)
+
+
+def clean_config_temp(*, md5: str):
+    _clean_temp(md5=md5, roles=config_roles, skipped=None)
 
 
 def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str],
