@@ -12,6 +12,11 @@
 *  Fixed bug when `cache=false`.  When caching is disabled, `highlightmode` is
    now set to `immediate`.
 
+*  The minimum supported `latexminted` version is now 0.2.0.  The new
+   `latexminted` subcommand `cleantemp` is now used instead of `clean` when
+   the cache does not require cleaning.  This prevents errors when
+   `cache=false`.
+
 
 
 ## v3.0.0 (2024/09/22)

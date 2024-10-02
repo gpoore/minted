@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/01 v3.1.0dev2 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1714,7 +1714,7 @@
 %
 % \begin{macro}{\minted@executable@minversion}
 %    \begin{macrocode}
-\edef\minted@executable@minversion{\detokenize{0.1.0}}
+\edef\minted@executable@minversion{\detokenize{0.2.0}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2394,20 +2394,6 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@exec@cleanfile}
-% Clean (delete) a temp file in all locations where it might be expected to exist.  Only files under the working directory, |TEXMFOUTPUT|, or |TEXMF_OUTPUT_DIRECTORY| can be cleaned, and only if their names match the regex
-%\begin{verbatim}
-%[0-9a-zA-Z_-]+\.(?:config|data|errlog|highlight|message|style)\.minted
-%\end{verbatim}
-% The identifier immediately before the |.minted| file extension describes the role of the file.  Files ending with |.errlog.minted| are not automatically cleaned up at the end of a compile, but are deleted at the beginning as part of config detection.
-%    \begin{macrocode}
-\def\minted@exec@cleanfile#1{%
-  \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ cleanfile }\minted@execarg@debug#1}}
-%    \end{macrocode}
-% \end{macro}
-%
-%
 % \begin{macro}{\minted@inputexecmessages}
 % If temp file containing warning and/or error messages exists, |\input| and then delete.
 %   \begin{macrocode}
@@ -2466,12 +2452,36 @@
 %
 %
 % \begin{macro}{\minted@exec@clean}
-% Clean output directory and cache.
+% Clean temp files and cache.
 %    \begin{macrocode}
 \def\minted@exec@clean{%
   \minted@ShellEscapeNoMessages{%
     \MintedExecutable
     \detokenize{ clean }\minted@execarg@timestamp\minted@execarg@debug
+    \MintedJobnameMdfive}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@exec@cleanconfig}
+% Clean config temp file.
+%    \begin{macrocode}
+\def\minted@exec@cleanconfig{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable
+    \detokenize{ cleanconfig }\minted@execarg@timestamp\minted@execarg@debug
+    \MintedJobnameMdfive}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\minted@exec@cleantemp}
+% Clean all temp files.
+%    \begin{macrocode}
+\def\minted@exec@cleantemp{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable
+    \detokenize{ cleantemp }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 %    \end{macrocode}
 % \end{macro}
@@ -2539,7 +2549,7 @@
   \fi}
 \def\minted@detectconfig@wrongtimestamp{%
   \ifx\minted@timestamp\minted@executable@timestamp
-    \minted@exec@cleanfile{\MintedConfigFilename}%
+    \minted@exec@cleanconfig
     \global\boolfalse{minted@canexec}%
     \minted@error{minted v3 Python executable could not find output directory;
       upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
@@ -2548,7 +2558,7 @@
     \expandafter\minted@detectconfig@noexecutable
   \fi}
 \def\minted@detectconfig@iii{%
-  \minted@exec@cleanfile{\MintedConfigFilename}%
+  \minted@exec@cleanconfig
   \ifx\minted@exec@warning\relax
   \else
     \expandafter\minted@exec@warning
@@ -3251,8 +3261,13 @@
   \fi
   \ifbool{minted@fasthighlightmode}%
    {}%
-   {\minted@exec@clean
-    \global\boolfalse{minted@canexec}}}
+   {\ifnum\value{minted@numcachefiles}>0\relax
+      \expandafter\minted@exec@clean
+    \else
+      \expandafter\minted@exec@cleantemp
+    \fi
+    \global\boolfalse{minted@canexec}}%
+  \setcounter{minted@numcachefiles}{0}}
 \def\minted@savecachelist{%
   \pydatasetfilename{\MintedDataFilename}%
   \minted@fasthighlightmode@checkstart
@@ -3272,7 +3287,6 @@
       \let\csname minted@cachefile\arabic{minted@tmpcnt}\endcsname\minted@undefined
     \stepcounter{minted@tmpcnt}%
   \repeat
-  \setcounter{minted@numcachefiles}{0}%
   \pydatawritemlvalueline{]}%
   \pydatawritemlvalueend
   \pydatawritedictclose

@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/01 v3.1.0dev2 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev3 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -45,7 +45,7 @@
   \batchmode\read -1 to \minted@fatalerror@exitnow}
 \def\minted@warning#1{\PackageWarning{minted}{#1}}
 \edef\MintedExecutable{\detokenize{latexminted}}
-\edef\minted@executable@minversion{\detokenize{0.1.0}}
+\edef\minted@executable@minversion{\detokenize{0.2.0}}
 \def\minted@executable@setminversioncomponents{%
   \expandafter\minted@executable@setminversioncomponents@i
     \minted@executable@minversion\relax}
@@ -389,9 +389,6 @@
   \ifbool{minted@debug}{\detokenize{ --debug }}{}}
 \def\minted@execarg@timestamp{%
   \detokenize{ --timestamp }\minted@timestamp\detokenize{ }}
-\def\minted@exec@cleanfile#1{%
-  \minted@ShellEscapeNoMessages{%
-    \MintedExecutable\detokenize{ cleanfile }\minted@execarg@debug#1}}
 \def\minted@inputexecmessages{%
   \minted@ensureatletter{\InputIfFileExists{\MintedMessageFilename}{}{}}}
 \def\minted@exec@batch{%
@@ -418,6 +415,16 @@
   \minted@ShellEscapeNoMessages{%
     \MintedExecutable
     \detokenize{ clean }\minted@execarg@timestamp\minted@execarg@debug
+    \MintedJobnameMdfive}}
+\def\minted@exec@cleanconfig{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable
+    \detokenize{ cleanconfig }\minted@execarg@timestamp\minted@execarg@debug
+    \MintedJobnameMdfive}}
+\def\minted@exec@cleantemp{%
+  \minted@ShellEscapeNoMessages{%
+    \MintedExecutable
+    \detokenize{ cleantemp }\minted@execarg@timestamp\minted@execarg@debug
     \MintedJobnameMdfive}}
 \newbool{minted@diddetectconfig}
 \def\minted@detectconfig{%
@@ -466,7 +473,7 @@
   \fi}
 \def\minted@detectconfig@wrongtimestamp{%
   \ifx\minted@timestamp\minted@executable@timestamp
-    \minted@exec@cleanfile{\MintedConfigFilename}%
+    \minted@exec@cleanconfig
     \global\boolfalse{minted@canexec}%
     \minted@error{minted v3 Python executable could not find output directory;
       upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
@@ -475,7 +482,7 @@
     \expandafter\minted@detectconfig@noexecutable
   \fi}
 \def\minted@detectconfig@iii{%
-  \minted@exec@cleanfile{\MintedConfigFilename}%
+  \minted@exec@cleanconfig
   \ifx\minted@exec@warning\relax
   \else
     \expandafter\minted@exec@warning
@@ -1023,8 +1030,13 @@
   \fi
   \ifbool{minted@fasthighlightmode}%
    {}%
-   {\minted@exec@clean
-    \global\boolfalse{minted@canexec}}}
+   {\ifnum\value{minted@numcachefiles}>0\relax
+      \expandafter\minted@exec@clean
+    \else
+      \expandafter\minted@exec@cleantemp
+    \fi
+    \global\boolfalse{minted@canexec}}%
+  \setcounter{minted@numcachefiles}{0}}
 \def\minted@savecachelist{%
   \pydatasetfilename{\MintedDataFilename}%
   \minted@fasthighlightmode@checkstart
@@ -1044,7 +1056,6 @@
       \let\csname minted@cachefile\arabic{minted@tmpcnt}\endcsname\minted@undefined
     \stepcounter{minted@tmpcnt}%
   \repeat
-  \setcounter{minted@numcachefiles}{0}%
   \pydatawritemlvalueline{]}%
   \pydatawritemlvalueend
   \pydatawritedictclose
