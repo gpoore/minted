@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/01 v3.1.0dev3 Yet another Pygments shim for LaTeX]
+    [2024/10/01 v3.1.0dev4 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1763,6 +1763,7 @@
 %
 % Timestamp for current compile.  This could eventually be simplified to use |\c_sys_timestamp_str| for all engines; that macro is in \texpkg{l3kernel} from 2023-08-29.
 %
+% The |\outputmode=1| is for |dvilualatex| compatibility.
 % \begin{macro}{\minted@timestamp}
 %    \begin{macrocode}
 \begingroup
@@ -1785,7 +1786,10 @@
 \fi
 \expandafter\ifx\csname directlua\endcsname\relax
 \else
-  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdffeedback creationdate}}
+  \begingroup
+  \outputmode=1
+  \xdef\minted@timestamp{\minted@creationdatetotimestamp{\pdffeedback creationdate}}%
+  \endgroup
 \fi
 \endgroup
 \ifcsname minted@timestamp\endcsname

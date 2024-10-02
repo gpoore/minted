@@ -1,6 +1,9 @@
 # Changelog — minted LaTeX package
 
+
 ## v3.1.0 (dev)
+
+*  Fixed compatibility with `dvilualatex` (#406).
 
 *  Temporary files with common file extensions are now automatically detected
    and processed correctly regardless of `highlightmode` (#401).  Previously,
