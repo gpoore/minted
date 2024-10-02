@@ -961,8 +961,8 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakafterinrun] (boolean) (true)
-%     When \texttt{breakafter} is used, group all adjacent identical characters together, and only allow a break after the last character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
+%   \item[breakafterinrun] (boolean) (false)
+%     When \texttt{breakafter} is used, insert breaks within runs of identical characters.  If \texttt{false}, treat sequences of identical characters as a unit that cannot contain breaks.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 %
 %   \item[breakaftersymbolpost (string) (\meta{none})]
@@ -1014,8 +1014,8 @@
 %   \end{minted}
 % \end{longexample}
 %
-%   \item[breakbeforeinrun] (boolean) (true)
-%     When \texttt{breakbefore} is used, group all adjacent identical characters together, and only allow a break before the first character.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
+%   \item[breakbeforeinrun] (boolean) (false)
+%     When \texttt{breakbefore} is used, insert breaks within runs of identical characters.  If \texttt{false}, treat sequences of identical characters as a unit that cannot contain breaks.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
 %
 %   \item[breakbeforesymbolpost (string) (\meta{none})]
