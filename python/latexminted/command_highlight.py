@@ -389,7 +389,7 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     highlighted = pygments_highlight(code, pygments_lexer, pygments_formatter)
     highlighted_path = MintedTempRestrictedPath(data['cachepath']) / minted_opts['highlightfilename']
     try:
-        highlighted_path.write_text(highlighted)
+        highlighted_path.write_text(highlighted, encoding='utf8')
     except PermissionError:
         messages.append_error(r'Insufficient permission to write highlighted code')
         return

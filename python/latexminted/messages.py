@@ -106,7 +106,7 @@ class Messages(object):
         if message_lines:
             for write_path in MintedTempRestrictedPath.tex_openout_roots():
                 try:
-                    (write_path / self.message_file_name).write_text('\n'.join(message_lines))
+                    (write_path / self.message_file_name).write_text('\n'.join(message_lines), encoding='utf8')
                 except PermissionError:
                     continue
                 else:
@@ -115,7 +115,7 @@ class Messages(object):
         if self._errlogs:
             for write_path in MintedTempRestrictedPath.tex_openout_roots():
                 try:
-                    (write_path / self.errlog_file_name).write_text('\n'.join(self._errlogs))
+                    (write_path / self.errlog_file_name).write_text('\n'.join(self._errlogs), encoding='utf8')
                 except PermissionError:
                     continue
                 else:

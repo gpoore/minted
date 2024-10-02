@@ -25,7 +25,7 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
     for read_path in MintedTempRestrictedPath.tex_openout_roots()[:-1]:
         data_path = read_path / data_file_name
         try:
-            data_text = data_path.read_text()
+            data_text = data_path.read_text(encoding='utf8')
         except (FileNotFoundError, PermissionError):
             continue
         except UnicodeDecodeError:
@@ -34,7 +34,7 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
     if data_text is None:
         data_path = MintedTempRestrictedPath.tex_openout_roots()[-1] / data_file_name
         try:
-            data_text = data_path.read_text()
+            data_text = data_path.read_text(encoding='utf8')
         except FileNotFoundError:
             messages.append_error(rf'Failed to find file \detokenize{{"{data_file_name}"}}')
             messages.data_file_not_found = True

@@ -32,7 +32,7 @@ def styledef(*, md5: str, timestamp: str, debug: bool, messages: Messages, data:
     styledef_path = MintedTempRestrictedPath(data['cachepath']) / data['styledeffilename']
     try:
         styledef_path.parent.mkdir(parents=True, exist_ok=True)
-        styledef_path.write_text(style_defs)
+        styledef_path.write_text(style_defs, encoding='utf8')
     except PermissionError:
         messages.append_error(rf'Insufficient permission to write style file for \detokenize{{"{style}"}}')
         return

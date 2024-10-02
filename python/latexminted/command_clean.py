@@ -140,7 +140,7 @@ def clean(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: di
     }
     new_index_path = cache_path / current_index_name
     try:
-        new_index_path.write_text(json_dumps(new_index_data, indent=2))
+        new_index_path.write_text(json_dumps(new_index_data, indent=2), encoding='utf8')
     except PathSecurityError:
         messages.append_error(
             rf'Cannot write file \detokenize{{"{new_index_path.name}"}} outside working directory, \detokenize{{TEXMFOUTPUT}}, and \detokenize{{TEXMF_OUTPUT_DIRECTORY}}'

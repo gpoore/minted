@@ -2,6 +2,9 @@
 
 ## v0.2.0 (dev)
 
+*  All file reading and writing for files received from/sent to LaTeX is now
+   UTF-8 (#411).
+
 *  The cache path is now processed correctly when it is an empty string,
    instead of resulting in an error, so the `minted` package will now function
    when `cache=false`.
