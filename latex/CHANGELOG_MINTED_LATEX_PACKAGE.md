@@ -20,6 +20,9 @@
    the cache does not require cleaning.  This prevents errors when
    `cache=false`.
 
+*  Fixed docs for `breakbeforeinrun` and `breakafterinrun` (#408).  These had
+   not been properly updated after `fvextra` renamed the options.
+
 
 
 ## v3.0.0 (2024/09/22)
