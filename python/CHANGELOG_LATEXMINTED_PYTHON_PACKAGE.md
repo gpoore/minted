@@ -1,7 +1,7 @@
 # Changelog: `latexminted` — Python library for LaTeX minted package
 
 
-## v0.2.0 (dev)
+## v0.2.0 (2024-10-03)
 
 *  All config data passed back to LaTeX is now processed with `\detokenize`
    (#405).
