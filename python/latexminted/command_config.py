@@ -26,11 +26,11 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
 
     config_lines = []
     minted_executable_version = f'{__version_info__.major}.{__version_info__.minor}.{__version_info__.micro}'
-    config_lines.append(rf'\gdef\minted@executable@version{{{minted_executable_version}}}%')
-    config_lines.append(rf'\gdef\minted@executable@timestamp{{{timestamp}}}%')
+    config_lines.append(rf'\xdef\minted@executable@version{{\detokenize{{{minted_executable_version}}}}}%')
+    config_lines.append(rf'\xdef\minted@executable@timestamp{{\detokenize{{{timestamp}}}}}%')
     if data is not None:
         tex_timestamp: str = data['timestamp']
-        config_lines.append(rf'\gdef\minted@config@timestamp{{{tex_timestamp}}}%')
+        config_lines.append(rf'\xdef\minted@config@timestamp{{\detokenize{{{tex_timestamp}}}}}%')
 
     for openout_root in MintedTempRestrictedPath.tex_openout_roots():
         try:
@@ -49,7 +49,7 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
                         tex_cachepath = (openout_root / tex_cachedir).as_posix()
                 if tex_cachepath and not tex_cachepath.endswith('/'):
                     tex_cachepath += '/'
-                config_lines.append(rf'\gdef\minted@config@cachepath{{{tex_cachepath}}}%')
+                config_lines.append(rf'\xdef\minted@config@cachepath{{\detokenize{{{tex_cachepath}}}}}%')
                 config_file.write('\n'.join(config_lines))
                 return
         except (PermissionError, PathSecurityError):

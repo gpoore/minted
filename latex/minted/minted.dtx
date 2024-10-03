@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/01 v3.1.0dev4 Yet another Pygments shim for LaTeX]
+    [2024/10/02 v3.1.0dev5 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1764,6 +1764,8 @@
 % Timestamp for current compile.  This could eventually be simplified to use |\c_sys_timestamp_str| for all engines; that macro is in \texpkg{l3kernel} from 2023-08-29.
 %
 % The |\outputmode=1| is for |dvilualatex| compatibility.
+%
+% The |\detokenize| is to prevent any possibility of |\catcode| issues.
 % \begin{macro}{\minted@timestamp}
 %    \begin{macrocode}
 \begingroup
@@ -1810,6 +1812,7 @@
     \ifnum\value{minted@timestamp@min}<10 0\fi\theminted@timestamp@min}
   \endgroup
 \fi
+\xdef\minted@timestamp{\detokenize\expandafter{\minted@timestamp}}
 %    \end{macrocode}
 % \end{macro}
 %

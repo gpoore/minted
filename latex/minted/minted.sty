@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/01 v3.1.0dev4 Yet another Pygments shim for LaTeX]
+    [2024/10/02 v3.1.0dev5 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -104,6 +104,7 @@
     \ifnum\value{minted@timestamp@min}<10 0\fi\theminted@timestamp@min}
   \endgroup
 \fi
+\xdef\minted@timestamp{\detokenize\expandafter{\minted@timestamp}}
 \begingroup
 \catcode`\"=12
 \catcode`\'=12

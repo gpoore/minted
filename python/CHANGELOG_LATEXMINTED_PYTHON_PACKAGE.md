@@ -2,6 +2,9 @@
 
 ## v0.2.0 (dev)
 
+*  All config data passed back to LaTeX is now processed with `\detokenize`
+   (#405).
+
 *  In a cache, `*.index.minted` files are now overwritten only when the data
    they contain is modified.  This fixes compatibility with build tools
    (T-F-S/tcolorbox/issues/294).
