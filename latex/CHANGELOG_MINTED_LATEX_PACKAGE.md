@@ -1,6 +1,15 @@
 # Changelog — minted LaTeX package
 
 
+## v3.1.1 (dev)
+
+*  Fixed bugs in processing temporary files regardless of `highlightmode` from
+   v3.1.0.  With `highlightmode=fastfirst` (default), this would cause an
+   error during the first compile, but then all subsequent compiles would
+   complete correctly.
+
+
+
 ## v3.1.0 (2024/10/03)
 
 *  All timestamp comparisons that are part of communicating with the

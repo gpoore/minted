@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/03 v3.1.0 Yet another Pygments shim for LaTeX]
+    [2024/10/03 v3.1.1dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -1484,15 +1484,24 @@
   \setcounter{minted@tmpcodebufferlength}{0}%
   \newread\minted@intempfile
   \openin\minted@intempfile=\minted@inputfilepath
+  \endlinechar=-1%
   \let\do\@makeother\FVExtraDoSpecials
   \loop\unless\ifeof\minted@intempfile
     \read\minted@intempfile to\minted@intempfileline
-    \stepnewcounter{minted@tmpcodebufferlength}%
+    \stepcounter{minted@tmpcodebufferlength}%
     \expandafter\global\expandafter\let\csname
       minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
       \endcsname\minted@intempfileline
   \repeat
   \closein\minted@intempfile
+  \expandafter\ifx\csname
+      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
+      \endcsname\@empty
+    \expandafter\global\expandafter\let\csname
+      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
+      \endcsname\minted@undefined
+    \addtocounter{minted@tmpcodebufferlength}{-1}%
+  \fi
   \endgroup
   \edef\minted@inputfilemdfivesum@check{\pdf@filemdfivesum{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
