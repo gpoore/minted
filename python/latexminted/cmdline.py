@@ -114,7 +114,6 @@ def main():
     func_args = {k: v for k, v in vars(cmdline_args).items() if k in func_keys}
     if cmdline_args.subparser_name in ('cleanconfig', 'cleantemp'):
         # Some functions don't need all arguments
-        func_args.pop('debug')
         func_args.pop('timestamp')
     md5: str | None = func_args.get('md5')
     timestamp: str | None = func_args.get('timestamp')

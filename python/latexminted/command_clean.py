@@ -63,11 +63,15 @@ def clean_initial_temp(*, md5: str):
     _clean_temp(md5=md5, roles=all_roles, skipped=paths_skipped_in_initial_temp_cleaning)
 
 
-def clean_temp_except_errlog(*, md5: str):
+def clean_temp_except_errlog(*, md5: str, debug: bool = False):
+    if debug:
+        return
     _clean_temp(md5=md5, roles=all_roles_less_errlog, skipped=None)
 
 
-def clean_config_temp(*, md5: str):
+def clean_config_temp(*, md5: str, debug: bool = False):
+    if debug:
+        return
     _clean_temp(md5=md5, roles=config_roles, skipped=None)
 
 
