@@ -16,6 +16,7 @@ os_environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
 import argparse
 import sys
 from latex2pydata import __version__ as latex2pydata_version
+from latexrestricted import __version__ as latexrestricted_version
 from pygments import __version__ as pygments_version
 from .version import __version__
 
@@ -23,13 +24,25 @@ from .version import __version__
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='latexminted', allow_abbrev=False)
+    parser = argparse.ArgumentParser(
+        prog='latexminted',
+        allow_abbrev=False,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     parser.set_defaults(func=lambda **x: parser.print_help())
     library_version = ', '.join([
         f'latex2pydata {latex2pydata_version}',
-        f'pygments {pygments_version}'
+        f'latexrestricted {latexrestricted_version}',
+        f'pygments {pygments_version}',
     ])
-    version = f'latexminted {__version__} (libraries: {library_version})'
+    version = '\n'.join([
+        f'latexminted {__version__}',
+        'Python executable for the LaTeX minted package',
+        f'Libraries: {library_version}',
+        'Repository: https://github.com/gpoore/minted',
+        'CTAN: https://ctan.org/pkg/minted',
+        'PyPI: https://pypi.org/project/latexminted',
+    ])
     parser.add_argument('--version', action='version', version=version)
     subparsers = parser.add_subparsers(dest='subparser_name')
 

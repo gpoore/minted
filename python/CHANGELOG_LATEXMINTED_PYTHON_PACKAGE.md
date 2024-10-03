@@ -1,5 +1,6 @@
 # Changelog: `latexminted` — Python library for LaTeX minted package
 
+
 ## v0.2.0 (dev)
 
 *  All config data passed back to LaTeX is now processed with `\detokenize`
@@ -27,6 +28,8 @@
    files.
 
 *  All subcommands now take exactly the same arguments.
+
+*  Added short summary and links to `latexminted --version` (#404).
 
 
 
