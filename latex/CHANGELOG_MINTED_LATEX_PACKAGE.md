@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.1.0 (dev)
+## v3.1.0 (2024/10/03)
 
 *  All timestamp comparisons that are part of communicating with the
    `latexminted` Python executable now use timestamps that have been processed
