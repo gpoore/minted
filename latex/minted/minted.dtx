@@ -951,7 +951,7 @@
 %   \item[breakafter (string) (\meta{none})]
 %     Break lines after specified characters, not just at spaces, when \texttt{breaklines=true}.
 %
-% For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
+% For example, \texttt{breakafter=-/} would allow breaks after any hyphens or slashes.  Special characters given to \texttt{breakafter} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}, and the comma \texttt{,}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
 % For an alternative, see \texttt{breakbefore}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
@@ -1004,7 +1004,7 @@
 %   \item[breakbefore (string) (\meta{none})]
 %     Break lines before specified characters, not just at spaces, when \texttt{breaklines=true}.
 %
-% For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
+% For example, \texttt{breakbefore=A} would allow breaks before capital A's.  Special characters given to \texttt{breakbefore} should be backslash-escaped (usually \texttt{\hashchar}, \texttt{\{}, \texttt{\}}, \texttt{\%}, \texttt{[}, \texttt{]}, and the comma \texttt{,}; the backslash \texttt{\textbackslash} may be obtained via \texttt{\textbackslash\textbackslash}).
 %
 %  For an alternative, see \texttt{breakafter}.  When \texttt{breakbefore} and \texttt{breakafter} are used for the same character, \texttt{breakbeforeinrun} and \texttt{breakafterinrun} must both have the same setting.
 %
@@ -2754,15 +2754,15 @@
   \def\minted@do@i##1##2{%
     \pgfkeys{%
       /minted/##1/.cd,
-      #1/.code=
+      #1/.code={%
         \def\minted@tmp{####1}%
         \ifx\minted@tmp\minted@const@pgfkeysnovalue
           \begingroup\fvset{#1}\endgroup
           \minted@apptoprovidecs{minted@fvoptlist@##1##2}{#1,}%
         \else
-          \begingroup\fvset{#1=####1}\endgroup
-          \minted@apptoprovidecs{minted@fvoptlist@##1##2}{#1=####1,}%
-        \fi,
+          \begingroup\fvset{#1={####1}}\endgroup
+          \minted@apptoprovidecs{minted@fvoptlist@##1##2}{#1={####1},}%
+        \fi},
     }%
   }%
   \minted@forcsvlist{\minted@do}{\minted@optscopes}%
@@ -2770,7 +2770,7 @@
   \else
     \pgfkeys{%
       /minted/global/.cd,
-      #1=#2,
+      #1={#2},
     }%
   \fi}
 \def\minted@usefvopts{%
@@ -2803,7 +2803,7 @@
       \expandafter{\minted@tmp}{mathescape}%
   \fi}
 \def\minted@useadditionalfvoptsnopy@fvsetvk#1#2{%
-  \fvset{#2=#1}}
+  \fvset{#2={#1}}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2852,12 +2852,12 @@
     \if\relax\detokenize{#1}\relax
       \pgfkeys{%
         /minted/##1/.cd,
-        #2/.code=\expandafter\def\csname minted@pyopt@##1##2@#2\endcsname{####1},
+        #2/.code={\expandafter\def\csname minted@pyopt@##1##2@#2\endcsname{####1}},
       }%
     \else
       \pgfkeys{%
         /minted/##1/.cd,
-        #2/.code=
+        #2/.code={%
           \def\minted@tmp{####1}%
           \ifx\minted@tmp\minted@const@pgfkeysnovalue
             \expandafter\let\csname minted@pyopt@##1##2@#2\endcsname\minted@tmp
@@ -2865,7 +2865,7 @@
             #1{minted@pyopt@##1##2@#2}{####1}%
           \else
             \expandafter\def\csname minted@pyopt@##1##2@#2\endcsname{#1{####1}}%
-          \fi\fi,
+          \fi\fi},
       }%
     \fi
     \ifx\minted@const@pgfkeysnovalue#4\relax
@@ -2876,14 +2876,14 @@
     \else
       \pgfkeys{%
         /minted/##1/.cd,
-        #2/.default=#4,
+        #2/.default={#4},
       }%
     \fi
   }%
   \minted@forcsvlist{\minted@do}{\minted@optscopes}%
   \pgfkeys{%
     /minted/global/.cd,
-    #2=#3,
+    #2={#3},
   }}
 \def\mintedpyoptvalueof#1{%
   \ifbool{minted@isinline}%
@@ -2957,13 +2957,13 @@
     \if\relax\detokenize{#1}\relax
       \pgfkeys{%
         /minted/##1/.cd,
-        #2/.code=\expandafter\def\csname minted@texopt@##1##2@#2\endcsname{####1},
+        #2/.code={\expandafter\def\csname minted@texopt@##1##2@#2\endcsname{####1}},
         #2/.value required,
       }%
     \else
       \pgfkeys{%
         /minted/##1/.cd,
-        #2/.code=
+        #2/.code={%
           \def\minted@tmp{####1}%
           \ifx\minted@tmp\minted@const@pgfkeysnovalue
             \expandafter\let\csname minted@texopt@##1##2@#2\endcsname\minted@tmp
@@ -2971,7 +2971,7 @@
             #1{minted@texopt@##1##2@#2}{####1}%
           \else
             \expandafter\def\csname minted@texopt@##1##2@#2\endcsname{#1{####1}}%
-          \fi\fi,
+          \fi\fi},
         #2/.value required,
       }%
     \fi
@@ -2979,7 +2979,7 @@
   \minted@forcsvlist{\minted@do}{\minted@optscopes}%
   \pgfkeys{%
     /minted/global/.cd,
-    #2=#3,
+    #2={#3},
   }}
 \def\mintedtexoptvalueof#1{%
   \ifbool{minted@isinline}%
@@ -3901,7 +3901,7 @@
 % \begin{macro}{\usemintedstyle}
 % Set style.  This is a holdover from \mintedpkg\ v1, before |\setminted| could be used to set the style.
 %    \begin{macrocode}
-\newcommand{\usemintedstyle}[2][]{\setminted[#1]{style=#2}}
+\newcommand{\usemintedstyle}[2][]{\setminted[#1]{style={#2}}}
 %    \end{macrocode}
 % \end{macro}
 %
