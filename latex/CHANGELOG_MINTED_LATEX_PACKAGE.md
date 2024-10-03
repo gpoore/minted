@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.1.1 (dev)
+## v3.1.1 (2024/10/03)
 
 *  Fixed bugs in processing temporary files regardless of `highlightmode` from
    v3.1.0.  With `highlightmode=fastfirst` (default), this would cause an
