@@ -7,6 +7,10 @@
    `latexminted` Python executable now use timestamps that have been processed
    with `\detokenize` (#405).
 
+*  Option processing now wraps values in curly braces to prevent escaping
+   issues when options are passed on to other packages for further processing
+   (#407).
+
 *  Fixed compatibility with `dvilualatex` (#406).
 
 *  Temporary files with common file extensions are now automatically detected
