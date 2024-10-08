@@ -1,6 +1,15 @@
 # Changelog — minted LaTeX package
 
 
+## v3.1.2 (dev)
+
+*  There is now only a single `\read` allocation for reading temporary files
+   when `highlightmode` is set to `fast` or `fastfirst`.  Previously, there
+   was one allocation per temp file, which could cause allocation errors when
+   several temp files were highlighted during the same compile (#413).
+
+
+
 ## v3.1.1 (2024/10/03)
 
 *  Fixed bugs in processing temporary files regardless of `highlightmode` from

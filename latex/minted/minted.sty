@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/03 v3.1.1 Yet another Pygments shim for LaTeX]
+    [2024/10/07 v3.1.2dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/09/05]
@@ -532,7 +532,8 @@
       \minted@error{minted Python executable returned incomplete configuration data;
         this may indicate a bug in minted or file corruption}}%
     {\global\let\minted@cachepath\minted@config@cachepath
-     \minted@highlightmode@init}}%
+     \minted@highlightmode@init
+     \ifbool{minted@fasthighlightmode}{\newread\minted@intempfile}{}}}%
    {\global\boolfalse{minted@canexec}%
     \minted@error{minted Python executable is version \minted@executable@version,
       but version \minted@executable@minversion+ is required}}}
@@ -1482,7 +1483,6 @@
 \def\minted@iffasthighlightmode@buffertempfile@iv{%
   \begingroup
   \setcounter{minted@tmpcodebufferlength}{0}%
-  \newread\minted@intempfile
   \openin\minted@intempfile=\minted@inputfilepath
   \endlinechar=-1%
   \let\do\@makeother\FVExtraDoSpecials
