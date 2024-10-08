@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.1.2 (dev)
+## v3.1.2 (2024/10/07)
 
 *  There is now only a single `\read` allocation for reading temporary files
    when `highlightmode` is set to `fast` or `fastfirst`.  Previously, there
