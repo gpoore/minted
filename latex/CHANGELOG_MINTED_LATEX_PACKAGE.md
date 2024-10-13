@@ -1,6 +1,15 @@
 # Changelog — minted LaTeX package
 
 
+## v3.2.0 (dev)
+
+*  Fixed compatibility with `\includeonly` by replacing buffer length counters
+   with macros (#414).  As part of this, the minimum supported `latex2pydata`
+   LaTeX package is now 0.3.0 and the minimum supported `fvextra` is now
+   1.9.0.
+
+
+
 ## v3.1.2 (2024/10/07)
 
 *  There is now only a single `\read` allocation for reading temporary files

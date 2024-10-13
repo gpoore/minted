@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/07 v3.1.2 Yet another Pygments shim for LaTeX]
+    [2024/10/12 v3.2.0dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1657,8 +1657,8 @@
 %    \begin{macrocode}
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
-\RequirePackage{fvextra}[2024/09/05]
-\RequirePackage{latex2pydata}[2024/05/16]
+\RequirePackage{fvextra}[2024/10/12]
+\RequirePackage{latex2pydata}[2024/10/12]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
@@ -2356,7 +2356,7 @@
 % \begin{macro}{minted@tmpcodebufferlength}
 % Length of buffer in which code to be highlighted is stored.
 %    \begin{macrocode}
-\newcounter{minted@tmpcodebufferlength}
+\def\minted@tmpcodebufferlength{0}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3237,15 +3237,16 @@
 % \subsubsection{Cache management}
 %
 %
-% \begin{macro}{\minted@addcachefilename,\minted@cachefile<n>}
+% \begin{macro}{\minted@addcachefilename,\minted@numcachefiles,\minted@cachefile<n>}
 % Track cache files that are used, so that unused files can be removed.
+%
+% The number of files is stored in a global macro rather than a counter to avoid counter scope issues.  For example, |\includeonly| tracks and resets counters.
 %    \begin{macrocode}
-\newcounter{minted@numcachefiles}
+\def\minted@numcachefiles{0}
 \def\minted@addcachefilename#1{%
   \ifbool{minted@canexec}%
-   {\stepcounter{minted@numcachefiles}%
-    \expandafter
-      \xdef\csname minted@cachefile\arabic{minted@numcachefiles}\endcsname{#1}}%
+   {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
+    \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}}%
    {}}
 %    \end{macrocode}
 % \end{macro}
@@ -3264,18 +3265,18 @@
    {\ifbool{minted@diddetectconfig}{\minted@clean@i}{}}%
    {}}
 \def\minted@clean@i{%
-  \ifnum\value{minted@numcachefiles}>0\relax
+  \ifnum\minted@numcachefiles>0\relax
     \expandafter\minted@savecachelist
   \fi
   \ifbool{minted@fasthighlightmode}%
    {}%
-   {\ifnum\value{minted@numcachefiles}>0\relax
+   {\ifnum\minted@numcachefiles>0\relax
       \expandafter\minted@exec@clean
     \else
       \expandafter\minted@exec@cleantemp
     \fi
     \global\boolfalse{minted@canexec}}%
-  \setcounter{minted@numcachefiles}{0}}
+  \gdef\minted@numcachefiles{0}}
 \def\minted@savecachelist{%
   \pydatasetfilename{\MintedDataFilename}%
   \minted@fasthighlightmode@checkstart
@@ -3288,7 +3289,7 @@
   \pydatawritemlvaluestart
   \pydatawritemlvalueline{[}%
   \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@numcachefiles}\relax
+  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@numcachefiles\relax
     \expandafter\minted@savecachelist@writecachefile\expandafter{%
       \csname minted@cachefile\arabic{minted@tmpcnt}\endcsname}%
     \expandafter\global\expandafter
@@ -3642,7 +3643,7 @@
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
   \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@tmpcodebufferlength}\relax
+  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@tmpcodebufferlength\relax
     \expandafter\let\expandafter
       \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
     \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
@@ -3825,25 +3826,23 @@
 \endgroup
 \def\minted@iffasthighlightmode@buffertempfile@iv{%
   \begingroup
-  \setcounter{minted@tmpcodebufferlength}{0}%
+  \gdef\minted@tmpcodebufferlength{0}%
   \openin\minted@intempfile=\minted@inputfilepath
   \endlinechar=-1%
   \let\do\@makeother\FVExtraDoSpecials
   \loop\unless\ifeof\minted@intempfile
     \read\minted@intempfile to\minted@intempfileline
-    \stepcounter{minted@tmpcodebufferlength}%
+    \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength+1\relax}%
     \expandafter\global\expandafter\let\csname
-      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
+      minted@tmpcodebufferline\minted@tmpcodebufferlength
       \endcsname\minted@intempfileline
   \repeat
   \closein\minted@intempfile
   \expandafter\ifx\csname
-      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
-      \endcsname\@empty
+      minted@tmpcodebufferline\minted@tmpcodebufferlength\endcsname\@empty
     \expandafter\global\expandafter\let\csname
-      minted@tmpcodebufferline\arabic{minted@tmpcodebufferlength}%
-      \endcsname\minted@undefined
-    \addtocounter{minted@tmpcodebufferlength}{-1}%
+      minted@tmpcodebufferline\minted@tmpcodebufferlength\endcsname\minted@undefined
+    \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength-1\relax}%
   \fi
   \endgroup
   \edef\minted@inputfilemdfivesum@check{\pdf@filemdfivesum{\minted@inputfilepath}}%
@@ -3853,7 +3852,7 @@
     \expandafter\@firstofone
   \fi
    {\VerbatimClearBuffer[buffername=minted@tmpcodebuffer]}%
-  \ifnum\value{minted@tmpcodebufferlength}>0\relax
+  \ifnum\minted@tmpcodebufferlength>0\relax
     \expandafter\@firstofone
   \else
     \expandafter\@gobble
@@ -3863,7 +3862,7 @@
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
   \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\value{minted@tmpcodebufferlength}\relax
+  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@tmpcodebufferlength\relax
     \expandafter\let\expandafter
       \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
     \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
@@ -3943,10 +3942,10 @@
      \FVExtraRetokenizeVArg{\RobustMintInlineProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintInlineProcess@highlight@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
-  \setcounter{minted@tmpcodebufferlength}{1}%
+  \gdef\minted@tmpcodebufferlength{1}%
   \let\minted@highlight@fallback\RobustMintInlineProcess@highlight@fallback
   \minted@highlight
-  \setcounter{minted@tmpcodebufferlength}{0}%
+  \gdef\minted@tmpcodebufferlength{0}%
   \endgroup}
 \def\RobustMintInlineProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
@@ -4002,10 +4001,10 @@
     \FVExtraRetokenizeVArg{\RobustMintProcess@highlight@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@highlight@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
-  \setcounter{minted@tmpcodebufferlength}{1}%
+  \gdef\minted@tmpcodebufferlength{1}%
   \let\minted@highlight@fallback\RobustMintProcess@highlight@fallback
   \minted@highlight
-  \setcounter{minted@tmpcodebufferlength}{0}%
+  \gdef\minted@tmpcodebufferlength{0}%
   \endgroup}
 \def\RobustMintProcess@highlight@fallback{%
   \minted@useadditionalfvoptsnopy
@@ -4024,10 +4023,10 @@
     \FVExtraRetokenizeVArg{\RobustMintProcess@verbatim@i}{\FV@CatCodes}}{#3}}
 \def\RobustMintProcess@verbatim@i#1{%
   \expandafter\def\csname minted@tmpcodebufferline1\endcsname{#1}%
-  \setcounter{minted@tmpcodebufferlength}{1}%
+  \gdef\minted@tmpcodebufferlength{1}%
   \minted@codewrapper{%
     \VerbatimInsertBuffer[buffername=minted@tmpcodebuffer,insertenvname=\minted@envname]}%
-  \setcounter{minted@tmpcodebufferlength}{0}%
+  \gdef\minted@tmpcodebufferlength{0}%
   \endgroup}
 \ifbool{minted@placeholder}%
  {\let\RobustMintProcess\RobustMintProcess@placeholder}%
