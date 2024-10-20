@@ -79,12 +79,11 @@ under Windows:
 '''
 
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 import os
 import pathlib
-import platform
 import shutil
 import subprocess
 import sys
@@ -155,7 +154,7 @@ def is_permitted_executable_path(executable_path, executable_path_resolved):
 env_SELFAUTOLOC = os.getenv('SELFAUTOLOC')
 env_TEXSYSTEM = os.getenv('TEXSYSTEM')
 if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYSTEM.lower() != 'miktex'):
-    if platform.system() == 'Windows':
+    if sys.platform == 'win32':
         # Under Windows, shell escape executables will often be launched with
         # the TeX Live `runscript.exe` executable wrapper.  This overwrites
         # `SELFAUTOLOC` from TeX with the location of the wrapper, so
@@ -232,7 +231,7 @@ if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYST
 # relaunch this script with that Python version in a subprocess.
 if sys.version_info[:2] < (3, 8):
     for minor_version in range(13, 7, -1):
-        if platform.system() == 'Windows':
+        if sys.platform == 'win32':
             # Batch files must be prohibited:
             # https://docs.python.org/3/library/subprocess.html#security-considerations
             which_python = shutil.which('python3.{}.exe'.format(minor_version))
@@ -241,7 +240,7 @@ if sys.version_info[:2] < (3, 8):
         if which_python:
             which_python_path = Path(which_python)
             which_python_resolved = which_python_path.resolve()
-            if platform.system() == 'Windows' and not which_python_resolved.name.lower().endswith('.exe'):
+            if sys.platform == 'win32' and not which_python_resolved.name.lower().endswith('.exe'):
                 continue
             if is_permitted_executable_path(which_python_path, which_python_resolved):
                 python_cmd = [which_python_resolved.as_posix(), __file__] + sys.argv[1:]
@@ -282,7 +281,7 @@ for wheel_path in wheel_paths:
 # endless recursion of subprocesses in the event that a `latexminted`
 # executable *inside* a TeX installation somehow manages to pass the tests for
 # an executable *outside* a TeX installation.
-if platform.system() == 'Windows' and not os.getenv('LATEXMINTED_SUBPROCESS'):
+if sys.platform == 'win32' and not os.getenv('LATEXMINTED_SUBPROCESS'):
     os.environ['LATEXMINTED_SUBPROCESS'] = '1'
     fallback_path_search = True
     if env_SELFAUTOLOC:

@@ -12,6 +12,11 @@
    of the document.  Previously, this occurred at the end of each compile,
    unnecessarily increasing compile time.
 
+*  In `latedminted.py`, switched from `platform.system()` to `sys.platform`
+   for better performance in detecting operating system.
+
+   Performance reference:  https://github.com/python/cpython/issues/95531.
+
 
 
 ## v3.1.2 (2024/10/07)
