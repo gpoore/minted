@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/12 v3.2.0dev1 Yet another Pygments shim for LaTeX]
+    [2024/10/19 v3.2.0dev2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -2053,7 +2053,7 @@
 %
 % |\minted@highlightmode@init| is invoked within |\minted@detectconfig| if the Python executable is available and enabled.  For the |fastfirst| case, |\minted@highlightmode@init| requires the |\minted@cachepath| that is set within |\minted@detectconfig|.
 %
-% |\minted@fasthighlightmode@checkend| is invoked |\AfterEndDocument| with |\minted@clean|; the |\AtEndDocument| is created with the definition of |\minted@clean| so that everything is in the correct order.
+% |\minted@fasthighlightmode@checkend| is invoked at the end of the document within |\minted@clean|.
 %    \begin{macrocode}
 \newbool{minted@fasthighlightmode}
 \newbool{minted@fasthighlightmode@open}
@@ -3234,20 +3234,63 @@
 %
 %
 %
+% \subsubsection{State}
+%
+% \begin{macro}{minted@didcreatefiles}
+% Track whether any style definitions or highlighted code files were generated, so that file cleanup can be optimized.  This is set |true| whenever there is an attempt to create style definitions or highlighted code files; even if the attempt fails, there will typically be leftover temp files.
+%    \begin{macrocode}
+\newbool{minted@didcreatefiles}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \subsubsection{Cache management}
 %
 %
-% \begin{macro}{\minted@addcachefilename,\minted@numcachefiles,\minted@cachefile<n>}
+% \begin{macro}{\minted@addcachefilename,\minted@numcachefiles,\minted@cachefile<n>,\minted@cachechecksum,\mintedoldcachechecksum}
 % Track cache files that are used, so that unused files can be removed.
 %
 % The number of files is stored in a global macro rather than a counter to avoid counter scope issues.  For example, |\includeonly| tracks and resets counters.
+%
+% Also track the overall state of the cache using a sum of MD5 hashes of cache file names combined with the number of cache files.  When no new cache files are created, this is used in determining whether the cache should be cleaned.
 %    \begin{macrocode}
 \def\minted@numcachefiles{0}
 \def\minted@addcachefilename#1{%
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
-    \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}}%
+    \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
+    \edef\minted@tmp{\pdf@mdfivesum{#1}}%
+    \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
+\let\minted@cachechecksum\relax
+\ifcsname mintedoldcachechecksum\endcsname
+\else
+  \let\mintedoldcachechecksum\relax
+\fi
+\edef\minted@cachechecksum@files{\pdf@mdfivesum{}}
+\expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
+\expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
+\expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
+\def\minted@intmodsixteen#1{\minted@intmod{#1}{16}}
+\def\minted@cachechecksum@update#1{%
+  \xdef\minted@cachechecksum@files{%
+    \expandafter\minted@cachechecksum@files@calc
+      \minted@cachechecksum@files\FV@Sentinel#1\FV@Sentinel}%
+  \xdef\minted@cachechecksum{%
+    \detokenize\expandafter{\minted@cachechecksum@files}%
+    \detokenize{:}%
+    \detokenize\expandafter{\minted@numcachefiles}}}
+\def\minted@cachechecksum@files@calc#1#2\FV@Sentinel#3#4\FV@Sentinel{%
+  \minted@inttoHex{%
+    \the\numexpr
+      \minted@intmodsixteen{\minted@intfromhex{#1}+\minted@intfromhex{#3}}%
+    \relax}%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\@gobble
+  \else
+    \expandafter\@firstofone
+  \fi
+   {\minted@cachechecksum@files@calc#2\FV@Sentinel#4\FV@Sentinel}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3257,12 +3300,22 @@
 %
 % Only create a |.data.minted| file if there is a cache list to save.  Otherwise, no file is needed.
 %
-% Runs |\AfterEndDocument| so that all typesetting is complete, and thus the cache list is complete.  |\minted@fasthighlightmode@checkend| is placed within the same |\AfterEndDocument| to guarantee correct ordering.
+% Runs within the hook |enddocument/afterlastpage| so that all typesetting is complete, and thus the cache list is complete.  |\minted@fasthighlightmode@checkend| is included in the hook to guarantee correct ordering.
 %
 %    \begin{macrocode}
 \def\minted@clean{%
   \ifbool{minted@canexec}%
-   {\ifbool{minted@diddetectconfig}{\minted@clean@i}{}}%
+   {\ifbool{minted@didcreatefiles}%
+     {\minted@clean@i}%
+     {\ifbool{minted@fasthighlightmode}%
+       {\minted@clean@i}%
+       {\ifbool{minted@cache}%
+         {\ifx\minted@cachechecksum\mintedoldcachechecksum
+          \else
+            \expandafter\minted@clean@i
+          \fi}%
+         {}}}%
+    \ifbool{minted@fasthighlightmode}{}{\global\boolfalse{minted@canexec}}}%
    {}}
 \def\minted@clean@i{%
   \ifnum\minted@numcachefiles>0\relax
@@ -3274,8 +3327,7 @@
       \expandafter\minted@exec@clean
     \else
       \expandafter\minted@exec@cleantemp
-    \fi
-    \global\boolfalse{minted@canexec}}%
+    \fi}%
   \gdef\minted@numcachefiles{0}}
 \def\minted@savecachelist{%
   \pydatasetfilename{\MintedDataFilename}%
@@ -3306,9 +3358,13 @@
 \gdef\minted@savecachelist@writecachefile#1{%
   \expandafter\pydatawritemlvalueline\expandafter{\expandafter"#1",}}
 \endgroup
-\AfterEndDocument{%
+\AddToHook{enddocument/afterlastpage}{%
   \minted@clean
-  \minted@fasthighlightmode@checkend}
+  \minted@fasthighlightmode@checkend
+  \ifbool{minted@cache}%
+   {\immediate\write\@auxout{%
+      \xdef\string\mintedoldcachechecksum{\string\detokenize{\minted@cachechecksum}}}}%
+   {}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3484,6 +3540,7 @@
    {\pydataclosefilename{\MintedDataFilename}%
     \begingroup
     \minted@exec@styledef
+    \global\booltrue{minted@didcreatefiles}%
     \ifx\minted@exec@warning\relax
     \else
       \expandafter\minted@exec@warning
@@ -3729,6 +3786,7 @@
    {\pydataclosefilename{\MintedDataFilename}%
     \begingroup
     \minted@exec@highlight
+    \global\booltrue{minted@didcreatefiles}%
     \IfFileExists{\minted@highlightfilepath}%
      {\ifx\minted@exec@warning\relax
       \else

@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/12 v3.2.0dev1 Yet another Pygments shim for LaTeX]
+    [2024/10/19 v3.2.0dev2 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/10/12]
@@ -1018,15 +1018,57 @@
 \providecommand{\minted@def@optcl}[4][]{%
   \minted@warning{Macro \string\minted@def@optcl\space is deprecated with minted v3
     and no longer has any effect}}
+\newbool{minted@didcreatefiles}
 \def\minted@numcachefiles{0}
 \def\minted@addcachefilename#1{%
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
-    \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}}%
+    \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
+    \edef\minted@tmp{\pdf@mdfivesum{#1}}%
+    \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
+\let\minted@cachechecksum\relax
+\ifcsname mintedoldcachechecksum\endcsname
+\else
+  \let\mintedoldcachechecksum\relax
+\fi
+\edef\minted@cachechecksum@files{\pdf@mdfivesum{}}
+\expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
+\expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
+\expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
+\def\minted@intmodsixteen#1{\minted@intmod{#1}{16}}
+\def\minted@cachechecksum@update#1{%
+  \xdef\minted@cachechecksum@files{%
+    \expandafter\minted@cachechecksum@files@calc
+      \minted@cachechecksum@files\FV@Sentinel#1\FV@Sentinel}%
+  \xdef\minted@cachechecksum{%
+    \detokenize\expandafter{\minted@cachechecksum@files}%
+    \detokenize{:}%
+    \detokenize\expandafter{\minted@numcachefiles}}}
+\def\minted@cachechecksum@files@calc#1#2\FV@Sentinel#3#4\FV@Sentinel{%
+  \minted@inttoHex{%
+    \the\numexpr
+      \minted@intmodsixteen{\minted@intfromhex{#1}+\minted@intfromhex{#3}}%
+    \relax}%
+  \if\relax\detokenize{#2}\relax
+    \expandafter\@gobble
+  \else
+    \expandafter\@firstofone
+  \fi
+   {\minted@cachechecksum@files@calc#2\FV@Sentinel#4\FV@Sentinel}}
 \def\minted@clean{%
   \ifbool{minted@canexec}%
-   {\ifbool{minted@diddetectconfig}{\minted@clean@i}{}}%
+   {\ifbool{minted@didcreatefiles}%
+     {\minted@clean@i}%
+     {\ifbool{minted@fasthighlightmode}%
+       {\minted@clean@i}%
+       {\ifbool{minted@cache}%
+         {\ifx\minted@cachechecksum\mintedoldcachechecksum
+          \else
+            \expandafter\minted@clean@i
+          \fi}%
+         {}}}%
+    \ifbool{minted@fasthighlightmode}{}{\global\boolfalse{minted@canexec}}}%
    {}}
 \def\minted@clean@i{%
   \ifnum\minted@numcachefiles>0\relax
@@ -1038,8 +1080,7 @@
       \expandafter\minted@exec@clean
     \else
       \expandafter\minted@exec@cleantemp
-    \fi
-    \global\boolfalse{minted@canexec}}%
+    \fi}%
   \gdef\minted@numcachefiles{0}}
 \def\minted@savecachelist{%
   \pydatasetfilename{\MintedDataFilename}%
@@ -1070,9 +1111,13 @@
 \gdef\minted@savecachelist@writecachefile#1{%
   \expandafter\pydatawritemlvalueline\expandafter{\expandafter"#1",}}
 \endgroup
-\AfterEndDocument{%
+\AddToHook{enddocument/afterlastpage}{%
   \minted@clean
-  \minted@fasthighlightmode@checkend}
+  \minted@fasthighlightmode@checkend
+  \ifbool{minted@cache}%
+   {\immediate\write\@auxout{%
+      \xdef\string\mintedoldcachechecksum{\string\detokenize{\minted@cachechecksum}}}}%
+   {}}
 \def\minted@patch@PygmentsZsq{%
   \ifcsname\minted@styleprefix Zsq\endcsname
     \ifcsstring{\minted@styleprefix Zsq}{\char`\'}{\minted@patch@PygmentsZsq@i}{}%
@@ -1200,6 +1245,7 @@
    {\pydataclosefilename{\MintedDataFilename}%
     \begingroup
     \minted@exec@styledef
+    \global\booltrue{minted@didcreatefiles}%
     \ifx\minted@exec@warning\relax
     \else
       \expandafter\minted@exec@warning
@@ -1395,6 +1441,7 @@
    {\pydataclosefilename{\MintedDataFilename}%
     \begingroup
     \minted@exec@highlight
+    \global\booltrue{minted@didcreatefiles}%
     \IfFileExists{\minted@highlightfilepath}%
      {\ifx\minted@exec@warning\relax
       \else

@@ -8,6 +8,10 @@
    LaTeX package is now 0.3.0 and the minimum supported `fvextra` is now
    1.9.0.
 
+*  Temp files and the cache are now only cleaned up when necessary at the end
+   of the document.  Previously, this occurred at the end of each compile,
+   unnecessarily increasing compile time.
+
 
 
 ## v3.1.2 (2024/10/07)
