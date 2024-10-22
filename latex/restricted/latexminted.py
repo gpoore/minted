@@ -79,7 +79,7 @@ under Windows:
 '''
 
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 
 import os
@@ -139,7 +139,12 @@ for env_var in (env_TEXMFOUTPUT, env_TEXMF_OUTPUT_DIRECTORY):
         prohibited_path_roots.add(env_var_path)
         prohibited_path_roots.add(env_var_path.resolve())
 
+did_init_prohibited_path_roots = False
 def is_permitted_executable_path(executable_path, executable_path_resolved):
+    global did_init_prohibited_path_roots
+    if not did_init_prohibited_path_roots:
+        did_init_prohibited_path_roots = True
+        init_prohibited_path_roots()
     if not executable_path_resolved.is_resolved():
         raise Exception('Second argument must be resolved path')
     if any(e.is_relative_to(p) or p.is_relative_to(e)
@@ -153,76 +158,80 @@ def is_permitted_executable_path(executable_path, executable_path_resolved):
 # https://github.com/gpoore/latexrestricted/blob/main/latexrestricted/_latex_config.py
 env_SELFAUTOLOC = os.getenv('SELFAUTOLOC')
 env_TEXSYSTEM = os.getenv('TEXSYSTEM')
-if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYSTEM.lower() != 'miktex'):
-    if sys.platform == 'win32':
-        # Under Windows, shell escape executables will often be launched with
-        # the TeX Live `runscript.exe` executable wrapper.  This overwrites
-        # `SELFAUTOLOC` from TeX with the location of the wrapper, so
-        # `SELFAUTOLOC` may not be correct.
-        which_tlmgr = shutil.which('tlmgr')  # No `.exe`; likely `.bat`
-        if not which_tlmgr:
-            sys.exit('Failed to find TeX Live "tlmgr" executable on PATH')
-        which_tlmgr_resolved = Path(which_tlmgr).resolve()
-        texlive_bin_path = which_tlmgr_resolved.parent
-        # Make sure executable is *.exe, not *.bat or *.cmd:
-        # https://docs.python.org/3/library/subprocess.html#security-considerations
-        which_kpsewhich = shutil.which('kpsewhich.exe', path=str(texlive_bin_path))
-        if not which_kpsewhich:
-            sys.exit('Failed to find a TeX Live "tlmgr" executable with accompanying "kpsewhich" executable on PATH')
-        which_kpsewhich_path = Path(which_kpsewhich)
-        which_kpsewhich_resolved = which_kpsewhich_path.resolve()
-        if not texlive_bin_path == which_kpsewhich_resolved.parent:
-            sys.exit(' '.join([
-                '"tlmgr" executable from PATH resolved to "{}" '.format(which_tlmgr_resolved.as_posix()),
-                'while "kpsewhich" resolved to "{}";'.format(which_kpsewhich_resolved.as_posix()),
-                '"tlmgr" and "kpsewhich" should be in the same location',
-            ]))
-        if not which_kpsewhich_resolved.name.lower().endswith('.exe'):
-            sys.exit(' '.join([
-                'Executable "kpsewhich" resolved to "{}",'.format(which_kpsewhich_resolved.as_posix()),
-                'but *.exe is required',
-            ]))
-    else:
-        which_kpsewhich = shutil.which('kpsewhich', path=env_SELFAUTOLOC)
-        if not which_kpsewhich:
-            sys.exit(' '.join([
-                'Environment variable SELFAUTOLOC has value "{}",'.format(env_SELFAUTOLOC),
-                'but a "kpsewhich" executable was not found at that location',
-            ]))
-        which_kpsewhich_path = Path(which_kpsewhich)
-        which_kpsewhich_resolved = which_kpsewhich_path.resolve()
-    if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
-        # As in the latexrestricted case, this doesn't initially check for the
-        # TeX Live scenario where `TEXMFOUTPUT` is set in a `texmf.cnf` config
-        # file to a location that includes the `kpsewhich` executable.  There
-        # isn't a good way to get the value of `TEXMFOUTPUT` without running
-        # `kpsewhich` in that case.
-        sys.exit(
-            'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
-            'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
-        )
-    kpsewhich_cmd = [which_kpsewhich_resolved.as_posix(), '--var-value', 'TEXMFOUTPUT']
-    try:
-        kpsewhich_proc = subprocess.run(kpsewhich_cmd, shell=False, capture_output=True)
-    except PermissionError:
-        sys.exit('Insufficient permission to run "{}"'.format(which_kpsewhich_resolved.as_posix()))
-    kpsewhich_TEXMFOUTPUT = kpsewhich_proc.stdout.decode(sys.stdout.encoding) or None
-    if kpsewhich_TEXMFOUTPUT:
-        kpsewhich_TEXMFOUTPUT_path = Path(kpsewhich_TEXMFOUTPUT)
-        prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path)
-        prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path.resolve())
-    if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
-        # It is now possible to check for the TeX Live scenario where
-        # `TEXMFOUTPUT` is set in a `texmf.cnf` config file to a location that
-        # includes the `kpsewhich` executable.  Giving an error message after
-        # already running `kpsewhich` isn't ideal, but there isn't a good
-        # alternative.  As in the latexrestricted case, the impact on overall
-        # security is negligible because an unsafe value of `TEXMFOUTPUT`
-        # means that all TeX-related executables are potentially compromised.
-        sys.exit(
-            'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
-            'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
-        )
+def init_prohibited_path_roots():
+    if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYSTEM.lower() != 'miktex'):
+        if sys.platform == 'win32':
+            # Under Windows, shell escape executables will often be launched
+            # with the TeX Live `runscript.exe` executable wrapper.  This
+            # overwrites `SELFAUTOLOC` from TeX with the location of the
+            # wrapper, so `SELFAUTOLOC` may not be correct.
+            which_tlmgr = shutil.which('tlmgr')  # No `.exe`; likely `.bat`
+            if not which_tlmgr:
+                sys.exit('Failed to find TeX Live "tlmgr" executable on PATH')
+            which_tlmgr_resolved = Path(which_tlmgr).resolve()
+            texlive_bin_path = which_tlmgr_resolved.parent
+            # Make sure executable is *.exe, not *.bat or *.cmd:
+            # https://docs.python.org/3/library/subprocess.html#security-considerations
+            which_kpsewhich = shutil.which('kpsewhich.exe', path=str(texlive_bin_path))
+            if not which_kpsewhich:
+                sys.exit(
+                    'Failed to find a TeX Live "tlmgr" executable with accompanying "kpsewhich" executable on PATH'
+                )
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+            if not texlive_bin_path == which_kpsewhich_resolved.parent:
+                sys.exit(' '.join([
+                    '"tlmgr" executable from PATH resolved to "{}" '.format(which_tlmgr_resolved.as_posix()),
+                    'while "kpsewhich" resolved to "{}";'.format(which_kpsewhich_resolved.as_posix()),
+                    '"tlmgr" and "kpsewhich" should be in the same location',
+                ]))
+            if not which_kpsewhich_resolved.name.lower().endswith('.exe'):
+                sys.exit(' '.join([
+                    'Executable "kpsewhich" resolved to "{}",'.format(which_kpsewhich_resolved.as_posix()),
+                    'but *.exe is required',
+                ]))
+        else:
+            which_kpsewhich = shutil.which('kpsewhich', path=env_SELFAUTOLOC)
+            if not which_kpsewhich:
+                sys.exit(' '.join([
+                    'Environment variable SELFAUTOLOC has value "{}",'.format(env_SELFAUTOLOC),
+                    'but a "kpsewhich" executable was not found at that location',
+                ]))
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # As in the latexrestricted case, this doesn't initially check for
+            # the TeX Live scenario where `TEXMFOUTPUT` is set in a
+            # `texmf.cnf` config file to a location that includes the
+            # `kpsewhich` executable.  There isn't a good way to get the value
+            # of `TEXMFOUTPUT` without running `kpsewhich` in that case.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
+        kpsewhich_cmd = [which_kpsewhich_resolved.as_posix(), '--var-value', 'TEXMFOUTPUT']
+        try:
+            kpsewhich_proc = subprocess.run(kpsewhich_cmd, shell=False, capture_output=True)
+        except PermissionError:
+            sys.exit('Insufficient permission to run "{}"'.format(which_kpsewhich_resolved.as_posix()))
+        kpsewhich_TEXMFOUTPUT = kpsewhich_proc.stdout.strip().decode(sys.stdout.encoding) or None
+        if kpsewhich_TEXMFOUTPUT:
+            kpsewhich_TEXMFOUTPUT_path = Path(kpsewhich_TEXMFOUTPUT)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path.resolve())
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # It is now possible to check for the TeX Live scenario where
+            # `TEXMFOUTPUT` is set in a `texmf.cnf` config file to a location
+            # that includes the `kpsewhich` executable.  Giving an error
+            # message after already running `kpsewhich` isn't ideal, but there
+            # isn't a good alternative.  As in the latexrestricted case, the
+            # impact on overall security is negligible because an unsafe value
+            # of `TEXMFOUTPUT` means that all TeX-related executables are
+            # potentially compromised.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
 
 
 

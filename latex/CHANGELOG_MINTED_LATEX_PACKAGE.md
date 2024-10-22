@@ -8,14 +8,20 @@
    LaTeX package is now 0.3.0 and the minimum supported `fvextra` is now
    1.9.0.
 
-*  Temp files and the cache are now only cleaned up when necessary at the end
-   of the document.  Previously, this occurred at the end of each compile,
-   unnecessarily increasing compile time.
+*  Performance improvements:
 
-*  In `latedminted.py`, switched from `platform.system()` to `sys.platform`
-   for better performance in detecting operating system.
+   - Temp files and the cache are now only cleaned up when necessary at the
+     end of the document.  Previously, this occurred at the end of each
+     compile, unnecessarily increasing compile time.
 
-   Performance reference:  https://github.com/python/cpython/issues/95531.
+   - In `latexminted.py`, switched from `platform.system()` to `sys.platform`
+     for better performance in detecting operating system.
+
+     Performance reference:  https://github.com/python/cpython/issues/95531.
+
+   - In `latexminted.py` with TeX Live, the value of `TEXMFOUTPUT` is no
+     longer retrieved with `kpsewhich` unless it is actually used.  Also fixed
+     a bug in parsing `TEXMFOUTPUT` value (whitespace is now stripped).
 
 *  The `debug` package option now records shell escape commands in the log.
 
