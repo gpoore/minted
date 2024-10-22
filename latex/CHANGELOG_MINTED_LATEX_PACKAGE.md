@@ -17,6 +17,8 @@
 
    Performance reference:  https://github.com/python/cpython/issues/95531.
 
+*  The `debug` package option now records shell escape commands in the log.
+
 
 
 ## v3.1.2 (2024/10/07)

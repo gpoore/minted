@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/19 v3.2.0dev2 Yet another Pygments shim for LaTeX]
+    [2024/10/22 v3.2.0dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -2382,10 +2382,20 @@
 % \begin{macro}{\minted@ShellEscapeMaybeMessages,\minted@ShellEscapeNoMessages}
 %    \begin{macrocode}
 \def\minted@ShellEscapeMaybeMessages#1{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+      minted debug: shell escape at
+      \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno: #1}}%
+   {}%
   \let\minted@exec@warning\relax
   \let\minted@exec@error\relax
   \ifbool{minted@canexec}{\ShellEscape{#1}\minted@inputexecmessages}{}}
 \def\minted@ShellEscapeNoMessages#1{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+      minted debug: shell escape at
+      \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno: #1}}%
+   {}%
   \ifbool{minted@canexec}{\ShellEscape{#1}}{}}
 %    \end{macrocode}
 % \end{macro}

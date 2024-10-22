@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/19 v3.2.0dev2 Yet another Pygments shim for LaTeX]
+    [2024/10/22 v3.2.0dev3 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/10/12]
@@ -384,10 +384,20 @@
 \ifbool{minted@placeholder}{\boolfalse{minted@canexec}}{}
 \ifbool{minted@verbatim}{\boolfalse{minted@canexec}}{}
 \def\minted@ShellEscapeMaybeMessages#1{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+      minted debug: shell escape at
+      \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno: #1}}%
+   {}%
   \let\minted@exec@warning\relax
   \let\minted@exec@error\relax
   \ifbool{minted@canexec}{\ShellEscape{#1}\minted@inputexecmessages}{}}
 \def\minted@ShellEscapeNoMessages#1{%
+  \ifbool{minted@debug}%
+   {\immediate\typeout{%
+      minted debug: shell escape at
+      \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno: #1}}%
+   {}%
   \ifbool{minted@canexec}{\ShellEscape{#1}}{}}
 \def\minted@execarg@debug{%
   \ifbool{minted@debug}{\detokenize{ --debug }}{}}
