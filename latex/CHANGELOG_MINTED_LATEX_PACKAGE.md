@@ -25,6 +25,9 @@
 
 *  The `debug` package option now records shell escape commands in the log.
 
+*  In config detection, error messages now mention `.errlog.minted` file when
+   it exists.
+
 
 
 ## v3.1.2 (2024/10/07)

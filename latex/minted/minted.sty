@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/22 v3.2.0dev3 Yet another Pygments shim for LaTeX]
+    [2024/10/24 v3.2.0dev4 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/10/12]
@@ -467,18 +467,27 @@
   \minted@ensureatletter{%
     \InputIfFileExists{\MintedConfigFilename}{}{}}%
   \ifx\minted@executable@version\relax
-    \expandafter\minted@detectconfig@noexecutable
+    \expandafter\minted@detectconfig@noexecutableorerrlog
   \else
     \expandafter\minted@detectconfig@ii
   \fi}
-\def\minted@detectconfig@noexecutable{%
+\def\minted@detectconfig@noexecutableorerrlog{%
   \global\boolfalse{minted@canexec}%
   \ifnum\csname c_sys_shell_escape_int\endcsname=1\relax
-    \minted@error{minted v3+ executable is not installed or is not added to PATH}%
+    \expandafter\@firstofttwo
   \else
-    \minted@error{minted v3+ executable is not installed, is not added to PATH,
-      or is not permitted with restricted shell escape}%
-  \fi}
+    \expandafter\@secondoftwo
+  \fi
+   {\IfFileExists{\MintedErrlogFilename}%
+     {\minted@error{minted v3+ executable is not installed or is not added to PATH,
+        or there was an unexpected error (check "\MintedErrlogFilename")}}%
+     {\minted@error{minted v3+ executable is not installed or is not added to PATH}}}%
+   {\IfFileExists{\MintedErrlogFilename}%
+     {\minted@error{minted v3+ executable is not installed, is not added to PATH,
+        or is not permitted with restricted shell escape;
+        or there was an unexpected error (check "\MintedErrlogFilename")}}%
+     {\minted@error{minted v3+ executable is not installed, is not added to PATH,
+        or is not permitted with restricted shell escape}}}}
 \def\minted@detectconfig@ii{%
   \ifx\minted@timestamp\minted@config@timestamp
     \expandafter\minted@detectconfig@iii
@@ -493,7 +502,7 @@
       upgrade to TeX distribution that supports \detokenize{TEXMF_OUTPUT_DIRECTORY}
       or set environment variable \detokenize{TEXMF_OUTPUT_DIRECTORY} manually)}%
   \else
-    \expandafter\minted@detectconfig@noexecutable
+    \expandafter\minted@detectconfig@noexecutableorerrlog
   \fi}
 \def\minted@detectconfig@iii{%
   \minted@exec@cleanconfig
