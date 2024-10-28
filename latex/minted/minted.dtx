@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/24 v3.2.0dev4 Yet another Pygments shim for LaTeX]
+    [2024/10/26 v3.2.0dev5 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1192,9 +1192,25 @@
 % \endgroup
 %
 % \textbf{Note that when math is used inside escapes, any active characters beyond those that are normally active in verbatim can cause problems.}  Any package that relies on special active characters in math mode (for example, \texpkg{icomma}) will produce errors along the lines of ``\texttt{TeX capacity exceeded}'' and ``\texttt{\string\leavevmode \string\kern \string\z@}''.  This may be fixed by modifying \texttt{\string\@noligs}, as described at \url{https://tex.stackexchange.com/questions/223876}.
+%
+%
+% \item[extrakeywords (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordsconstant (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordsdeclaration (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordsnamespace (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordspseudo (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordsreserved (string) (\meta{none})]\vspace{-1.2\baselineskip}
+% \item[extrakeywordstype (string) (\meta{none})]
+% Extra keywords for the current lexer.  See the \href{https://pygments.org/docs/tokens/#keyword-tokens}{Pygments documentation} for details about the different keyword classes.
+%
+% Values must be lists of extra keywords, either comma-delimited or space-delimited.
+%
+%
 %   \item[firstline (integer) (1)]
 %     The first line to be shown.
 %     All lines before that line are ignored and do not appear in the output.
+%
+%
 %   \item[firstnumber (auto \| last \| integer) (auto = 1)]
 %     Line number of the first line.
 %
@@ -3176,6 +3192,13 @@
 \mintedpgfkeyscreate{py}{
   autogobble<true>=false,
   encoding=utf8,
+  extrakeywords=,
+  extrakeywordsconstant=,
+  extrakeywordsdeclaration=,
+  extrakeywordsnamespace=,
+  extrakeywordspseudo=,
+  extrakeywordsreserved=,
+  extrakeywordstype=,
   funcnamehighlighting<true>=true,
   gobble=0,
   gobblefilter=0,

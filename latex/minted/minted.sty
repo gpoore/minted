@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/10/24 v3.2.0dev4 Yet another Pygments shim for LaTeX]
+    [2024/10/26 v3.2.0dev5 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/10/12]
@@ -975,6 +975,13 @@
 \mintedpgfkeyscreate{py}{
   autogobble<true>=false,
   encoding=utf8,
+  extrakeywords=,
+  extrakeywordsconstant=,
+  extrakeywordsdeclaration=,
+  extrakeywordsnamespace=,
+  extrakeywordspseudo=,
+  extrakeywordsreserved=,
+  extrakeywordstype=,
   funcnamehighlighting<true>=true,
   gobble=0,
   gobblefilter=0,

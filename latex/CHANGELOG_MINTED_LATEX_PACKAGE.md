@@ -8,6 +8,12 @@
    LaTeX package is now 0.3.0 and the minimum supported `fvextra` is now
    1.9.0.
 
+*  Added new options that allow keywords to be added to a lexer (#416):
+   `extrakeywords`, `extrakeywordsconstant`, `extrakeywordsdeclaration`,
+   `extrakeywordsnamespace`, `extrakeywordspseudo`, `extrakeywordsreserved`,
+   `extrakeywordstype`.  This covers all keyword tokens supported by Pygments
+   (https://pygments.org/docs/tokens/#keyword-tokens).
+
 *  Performance improvements:
 
    - Temp files and the cache are now only cleaned up when necessary at the

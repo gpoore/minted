@@ -18,7 +18,8 @@ from latexrestricted import latex_config, PathSecurityError
 from pygments import highlight as pygments_highlight
 from pygments.formatters.latex import LatexEmbeddedLexer, LatexFormatter
 from pygments.lexer import Lexer
-from pygments.lexers import get_lexer_by_name
+from pygments.lexers import find_lexer_class_by_name
+from pygments.token import Name, Keyword
 from pygments.util import ClassNotFound
 from .err import CustomLexerError
 from .messages import Messages
@@ -61,6 +62,15 @@ positive_int_keys: set[str] = set([
 other_keys_value_sets: dict[str, set[str]] = {
     'keywordcase': set(['lower', 'upper', 'capitalize', 'none']),
 }
+other_keys_comma_or_space_delim_set = set([
+    'extrakeywords',
+    'extrakeywordsconstant',
+    'extrakeywordsdeclaration',
+    'extrakeywordsnamespace',
+    'extrakeywordspseudo',
+    'extrakeywordsreserved',
+    'extrakeywordstype',
+])
 other_keys_unchecked_str_value: set[str] = set([
     'codetagify',
     'commandprefix',
@@ -77,7 +87,7 @@ other_keys_unchecked_str_value: set[str] = set([
 ])
 all_keys = bool_keys | nonnegative_int_or_none_keys | positive_int_keys | set(other_keys_value_sets) | other_keys_unchecked_str_value
 
-# Key for manipulating code within Python
+# Keys for manipulating code within Python
 code_keys = set([
     'autogobble',
     'gobble',
@@ -90,6 +100,16 @@ code_keys = set([
     'rangeregexmatchnumber',
     'rangeregexdotall',
     'rangeregexmultiline',
+])
+# Keys for creating customized subclasses of Pygments lexers
+custom_lexer_keys = set([
+    'extrakeywords',
+    'extrakeywordsconstant',
+    'extrakeywordsdeclaration',
+    'extrakeywordsnamespace',
+    'extrakeywordspseudo',
+    'extrakeywordsreserved',
+    'extrakeywordstype',
 ])
 # Categorize Pygments options into lexer, filter, or formatter
 lexer_keys: set[str] = set([
@@ -127,6 +147,7 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
     minted_opts: dict[str, str] = {k: v for k, v in data.items() if k != 'pyopt'}
     py_opts = {}
     code_opts = {}
+    custom_lexer_opts = {}
     lexer_opts = {}
     filter_opts = {}
     formatter_opts = {}
@@ -140,6 +161,8 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
             current_opts = formatter_opts
         elif k in code_keys:
             current_opts = code_opts
+        elif k in custom_lexer_keys:
+            current_opts = custom_lexer_opts
         elif k in all_keys:
             current_opts = py_opts
         else:
@@ -172,6 +195,11 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
             else:
                 valid_options = ', '.join(f'"{opt}"' for opt in other_keys_value_sets[k])
                 messages.append_error(rf'Key "{k}" has invalid value \detokenize{{"{v}"}} (expected {valid_options})')
+        elif k in other_keys_comma_or_space_delim_set:
+            if ',' in v:
+                current_opts[k] = set(v_i for v_i in (x.strip() for x in v.split(',')) if v_i)
+            else:
+                current_opts[k] = set(v_i for v_i in (x.strip() for x in v.split(' ')) if v_i)
         elif k in other_keys_unchecked_str_value:
             current_opts[k] = v
         else:
@@ -183,7 +211,7 @@ def process_highlight_data(*, messages: Messages, data: dict[str, Any]) -> tuple
 
     if messages.has_errors():
         return None
-    return minted_opts, py_opts, code_opts, lexer_opts, filter_opts, formatter_opts
+    return minted_opts, py_opts, code_opts, custom_lexer_opts, lexer_opts, filter_opts, formatter_opts
 
 
 
@@ -330,7 +358,7 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     if processed_data is None:
         return
 
-    minted_opts, py_opts, code_opts, lexer_opts, filter_opts, formatter_opts = processed_data
+    minted_opts, py_opts, code_opts, custom_lexer_opts, lexer_opts, filter_opts, formatter_opts = processed_data
 
     if 'code' in minted_opts:
         code = minted_opts['code']
@@ -347,13 +375,13 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
     translated_lexer_opts = {pygments_translations.get(k, k): v for k, v in lexer_opts.items()}
     pygments_lexer: Lexer
     try:
-        pygments_lexer = get_lexer_by_name(py_opts['lexer'], **translated_lexer_opts)
+        PygmentsLexer = find_lexer_class_by_name(py_opts['lexer'])
     except ClassNotFound:
         if not py_opts['lexer'].endswith('.py') and '.py:' not in py_opts['lexer']:
             messages.append_error(rf'''Pygments lexer \detokenize{{"{py_opts['lexer']}"}} is unknown''')
             return
         try:
-            pygments_lexer_class = load_custom_lexer(py_opts['lexer'])
+            PygmentsLexer = load_custom_lexer(py_opts['lexer'])
         except CustomLexerError as e:
             messages.append_error(rf'\detokenize{{{str(e)}}}')
             return
@@ -362,7 +390,39 @@ def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data
                 rf'''Failed to load custom lexer \detokenize{{"{py_opts['lexer']}"}}; see \detokenize{{{messages.errlog_file_name}}} if it exists''')
             messages.append_errlog(e)
             return
-        pygments_lexer = pygments_lexer_class(**translated_lexer_opts)
+
+
+    if any(custom_lexer_opts.values()):
+        extra_tokens = {}
+        for v in custom_lexer_opts['extrakeywords']:
+            extra_tokens[v] = Keyword
+        for v in custom_lexer_opts['extrakeywordsconstant']:
+            extra_tokens[v] = Keyword.Constant
+        for v in custom_lexer_opts['extrakeywordsdeclaration']:
+            extra_tokens[v] = Keyword.Declaration
+        for v in custom_lexer_opts['extrakeywordsnamespace']:
+            extra_tokens[v] = Keyword.Namespace
+        for v in custom_lexer_opts['extrakeywordspseudo']:
+            extra_tokens[v] = Keyword.Pseudo
+        for v in custom_lexer_opts['extrakeywordsreserved']:
+            extra_tokens[v] = Keyword.Reserved
+        for v in custom_lexer_opts['extrakeywordstype']:
+            extra_tokens[v] = Keyword.Type
+
+        # https://pygments.org/docs/lexerdevelopment/
+        PygmentsLexerBase = PygmentsLexer
+        class PygmentsLexer(PygmentsLexerBase):
+            EXTRA_TOKENS = extra_tokens
+
+            def get_tokens_unprocessed(self, text, stack=('root',)):
+                for index, token, value in PygmentsLexerBase.get_tokens_unprocessed(self, text, stack):
+                    if token is Name and value in self.EXTRA_TOKENS:
+                        yield index, self.EXTRA_TOKENS[value], value
+                    else:
+                        yield index, token, value
+
+
+    pygments_lexer = PygmentsLexer(**translated_lexer_opts)
 
     for filter_name in filter_keys_no_options:
         if filter_opts[filter_name]:

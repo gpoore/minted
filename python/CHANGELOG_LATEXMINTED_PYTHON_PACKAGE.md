@@ -4,6 +4,11 @@
 
 ## v0.3.0 (dev)
 
+*  Added support for new keywords options (#416):  `extrakeywords`,
+   `extrakeywordsconstant`, `extrakeywordsdeclaration`,
+   `extrakeywordsnamespace`, `extrakeywordspseudo`, `extrakeywordsreserved`,
+   `extrakeywordstype`.
+
 *  Refactored version handling in `cmdline.py` to avoid unnecessary imports.
 
 
