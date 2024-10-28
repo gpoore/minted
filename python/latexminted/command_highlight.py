@@ -354,6 +354,7 @@ def preprocess_code(code: str, *, messages: Messages,
 
 
 def highlight(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, Any]) -> str | None:
+    messages.set_context(data)
     processed_data = process_highlight_data(messages=messages, data=data)
     if processed_data is None:
         return

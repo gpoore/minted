@@ -11,6 +11,14 @@
 
 *  Refactored version handling in `cmdline.py` to avoid unnecessary imports.
 
+*  Improved `.errlog.minted` files.  Improved layout and added traceback
+   information for the origin in the LaTeX document.  Fixed a bug that could
+   cause `.errlog.minted` files to be deleted when they should be kept.
+   `.errlog.minted` files now contain all error data from a compile,
+   regardless of `highlightmode` setting.  Previously, only the data from the
+   last error was kept under some circumstances when `highlightmode` was not
+   `immediate`.
+
 
 
 ## v0.2.0 (2024-10-03)

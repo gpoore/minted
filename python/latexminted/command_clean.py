@@ -25,7 +25,7 @@ paths_skipped_in_initial_temp_cleaning: set[MintedTempRestrictedPath] = set()
 all_roles = ['config', 'data', 'errlog', 'highlight', 'message', 'style']
 all_roles_less_errlog = [x for x in all_roles if x != 'errlog']
 config_roles = ['config']
-message_roles = ['message', 'errlog']
+message_roles = ['message']
 
 
 

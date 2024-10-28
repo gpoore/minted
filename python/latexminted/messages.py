@@ -45,9 +45,11 @@ class Messages(object):
             self._currentfile = data['currentfile']
             self._inputlineno = data['inputlineno']
 
-    def _add_context(self, message: str) -> str:
+    def _add_context(self, message: str, latex: bool = False) -> str:
         if self._jobname is None:
-            return message
+            if latex:
+                return message
+            return f'''{'='*80}\n\n{message}'''
 
         if self._currentfilepath:
             path = self._currentfilepath
@@ -64,22 +66,26 @@ class Messages(object):
             if (name.startswith('"') and name.endswith('"')) or (name.startswith("'") and name.endswith("'")):
                 name = name[1:-1]
         number = self._inputlineno
-        return rf'^^J => \detokenize{{{path}{name}:{number}:}} {message}'
+        if latex:
+            return rf'^^J => \detokenize{{{path}{name}:{number}:}} {message}'
+        return f'''{'='*80}\n{path}{name}:{number}\n{'-'*80}\n{message}'''
 
 
     def append_warning(self, message: str):
-        self._warnings.append(self._add_context(message))
+        self._warnings.append(self._add_context(message, latex=True))
 
     def append_error(self, message: str):
-        self._errors.append(self._add_context(message))
+        self._errors.append(self._add_context(message, latex=True))
 
     def append_errlog(self, message: str | Exception):
         if isinstance(message, str):
-            self._errlogs.append(message)
+            if not message.endswith('\n'):
+                message += '\n'
+            self._errlogs.append(self._add_context(message))
         elif isinstance(message, Exception):
-            self._errlogs.append(
+            self._errlogs.append(self._add_context(
                 textwrap.dedent(''.join(traceback.format_tb(message.__traceback__)))
-            )
+            ))
         else:
             raise TypeError
 
@@ -113,9 +119,15 @@ class Messages(object):
                     break
 
         if self._errlogs:
+            errlogs = '\n'.join(self._errlogs)
+            if not errlogs.endswith('\n'):
+                errlogs += '\n'
+            if not errlogs.endswith('\n\n'):
+                errlogs += '\n'
             for write_path in MintedTempRestrictedPath.tex_openout_roots():
                 try:
-                    (write_path / self.errlog_file_name).write_text('\n'.join(self._errlogs), encoding='utf8')
+                    with (write_path / self.errlog_file_name).open('a', encoding='utf8') as f:
+                        f.write(errlogs)
                 except PermissionError:
                     continue
                 else:

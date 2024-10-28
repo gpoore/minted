@@ -24,12 +24,10 @@ def batch(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: li
     for d in data:
         command = d['command']
         if command == 'styledef':
-            messages.set_context(d)
             f = styledef(md5=md5, timestamp=timestamp, debug=debug, messages=messages, data=d)
             if f is not None:
                 new_cache_file_names.append(f)
         elif command == 'highlight':
-            messages.set_context(d)
             f = highlight(md5=md5, timestamp=timestamp, debug=debug, messages=messages, data=d)
             if f is not None:
                 new_cache_file_names.append(f)
