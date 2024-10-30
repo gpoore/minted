@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.2.0 (dev)
+## v3.2.0 (2024/10/29)
 
 *  Fixed compatibility with `\includeonly` by replacing buffer length counters
    with macros (#414).  As part of this, the minimum supported `latex2pydata`
@@ -14,7 +14,9 @@
    `extrakeywordstype`.  This covers all keyword tokens supported by Pygments
    (https://pygments.org/docs/tokens/#keyword-tokens).
 
-*  Performance improvements:
+*  Many performance improvements.  When combined with `latexrestricted`
+   v0.6.0, these can give a cumulative speedup of over 40% in the case when no
+   code needs to be highlighted.
 
    - Temp files and the cache are now only cleaned up when necessary at the
      end of the document.  Previously, this occurred at the end of each
