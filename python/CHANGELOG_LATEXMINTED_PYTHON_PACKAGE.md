@@ -2,7 +2,7 @@
 
 
 
-## v0.3.0 (dev)
+## v0.3.0 (2024-10-29)
 
 *  Added support for new keywords options (#416):  `extrakeywords`,
    `extrakeywordsconstant`, `extrakeywordsdeclaration`,
