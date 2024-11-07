@@ -1,6 +1,13 @@
 # Changelog — minted LaTeX package
 
 
+## v3.2.1 (dev)
+
+*  Fixed a bug from v3.2.0 that caused errors with unrestricted shell escape
+   (#420).
+
+
+
 ## v3.2.0 (2024/10/29)
 
 *  Fixed compatibility with `\includeonly` by replacing buffer length counters
