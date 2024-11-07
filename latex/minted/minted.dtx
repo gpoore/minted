@@ -2569,7 +2569,7 @@
 \def\minted@detectconfig@noexecutableorerrlog{%
   \global\boolfalse{minted@canexec}%
   \ifnum\csname c_sys_shell_escape_int\endcsname=1\relax
-    \expandafter\@firstofttwo
+    \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
   \fi
