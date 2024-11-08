@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/10/29 v3.2.1dev1 Yet another Pygments shim for LaTeX]
+    [2024/11/07 v3.3.0dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -2574,15 +2574,27 @@
     \expandafter\@secondoftwo
   \fi
    {\IfFileExists{\MintedErrlogFilename}%
-     {\minted@error{minted v3+ executable is not installed or is not added to PATH,
+     {\minted@error{minted v3+ executable is not installed or is not added to PATH;
+        or MiKTeX is being used with \detokenize{-aux-directory} or
+        \detokenize{-output-directory} without setting a
+        \detokenize{TEXMF_OUTPUT_DIRECTORY} environment variable;
         or there was an unexpected error (check "\MintedErrlogFilename")}}%
-     {\minted@error{minted v3+ executable is not installed or is not added to PATH}}}%
+     {\minted@error{minted v3+ executable is not installed or is not added to PATH;
+        or MiKTeX is being used with \detokenize{-aux-directory} or
+        \detokenize{-output-directory} without setting a
+        \detokenize{TEXMF_OUTPUT_DIRECTORY} environment variable}}}%
    {\IfFileExists{\MintedErrlogFilename}%
      {\minted@error{minted v3+ executable is not installed, is not added to PATH,
         or is not permitted with restricted shell escape;
+        or MiKTeX is being used with \detokenize{-aux-directory} or
+        \detokenize{-output-directory} without setting a
+        \detokenize{TEXMF_OUTPUT_DIRECTORY} environment variable;
         or there was an unexpected error (check "\MintedErrlogFilename")}}%
      {\minted@error{minted v3+ executable is not installed, is not added to PATH,
-        or is not permitted with restricted shell escape}}}}
+        or is not permitted with restricted shell escape;
+        or MiKTeX is being used with \detokenize{-aux-directory} or
+        \detokenize{-output-directory} without setting a
+        \detokenize{TEXMF_OUTPUT_DIRECTORY} environment variable}}}}
 \def\minted@detectconfig@ii{%
   \ifx\minted@timestamp\minted@config@timestamp
     \expandafter\minted@detectconfig@iii

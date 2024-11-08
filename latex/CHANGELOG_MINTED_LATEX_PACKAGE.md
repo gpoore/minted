@@ -1,10 +1,14 @@
 # Changelog — minted LaTeX package
 
 
-## v3.2.1 (dev)
+## v3.3.0 (dev)
 
 *  Fixed a bug from v3.2.0 that caused errors with unrestricted shell escape
    (#420).
+
+*  Improved error messages mention the possibility of MiKTeX being used with
+   `-aux-directory` or `-output-directory` without setting a
+   `TEXMF_OUTPUT_DIRECTORY` environment variable (#419).
 
 
 
