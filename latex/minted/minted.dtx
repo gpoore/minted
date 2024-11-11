@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/11/07 v3.3.0dev1 Yet another Pygments shim for LaTeX]
+    [2024/11/10 v3.3.0dev2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -463,9 +463,9 @@
 %
 % The \mintedpkg\ package operates by passing code to the |latexminted| Python executable, which performs syntax highlighting and then returns the highlighted code in \LaTeX\ format.
 %
-% Currently, |latexminted| requires special permission to run.  \LaTeX\ must be called with the |-shell-escape| option (TeX Live) or the |-enable-write18| option (MiKTeX).  Note that using |-shell-escape| or |-enable-write18| allows \LaTeX\ to run potentially arbitrary commands on your system.  These should only be used when necessary, with documents from trusted sources.
+% |latexminted| is designed to be compatible with the security requirements for restricted shell escape.  For up-to-date installations of TeX Live 2024+, the |-shell-escape| option is no longer required.  The |latexminted| Python executable has been added to TeX Live's list of trusted executables.
 %
-% |latexminted| is designed to be compatible with the security requirements for restricted shell escape.  Once |latexminted| finishes the security review for restricted shell escape executables, it will function automatically without |-shell-escape| or |-enable-write18|, so long as the default restricted shell escape has not been disabled.  It is possible to benefit from these enhanced security capabilities immediately and avoid the need for |-shell-escape| or |-enable-write18| by manually designating |latexminted| as a trusted executable.
+% For versions of TeX Live before 2024 and for MiKTeX, |latexminted| requires special permission to run.  This can be accomplished by running \LaTeX\ with the |-shell-escape| option (TeX Live) or the |-enable-write18| option (MiKTeX).  Note that using |-shell-escape| or |-enable-write18| allows \LaTeX\ to run potentially arbitrary commands on your system.  These should only be used when necessary, with documents from trusted sources.  An alternative is to manually designate |latexminted| as a trusted executable.
 % \begin{itemize}
 % \item TeX Live:  Copy the variable |shell_escape_commands| from the distribution |texmf.cnf| (something like |<texlive>/<yr>/texmf-dist/web2c/texmf.cnf|) into the user |texmf.cnf| (something like |<texlive>/<yr>/texmf.cnf|), and then add |latexminted| to the |shell_escape_commands| list.  The location of the |texmf.cnf| files can be determined by running |kpsewhich -all texmf.cnf|.  Note that under Windows, this only works when |latexminted| is installed within a TeX Live installation; it is not compatible with |latexminted| being installed in a Python installation.
 % \item MiKTeX:  Add a line |AllowedShellCommands[] = latexminted| to the existing list of allowed commands in |miktex.ini|.  You may want to modify the user-scoped configuration instead of the system-wide configuration.  See the \href{https://docs.miktex.org/manual/miktex.ini.html}{MiKTeX documentation} for more details, particularly |initexmf --edit-config-file| and |initexmf --set-config-value|.

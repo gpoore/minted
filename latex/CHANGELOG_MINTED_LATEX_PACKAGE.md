@@ -10,6 +10,10 @@
    `-aux-directory` or `-output-directory` without setting a
    `TEXMF_OUTPUT_DIRECTORY` environment variable (#419).
 
+*  Updated documentation on shell escape for TeX Live.  The `latexminted`
+   executable has been added to TeX Live's list of trusted executables, so
+   `-shell-escape` is no longer required.
+
 
 
 ## v3.2.0 (2024/10/29)
