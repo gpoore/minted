@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2024/11/10 v3.3.0dev2 Yet another Pygments shim for LaTeX]
+    [2024/11/10 v3.3.0dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1412,6 +1412,10 @@
 % If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
 %
 %
+% \item[reflabel (string) (\meta{none})]
+% \texpkg{fancyvrb} option for creating a label that can be used with |\pageref|.
+%
+%
 %   \item[resetmargins (boolean) (false)]
 %     Resets the left margin inside other environments.
 %   \item[rulecolor (color command) (black)]
@@ -1475,6 +1479,12 @@
 %   \item[texcl (boolean) (false)]
 %     Enables \LaTeX{} code inside comments.
 %     Usage as in package \texpkg{listings}.  See the note under \texttt{escapeinside} regarding math and ligatures.
+%
+%
+% \item[vspace (dimension) (\string\topsep)]
+% \texpkg{fancyvrb} option for setting the value of the usual vertical list space.
+%
+%
 %   \item[texcomments (boolean) (false)]
 %     Enables \LaTeX{} code inside comments.  The newer name for |texcl|.  See the note under |escapeinside| regarding math and ligatures.
 %
@@ -3178,6 +3188,7 @@
   numbers,
   numbersep,
   obeytabs,
+  reflabel,
   resetmargins,
   rulecolor,
   samepage,
@@ -3191,6 +3202,7 @@
   tab,
   tabcolor=black,
   tabsize,
+  vspace,
   xleftmargin,
   xrightmargin,
 }

@@ -14,6 +14,8 @@
    executable has been added to TeX Live's list of trusted executables, so
    `-shell-escape` is no longer required.
 
+*  Added support for `fancyvrb` options `reflabel` and `vspace` (#421).
+
 
 
 ## v3.2.0 (2024/10/29)
