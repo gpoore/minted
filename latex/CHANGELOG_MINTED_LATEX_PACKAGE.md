@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.3.0 (dev)
+## v3.3.0 (2024/11/10)
 
 *  Fixed a bug from v3.2.0 that caused errors with unrestricted shell escape
    (#420).
