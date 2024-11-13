@@ -2,6 +2,13 @@
 
 
 
+## v0.3.1 (dev)
+
+*  Fixed a bug in config detection that caused an error when a data file from
+   LaTeX cannot be located.
+
+
+
 ## v0.3.0 (2024-10-29)
 
 *  Added support for new keywords options (#416):  `extrakeywords`,

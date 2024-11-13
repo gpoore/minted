@@ -19,7 +19,7 @@ from .version import __version_info__
 
 
 
-def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str] | None):
+def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str] | None = None):
     config_file_name = f'_{md5}.config.minted'
 
     clean_initial_temp(md5=md5)
