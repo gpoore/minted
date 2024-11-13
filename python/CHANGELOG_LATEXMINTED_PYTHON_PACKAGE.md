@@ -2,7 +2,7 @@
 
 
 
-## v0.3.1 (dev)
+## v0.3.1 (2024-11-12)
 
 *  Fixed a bug in config detection that caused an error when a data file from
    LaTeX cannot be located.
