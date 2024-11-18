@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.4.0 (dev)
+## v3.4.0 (2024/11/17)
 
 *  Replaced temp counter with a macro to prevent issues with commands
    and environments such as `\text` from `amsmath` that modify counter
