@@ -1,6 +1,17 @@
 # Changelog — minted LaTeX package
 
 
+## v3.4.0 (dev)
+
+*  Replaced temp counter with a macro to prevent issues with commands
+   and environments such as `\text` from `amsmath` that modify counter
+   behavior (#423).
+
+*  When `highlightmode` causes all code to be highlighted at once, duplicate
+   highlighting is now detected and skipped.
+
+
+
 ## v3.3.0 (2024/11/10)
 
 *  Fixed a bug from v3.2.0 that caused errors with unrestricted shell escape

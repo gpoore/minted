@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2024/11/10 v3.3.0 Yet another Pygments shim for LaTeX]
+    [2024/11/17 v3.4.0dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2024/10/16]
@@ -289,7 +289,7 @@
   \fi
 \fi
 \def\minted@styleprefix{PYG}
-\newcounter{minted@tmpcnt}
+\def\minted@tempindex{0}
 \def\minted@forcsvlist#1#2{%
   \if\relax\detokenize\expandafter{\@gobble#2}\relax
     \expandafter\minted@forcsvlist@exp
@@ -315,29 +315,29 @@
   \catcode`\@=11\relax
   #1%
   \catcode`\@=\minted@tmpatcat\relax}
-\setcounter{minted@tmpcnt}{48}
-\loop\unless\ifnum\value{minted@tmpcnt}>57\relax
-  \expandafter\let\csname minted@isnum\arabic{minted@tmpcnt}\endcsname\relax
-  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+\def\minted@tempindex{48}
+\loop\unless\ifnum\minted@tempindex>57\relax
+  \expandafter\let\csname minted@isnum\minted@tempindex\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\minted@tempindex\endcsname\relax
   \expandafter\let
-    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
-  \stepcounter{minted@tmpcnt}
+    \csname minted@isalphanumhyphenunderscore\minted@tempindex\endcsname\relax
+  \edef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}
 \repeat
-\setcounter{minted@tmpcnt}{65}
-\loop\unless\ifnum\value{minted@tmpcnt}>90\relax
-  \expandafter\let\csname minted@isalpha\arabic{minted@tmpcnt}\endcsname\relax
-  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+\def\minted@tempindex{65}
+\loop\unless\ifnum\minted@tempindex>90\relax
+  \expandafter\let\csname minted@isalpha\minted@tempindex\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\minted@tempindex\endcsname\relax
   \expandafter\let
-    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
-  \stepcounter{minted@tmpcnt}
+    \csname minted@isalphanumhyphenunderscore\minted@tempindex\endcsname\relax
+  \edef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}
 \repeat
-\setcounter{minted@tmpcnt}{97}
-\loop\unless\ifnum\value{minted@tmpcnt}>122\relax
-  \expandafter\let\csname minted@isalpha\arabic{minted@tmpcnt}\endcsname\relax
-  \expandafter\let\csname minted@isalphanum\arabic{minted@tmpcnt}\endcsname\relax
+\def\minted@tempindex{97}
+\loop\unless\ifnum\minted@tempindex>122\relax
+  \expandafter\let\csname minted@isalpha\minted@tempindex\endcsname\relax
+  \expandafter\let\csname minted@isalphanum\minted@tempindex\endcsname\relax
   \expandafter\let
-    \csname minted@isalphanumhyphenunderscore\arabic{minted@tmpcnt}\endcsname\relax
-  \stepcounter{minted@tmpcnt}
+    \csname minted@isalphanumhyphenunderscore\minted@tempindex\endcsname\relax
+  \edef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}
 \repeat
 \expandafter\let\csname minted@isalphanumhyphenunderscore45\endcsname\relax
 \expandafter\let\csname minted@isalphanumhyphenunderscore95\endcsname\relax
@@ -1133,13 +1133,13 @@
   \pydatawritekey{cachefiles}%
   \pydatawritemlvaluestart
   \pydatawritemlvalueline{[}%
-  \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@numcachefiles\relax
+  \gdef\minted@tempindex{1}%
+  \loop\unless\ifnum\minted@tempindex>\minted@numcachefiles\relax
     \expandafter\minted@savecachelist@writecachefile\expandafter{%
-      \csname minted@cachefile\arabic{minted@tmpcnt}\endcsname}%
+      \csname minted@cachefile\minted@tempindex\endcsname}%
     \expandafter\global\expandafter
-      \let\csname minted@cachefile\arabic{minted@tmpcnt}\endcsname\minted@undefined
-    \stepcounter{minted@tmpcnt}%
+      \let\csname minted@cachefile\minted@tempindex\endcsname\minted@undefined
+    \xdef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}%
   \repeat
   \pydatawritemlvalueline{]}%
   \pydatawritemlvalueend
@@ -1394,12 +1394,12 @@
   \pydatabufferkeyvalue{command}{highlight}%
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
-  \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@tmpcodebufferlength\relax
+  \gdef\minted@tempindex{1}%
+  \loop\unless\ifnum\minted@tempindex>\minted@tmpcodebufferlength\relax
     \expandafter\let\expandafter
-      \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
+      \minted@tmp\csname minted@tmpcodebufferline\minted@tempindex\endcsname
     \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
-    \stepcounter{minted@tmpcnt}%
+    \xdef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}%
   \repeat
   \pydatabuffermlvalueend
   \minted@highlight@i}
@@ -1443,8 +1443,19 @@
         \input{\minted@highlightfilepath}}%
       \minted@addcachefilename{\minted@highlightfilename}}%
      {\ifbool{minted@canexec}%
-       {\minted@iffasthighlightmode@buffertempfile
-        \minted@highlight@create}%
+       {\ifbool{minted@fasthighlightmode}%
+         {\ifcsname minted@processedfilename@\minted@highlightfilename\endcsname
+            \expandafter\@firstoftwo
+          \else
+            \expandafter\@secondoftwo
+          \fi
+           {\minted@insertplaceholder}%
+           {\expandafter\global\expandafter\let
+              \csname minted@processedfilename@\minted@highlightfilename\endcsname\relax
+            \minted@iffasthighlightmode@buffertempfile
+            \minted@highlight@create}}%
+         {\minted@iffasthighlightmode@buffertempfile
+          \minted@highlight@create}}%
        {\minted@error{Cannot highlight code (minted executable is unavailable or
           disabled); attempting to typeset without highlighting}%
         \minted@highlight@fallback}}}%
@@ -1603,12 +1614,12 @@
 \def\minted@iffasthighlightmode@buffertempfile@v{%
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
-  \setcounter{minted@tmpcnt}{1}%
-  \loop\unless\ifnum\value{minted@tmpcnt}>\minted@tmpcodebufferlength\relax
+  \gdef\minted@tempindex{1}%
+  \loop\unless\ifnum\minted@tempindex>\minted@tmpcodebufferlength\relax
     \expandafter\let\expandafter
-      \minted@tmp\csname minted@tmpcodebufferline\arabic{minted@tmpcnt}\endcsname
+      \minted@tmp\csname minted@tmpcodebufferline\minted@tempindex\endcsname
     \expandafter\pydatabuffermlvalueline\expandafter{\minted@tmp}%
-    \stepcounter{minted@tmpcnt}%
+    \xdef\minted@tempindex{\the\numexpr\minted@tempindex+1\relax}%
   \repeat
   \pydatabuffermlvalueend
   \VerbatimClearBuffer[buffername=minted@tmpcodebuffer]}
