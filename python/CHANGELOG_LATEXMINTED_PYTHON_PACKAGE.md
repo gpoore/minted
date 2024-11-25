@@ -2,6 +2,12 @@
 
 
 
+## v0.3.2 (2024-11-24)
+
+*  `pyproject.toml`:  explicitly set `build-backend` (#424).
+
+
+
 ## v0.3.1 (2024-11-12)
 
 *  Fixed a bug in config detection that caused an error when a data file from
