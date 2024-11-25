@@ -1,6 +1,12 @@
 # Changelog — minted LaTeX package
 
 
+## v3.4.1 (dev)
+
+*  Updated minimum required `latexminted` to v0.3.2 (#425).
+
+
+
 ## v3.4.0 (2024/11/17)
 
 *  Replaced temp counter with a macro to prevent issues with commands
