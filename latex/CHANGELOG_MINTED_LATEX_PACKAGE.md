@@ -1,7 +1,11 @@
 # Changelog — minted LaTeX package
 
 
-## v3.4.1 (dev)
+## v3.5.0 (dev)
+
+*  Tab characters in inputted temp files with recognized file extensions are
+   no longer lost when `highlightmode` is `fastfirst` during the first
+   compile, or when `highlightmode` is `fast` (#431).
 
 *  Updated minimum required `latexminted` to v0.3.2 (#425).
 
