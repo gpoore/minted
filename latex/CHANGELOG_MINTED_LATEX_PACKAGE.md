@@ -7,6 +7,11 @@
    no longer lost when `highlightmode` is `fastfirst` during the first
    compile, or when `highlightmode` is `fast` (#431).
 
+*  For environments such as `minted`, any error messages generated within
+   Python and passed to LaTeX now refer to the starting line of the
+   environment, instead of the ending line.  This improves debugging for long
+   environments.
+
 *  Updated minimum required `latexminted` to v0.3.2 (#425).
 
 

@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2025/01/30 v3.5.0dev1 Yet another Pygments shim for LaTeX]
+    [2025/02/01 v3.5.0dev2 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -2372,9 +2372,17 @@
 %
 %
 % \begin{macro}{minted@isinline}
-% Whether in command or environment.
+% Whether in command or environment for typesetting.  This is not related to whether a command or environment initiates typesetting (see |minted@iscmd|); for example, |\inputminted| is a command that causes typesetting within an environment.
 %    \begin{macrocode}
 \newbool{minted@isinline}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{minted@iscmd}
+% Whether a command or environment initiates typesetting.
+%    \begin{macrocode}
+\newbool{minted@iscmd}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3595,7 +3603,7 @@
   \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
   \pydatawritekeyedefvalue{currentfilepath}{\CurrentFilePath}%
   \pydatawritekeyedefvalue{currentfile}{\CurrentFile}%
-  \pydatawritekeyedefvalue{inputlineno}{\the\inputlineno}%
+  \pydatawritekeyedefvalue{inputlineno}{\minted@inputlineno}%
   \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
   \pydatawritekeyedefvalue{styledeffilename}{\minted@styledeffilename}%
   \pydatawritekeyvalue{style}{#1}%
@@ -3760,6 +3768,10 @@
      \ifx\CurrentFile\@empty\else\CurrentFile\space\fi line \the\inputlineno}}%
    {}}
 \def\minted@highlight{%
+  \ifbool{minted@iscmd}%
+   {\edef\minted@inputlineno{\the\inputlineno}}%
+   {\edef\minted@inputlineno{%
+      \the\numexpr\the\inputlineno-\minted@tmpcodebufferlength-1\relax}}%
   \minted@defstyle
   \pydatasetbuffername{minted@tmpdatabuffer}%
   \pydatabufferkeyvalue{command}{highlight}%
@@ -3854,7 +3866,7 @@
   \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
   \pydatawritekeyedefvalue{currentfilepath}{\CurrentFilePath}%
   \pydatawritekeyedefvalue{currentfile}{\CurrentFile}%
-  \pydatawritekeyedefvalue{inputlineno}{\the\inputlineno}%
+  \pydatawritekeyedefvalue{inputlineno}{\minted@inputlineno}%
   \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
   \pydatawritekeyedefvalue{highlightfilename}{\minted@highlightfilename}%
   \pydatawritedictclose
@@ -4069,6 +4081,7 @@
    {\FVExtraReadVArg{\RobustMintInlineProcess{#1}{#2}}}}
 \def\RobustMintInlineProcess@highlight#1#2#3{%
   \begingroup
+  \booltrue{minted@iscmd}%
   \booltrue{minted@isinline}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
@@ -4091,11 +4104,13 @@
     \expandafter\Verb\expandafter{\minted@tmp}}}
 \def\RobustMintInlineProcess@placeholder#1#2#3{%
   \begingroup
+  \booltrue{minted@iscmd}%
   \booltrue{minted@isinline}%
   \minted@insertplaceholder
   \endgroup}
 \def\RobustMintInlineProcess@verbatim#1#2#3{%
   \begingroup
+  \booltrue{minted@iscmd}%
   \booltrue{minted@isinline}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
@@ -4241,6 +4256,7 @@
   \RobustInputMintedProcess{#1}{#2}{#3}}
 \def\RobustInputMintedProcess@highlight#1#2#3{%
   \begingroup
+  \booltrue{minted@iscmd}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \edef\minted@inputfilepath{#3}%
@@ -4254,9 +4270,13 @@
   \minted@codewrapper{%
     \csname\minted@envname Input\endcsname{\minted@inputfilepath}}}
 \def\RobustInputMintedProcess@placeholder#1#2#3{%
-  \minted@insertplaceholder}
+  \begingroup
+  \booltrue{minted@iscmd}%
+  \minted@insertplaceholder
+  \endgroup}
 \def\RobustInputMintedProcess@verbatim#1#2#3{%
   \begingroup
+  \booltrue{minted@iscmd}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
   \edef\minted@inputfilepath{#3}%
