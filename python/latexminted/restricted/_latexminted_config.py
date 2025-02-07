@@ -145,6 +145,8 @@ class LatexMintedConfig(object):
                 f'Permission error prevented access to config file "{path.as_posix()}"'
             )
         except PathSecurityError as e:
+            if not path.is_file():
+                return
             raise LatexMintedConfigError(str(e))
         except UnicodeDecodeError as e:
             raise LatexMintedConfigError(

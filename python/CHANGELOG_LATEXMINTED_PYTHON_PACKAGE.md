@@ -12,6 +12,11 @@
 *  Improved error messages when `rangeregex`, possibly combined with
    `rangeregexmatchnumber`, fails to find a match.
 
+*  A security error related to `.latexminted_config` is no longer always
+   raised when dotfiles are writable by LaTeX (`openout_any=a`).  An error is
+   now raised only when `.latexminted_config` actually exists under these
+   circumstances.
+
 
 
 ## v0.3.2 (2024-11-24)
