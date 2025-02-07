@@ -2,6 +2,18 @@
 
 
 
+## v0.4.0 (dev)
+
+*  `rangeregex` is now compatible with Python < 3.11.
+
+*  Errors in compiling regular expressions for `rangeregex` are now always
+   caught and translated into LaTeX errors.
+
+*  Improved error messages when `rangeregex`, possibly combined with
+   `rangeregexmatchnumber`, fails to find a match.
+
+
+
 ## v0.3.2 (2024-11-24)
 
 *  `pyproject.toml`:  explicitly set `build-backend` (#424).

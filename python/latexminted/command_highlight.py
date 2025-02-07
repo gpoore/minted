@@ -286,26 +286,34 @@ def preprocess_code(code: str, *, messages: Messages,
         return
 
     if rangeregex:
-        flags = re.NOFLAG
+        try:
+            flags = re.NOFLAG
+        except AttributeError:  # Python < 3.11
+            flags = re.RegexFlag(0)
         if rangeregexdotall:
             flags |= re.DOTALL
         if rangeregexmultiline:
             flags |= re.MULTILINE
         try:
             pattern = re.compile(rangeregex, flags)
-        except re.error as e:
+        except Exception as e:
             messages.append_error(
                 rf'Failed to compile "rangeregex" regular expression (see \detokenize{{{messages.errlog_file_name}}} if it exists)'
             )
             messages.append_errlog(e)
             return
         regex_match: re.Match | None = None
+        did_match: bool = False
         for n, match_n in enumerate(pattern.finditer(code), start=1):
+            did_match = True
             if n == rangeregexmatchnumber:
                 regex_match = match_n
                 break
-        if not regex_match:
+        if not did_match:
             messages.append_error('Failed to find match with regular expression "rangeregex"')
+            return
+        if not regex_match:
+            messages.append_error(f'Failed to find match number {rangeregexmatchnumber} with regular expression "rangeregex"')
             return
         code = regex_match.group()
 
