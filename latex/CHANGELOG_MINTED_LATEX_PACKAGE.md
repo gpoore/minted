@@ -12,7 +12,7 @@
    environment, instead of the ending line.  This improves debugging for long
    environments.
 
-*  Updated minimum required `latexminted` to v0.3.2 (#425).
+*  Updated minimum required `latexminted` to v0.4.0 (#425).
 
 
 
