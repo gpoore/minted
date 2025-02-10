@@ -2,7 +2,7 @@
 
 
 
-## v0.4.0 (dev)
+## v0.4.0 (2025-02-09)
 
 *  `rangeregex` is now compatible with Python < 3.11.
 
