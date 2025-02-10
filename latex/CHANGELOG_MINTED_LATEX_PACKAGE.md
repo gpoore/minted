@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.5.0 (dev)
+## v3.5.0 (2025/02/09)
 
 *  Tab characters in inputted temp files with recognized file extensions are
    no longer lost when `highlightmode` is `fastfirst` during the first
