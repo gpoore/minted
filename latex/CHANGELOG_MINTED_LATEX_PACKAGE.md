@@ -1,6 +1,13 @@
 # Changelog — minted LaTeX package
 
 
+## v3.5.1 (dev)
+
+*  Fixed a bug from v3.5.0 related to calculating input line numbers that
+   caused errors with `\inputminted` (#435).
+
+
+
 ## v3.5.0 (2025/02/09)
 
 *  Tab characters in inputted temp files with recognized file extensions are
