@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.5.1 (dev)
+## v3.5.1 (2025/02/12)
 
 *  Fixed a bug from v3.5.0 related to calculating input line numbers that
    caused errors with `\inputminted` (#435).
