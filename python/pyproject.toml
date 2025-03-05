@@ -19,8 +19,8 @@ keywords = [
     'Pygments',
 ]
 dependencies = [
-    'latex2pydata >= 0.4.0',
-    'latexrestricted >= 0.6.0',
+    'latex2pydata >= 0.5.0',
+    'latexrestricted >= 0.6.2',
     'pygments >= 2.17.0',
 ]
 # https://pypi.python.org/pypi?:action=list_classifiers

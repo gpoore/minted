@@ -8,6 +8,9 @@
 
 *  Added man page for Python executable (#403).
 
+*  Updated dependency requirements to `latex2pydata` >= 0.5.0 and
+   `latexrestricted` >= 0.6.2.
+
 
 
 ## v0.4.0 (2025-02-09)
