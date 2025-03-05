@@ -1,0 +1,33 @@
+.TH LATEXMINTED 1
+.SH NAME
+latexminted \- Python executable for the LaTeX minted package
+.SH DESCRIPTION
+The LaTeX
+.B minted
+package typesets code with syntax highlighting using the Pygments library
+(https://pygments.org/).
+.B latexminted
+receives code and settings from the
+.B minted
+package, performs syntax highlighting and code formatting, and then passes the
+highlighted code back to LaTeX for typesetting.
+.PP
+.B latexminted
+is designed to be launched from within LaTeX via \\ShellEscape by the
+.B minted
+package.  It is not intended for direct usage.
+.PP
+See the
+.B minted
+documentation for installation and configuration details
+(https://ctan.org/pkg/minted).
+.SH "SEE ALSO"
+latex(1)
+.SH AUTHOR
+Geoffrey M. Poore
+.PP
+Repository: https://github.com/gpoore/minted
+.br
+CTAN: https://ctan.org/pkg/minted
+.br
+PyPI: https://pypi.org/project/latexminted

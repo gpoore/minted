@@ -2,6 +2,14 @@
 
 
 
+## v0.5.0 (dev)
+
+*  Improved `--help` message (#404).
+
+*  Added man page for Python executable (#403).
+
+
+
 ## v0.4.0 (2025-02-09)
 
 *  `rangeregex` is now compatible with Python < 3.11.

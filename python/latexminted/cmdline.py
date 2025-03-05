@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2024, Geoffrey M. Poore
+# Copyright (c) 2024-2025, Geoffrey M. Poore
 # All rights reserved.
 #
 # Licensed under the LaTeX Project Public License version 1.3c:
@@ -14,16 +14,79 @@ from os import environ as os_environ
 # ruff: noqa: E402
 os_environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
 import argparse
+import shutil
 import sys
+import textwrap
+from typing import Callable
+
+
+
+class ArgParser(argparse.ArgumentParser):
+    def __init__(self, *, prog: str):
+        super().__init__(
+            prog=prog,
+            allow_abbrev=False,
+            formatter_class=argparse.RawTextHelpFormatter
+        )
+        self._prog = prog
+        self._command_subparsers = None
+        self._command_help_dict = None
+
+    def add_command(self, name: str, *, help: str, func: Callable[..., None]):
+        if self._command_subparsers is None:
+            self._command_subparsers = self.add_subparsers(dest='subparser_name')
+        if self._command_help_dict is None:
+            self._command_help_dict = {}
+        self._command_help_dict[name] = help
+        parser = self._command_subparsers.add_parser(name, help=help)
+        parser.set_defaults(func=func)
+        parser.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
+        parser.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
+        parser.add_argument('md5', help=r'MD5 hash based on \jobname')
+
+    def print_help(self):
+        term_columns = shutil.get_terminal_size()[0]
+        help_lines = []
+        if self._command_help_dict:
+            help_lines.append(f'usage: {self._prog} [-h] [--version] COMMAND [--debug] --timestamp TIME MD5')
+        else:
+            help_lines.append(f'usage: {self._prog} [-h] [--debug] --timestamp TIME MD5')
+        help_lines.extend([
+            '',
+            'Python executable for the LaTeX minted package.',
+            r'Designed to be launched from within LaTeX via \ShellEscape.',
+            '',
+            'positional arguments:',
+        ])
+        if self._command_help_dict:
+            command_choices = ', '.join(k for k in sorted(self._command_help_dict))
+            if len(command_choices) - 14 - 2 > term_columns:
+                command_choices = ','.join(k for k in sorted(self._command_help_dict))
+            help_lines.append(f'  {"COMMAND":<12}{{{command_choices}}}')
+            for k, v in sorted(self._command_help_dict.items()):
+                help_lines.append(
+                    textwrap.fill(f'{" "*16}* {k}: {v}', subsequent_indent=' '*16, width=term_columns)
+                )
+        help_lines.extend([
+           r'  MD5         MD5 hash of LaTeX \jobname',
+            '  TIME        LaTeX compilation timestamp (YYYYDDMMHHMMSS)',
+            '',
+            'options:',
+            '  --debug     Keep temp files for debugging',
+            '  -h, --help  Show this help message and exit',
+            "  --version   Show program's version number and exit\n" if self._command_help_dict else '',
+            'Repository: https://github.com/gpoore/minted',
+            'CTAN: https://ctan.org/pkg/minted',
+            'PyPI: https://pypi.org/project/latexminted',
+        ])
+        print('\n'.join(help_lines), file=sys.stdout)
 
 
 
 
 def main():
-    parser = argparse.ArgumentParser(
+    parser = ArgParser(
         prog='latexminted',
-        allow_abbrev=False,
-        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.set_defaults(func=lambda **x: parser.print_help())
 
@@ -48,9 +111,6 @@ def main():
         ])
 
     parser.add_argument('--version', action='version', version=get_version())
-
-
-    subparsers = parser.add_subparsers(dest='subparser_name')
 
     # Lazy imports for functions that are designed to work only within LaTeX
     # shell escape.  These require SELFAUTOLOC and/or TEXSYSTEM environment
@@ -85,47 +145,15 @@ def main():
         from .command_styledef import styledef
         styledef(**kwargs)
 
-    parser_batch = subparsers.add_parser('batch', help='Batch process highlight, styledef, and clean')
-    parser_batch.set_defaults(func=batch)
-    parser_batch.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_batch.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_batch.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_clean = subparsers.add_parser('clean', help='Clean up temp files and unused cache files')
-    parser_clean.set_defaults(func=clean)
-    parser_clean.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_clean.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_clean.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_cleanconfig = subparsers.add_parser('cleanconfig', help='Clean up config temp file')
-    parser_cleanconfig.set_defaults(func=clean_config)
-    parser_cleanconfig.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_cleanconfig.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_cleanconfig.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_cleantemp = subparsers.add_parser('cleantemp', help='Clean up temp files')
-    parser_cleantemp.set_defaults(func=clean_temp)
-    parser_cleantemp.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_cleantemp.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_cleantemp.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_config = subparsers.add_parser('config', help='Detect configuration and save it to file for \\input')
-    parser_config.set_defaults(func=config)
-    parser_config.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_config.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_config.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_highlight = subparsers.add_parser('highlight', help='Highlight code and save it to file for \\input')
-    parser_highlight.set_defaults(func=highlight)
-    parser_highlight.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_highlight.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_highlight.add_argument('md5', help=r'MD5 hash based on \jobname')
-
-    parser_styledef = subparsers.add_parser('styledef', help='Generate highlighting style definition and save it to file for \\input')
-    parser_styledef.set_defaults(func=styledef)
-    parser_styledef.add_argument('--timestamp', help='LaTeX compile timestamp', required=True)
-    parser_styledef.add_argument('--debug', help='Keep temp files for debugging', action='store_true')
-    parser_styledef.add_argument('md5', help=r'MD5 hash based on \jobname')
+    parser.add_command('batch', help='Batch process highlight, styledef, and clean', func=batch)
+    parser.add_command('clean', help='Clean up temp files and unused cache files', func=clean)
+    parser.add_command('cleanconfig', help='Clean up config temp file', func=clean_config)
+    parser.add_command('cleantemp', help='Clean up temp files', func=clean_temp)
+    parser.add_command('config', help='Detect configuration and save it to file', func=config)
+    parser.add_command('highlight', help='Highlight code and save it to file', func=highlight)
+    parser.add_command(
+        'styledef', help='Generate highlighting style definition and save it to file', func=styledef
+    )
 
     cmdline_args = parser.parse_args()
 

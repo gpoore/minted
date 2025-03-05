@@ -48,7 +48,7 @@ latexminted = 'latexminted.cmdline:main'
 
 
 [tool.setuptools]
-license-files = ['LICENSE*', 'CHANGELOG*', 'RESTRICTED_SHELL_ESCAPE*']
+license-files = ['LICENSE*', 'CHANGELOG*', 'RESTRICTED_SHELL_ESCAPE*', '*.1']
 
 [tool.setuptools.dynamic]
 version = {attr = 'latexminted.__version__'}
