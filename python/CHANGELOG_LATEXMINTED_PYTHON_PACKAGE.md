@@ -11,6 +11,10 @@
 *  Updated dependency requirements to `latex2pydata` >= 0.5.0 and
    `latexrestricted` >= 0.6.2.
 
+*  When loading data, switched from `schema_missing='rawstr'` to
+   `schema_missing='verbatim'` for full compatibility with `latex2pydata`
+   v0.5.0.
+
 
 
 ## v0.4.0 (2025-02-09)

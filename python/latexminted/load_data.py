@@ -46,7 +46,7 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
         return None
 
     try:
-        data = latex2pydata_loads(data_text, schema={'cachefiles': 'list[str]'}, schema_missing='rawstr')
+        data = latex2pydata_loads(data_text, schema={'cachefiles': 'list[str]'}, schema_missing='verbatim')
     except Exception as e:
         messages.append_error(
             rf'Failed to load data from file \detokenize{{"{data_file_name}"}} (see \detokenize{{"{messages.errlog_file_name}"}})'
