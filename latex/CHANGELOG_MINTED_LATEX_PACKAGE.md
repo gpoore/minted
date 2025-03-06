@@ -3,6 +3,8 @@
 
 ## v3.6.0 (dev)
 
+*  Updated minimum required `latexminted` to v0.5.0.
+
 *  In the `latexminted.py` launcher script, replaced `__version__` with
    `__launcher_version__` and switched to date-based versioning to prevent
    confusion between the launcher script version and the `latexminted` library
