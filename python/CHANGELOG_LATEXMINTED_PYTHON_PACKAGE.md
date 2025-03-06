@@ -2,7 +2,7 @@
 
 
 
-## v0.5.0 (dev)
+## v0.5.0 (2025-03-06)
 
 *  Improved handling of `.latexminted_config`.  Invalid config data no longer
    causes an uncaught error, resulting in incorrect error messages on the
