@@ -37,7 +37,6 @@ def load_data(*, md5: str, messages: Messages, timestamp: str, command: str) -> 
             data_text = data_path.read_text(encoding='utf8')
         except FileNotFoundError:
             messages.append_error(rf'Failed to find file \detokenize{{"{data_file_name}"}}')
-            messages.data_file_not_found = True
         except PermissionError:
             messages.append_error(rf'Insufficient permission to open file \detokenize{{"{data_file_name}"}}')
         except UnicodeDecodeError:

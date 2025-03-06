@@ -26,7 +26,6 @@ class Messages(object):
         self._errlogs: list[str] = []
         self.message_file_name: str = f'_{self._md5}.message.minted'
         self.errlog_file_name: str = f'_{self._md5}.errlog.minted'
-        self.data_file_not_found: bool = False
         self._jobname: str | None = None
         self._currentfilepath: str | None = None
         self._currentfile: str | None = None

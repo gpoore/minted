@@ -4,6 +4,11 @@
 
 ## v0.5.0 (dev)
 
+*  Improved handling of `.latexminted_config`.  Invalid config data no longer
+   causes an uncaught error, resulting in incorrect error messages on the
+   LaTeX side (#438).  An empty config file no longer causes an uncaught error
+   under some circumstances.
+
 *  Improved `--help` message (#404).
 
 *  Added man page for Python executable (#403).

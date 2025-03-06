@@ -170,37 +170,59 @@ def main():
 
     from .command_clean import clean_messages, paths_skipped_in_initial_temp_cleaning
     from .debug import debug_mv_data
-    from .err import LatexMintedConfigError
     from .load_data import load_data
     from .messages import Messages
-
+    from .restricted import latexminted_config
     clean_messages(md5=md5)
     messages = Messages(md5=md5)
     func_args['messages'] = messages
-    try:
-        maybe_data = load_data(md5=md5, messages=messages, timestamp=timestamp, command=cmdline_args.subparser_name)
-    except LatexMintedConfigError as e:
+
+    # All commands but `config` must exit immediately in the event of errors.
+    # `config` must proceed as far as possible.   The `config()` function must
+    # run, since its output is used on the LaTeX side in determining whether
+    # the `latexminted` executable can be located.  Note that `config()` is
+    # designed to handle the possibility of missing data.
+
+    if latexminted_config.config_error and cmdline_args.subparser_name != 'config':
         messages.append_error(
-            f'Failed to load latexminted configuration:  {e}'
+            f'Failed to load latexminted configuration:  {latexminted_config.config_error}'
         )
         messages.communicate()
         sys.exit(1)
+
+    try:
+        maybe_data = load_data(md5=md5, messages=messages, timestamp=timestamp, command=cmdline_args.subparser_name)
     except Exception as e:
         messages.append_error(
             rf'Failed due to unexpected error (see \detokenize{{"{messages.errlog_file_name}"}} if it exists)'
         )
         messages.append_errlog(e)
+        if cmdline_args.subparser_name == 'config':
+            if latexminted_config.config_error:
+                messages.append_error(
+                    f'Failed to load latexminted configuration:  {latexminted_config.config_error}'
+                )
+            config(**func_args)
         messages.communicate()
         sys.exit(1)
 
-    if messages.data_file_not_found and cmdline_args.subparser_name == 'config':
-        config(**func_args)
-        sys.exit(1)
     if messages.has_errors():
+        if cmdline_args.subparser_name == 'config':
+            if latexminted_config.config_error:
+                messages.append_error(
+                    f'Failed to load latexminted configuration:  {latexminted_config.config_error}'
+                )
+            config(**func_args)
         messages.communicate()
         sys.exit(1)
     if maybe_data is None:
         messages.append_error('Unexpectedly received no data without any error messages')
+        if cmdline_args.subparser_name == 'config':
+            if latexminted_config.config_error:
+                messages.append_error(
+                    f'Failed to load latexminted configuration:  {latexminted_config.config_error}'
+                )
+            config(**func_args)
         messages.communicate()
         sys.exit(1)
 

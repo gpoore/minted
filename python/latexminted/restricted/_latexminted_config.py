@@ -39,7 +39,7 @@ class LatexMintedConfigPath(ResolvedRestrictedPath):
                 False,
                 f'Cannot load config file "{self.as_posix()}"; only file name ".latexminted_config" is supported'
             )
-        is_latex_writable, _ = ResolvedRestrictedPath(self).writable_file()
+        is_latex_writable, _ = super().writable_file()
         if is_latex_writable:
             return (
                 False,
@@ -106,18 +106,22 @@ class LatexMintedConfigSecurity(object):
 
 
 class LatexMintedConfig(object):
-    def __init__(self):
+    def __init__(self, *, load_config_file: bool = True, config_error: LatexMintedConfigError | None = None):
         self._custom_lexers: dict[str, set[str]] = defaultdict(set)
         self._did_load_config_file: bool = False
         self._security: LatexMintedConfigSecurity = LatexMintedConfigSecurity()
         self._tex_cwd = LatexMintedConfigPath(latex_config.tex_cwd)
 
-        config_name = '.latexminted_config'
-        self._load(LatexMintedConfigPath.home() / config_name)
-        if latex_config.TEXMFHOME:
-            self._load(LatexMintedConfigPath(latex_config.TEXMFHOME) / config_name)
-        if self._security.enable_cwd_config:
-            self._load(self._tex_cwd / config_name)
+        self.config_error = config_error
+        if load_config_file:
+            if config_error:
+                raise TypeError
+            config_name = '.latexminted_config'
+            self._load(LatexMintedConfigPath.home() / config_name)
+            if latex_config.TEXMFHOME:
+                self._load(LatexMintedConfigPath(latex_config.TEXMFHOME) / config_name)
+            if self._security.enable_cwd_config:
+                self._load(self._tex_cwd / config_name)
 
     def is_custom_lexer_enabled(self, *, name: str, hash: str):
         return hash.lower() in self._custom_lexers[name]
@@ -152,6 +156,8 @@ class LatexMintedConfig(object):
             raise LatexMintedConfigError(
                 f'Failed to decode config file "{path.as_posix()}":  {e}'
             )
+        if not data_str.strip():
+            return
 
         for loader in self._loaders:
             try:
@@ -217,4 +223,7 @@ class LatexMintedConfig(object):
         self._did_load_config_file = True
 
 
-latexminted_config = LatexMintedConfig()
+try:
+    latexminted_config = LatexMintedConfig()
+except LatexMintedConfigError as e:
+    latexminted_config = LatexMintedConfig(load_config_file=False, config_error=e)
