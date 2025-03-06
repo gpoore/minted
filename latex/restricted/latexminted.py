@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2024, Geoffrey M. Poore
+# Copyright (c) 2024-2025, Geoffrey M. Poore
 # All rights reserved.
 #
 # Licensed under the LaTeX Project Public License version 1.3c:
@@ -79,7 +79,12 @@ under Windows:
 '''
 
 
-__version__ = '0.3.0'
+# This is the version of the `latexminted.py` launcher script, which is
+# bundled with the `minted` package for installation within TeX distributions.
+# This is NOT the version of the `latexminted` library.  The library version
+# is what matters for compatibility purposes, and the library version is what
+# is returned from running `latexminted --version`.
+__launcher_version__ = '20250306'
 
 
 import os

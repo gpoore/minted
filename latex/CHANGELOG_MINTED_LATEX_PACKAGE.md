@@ -1,6 +1,15 @@
 # Changelog — minted LaTeX package
 
 
+## v3.6.0 (dev)
+
+*  In the `latexminted.py` launcher script, replaced `__version__` with
+   `__launcher_version__` and switched to date-based versioning to prevent
+   confusion between the launcher script version and the `latexminted` library
+   version.
+
+
+
 ## v3.5.1 (2025/02/12)
 
 *  Fixed a bug from v3.5.0 related to calculating input line numbers that
