@@ -2,7 +2,7 @@
 
 
 
-## v0.5.1 (dev)
+## v0.5.1 (2025-03-27)
 
 *  Fixed a bug from v0.5.0 in determining whether `.latexminted_config` is
    readable (#443).
