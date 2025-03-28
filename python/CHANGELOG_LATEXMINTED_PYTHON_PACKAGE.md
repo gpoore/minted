@@ -2,6 +2,13 @@
 
 
 
+## v0.5.1 (dev)
+
+*  Fixed a bug from v0.5.0 in determining whether `.latexminted_config` is
+   readable (#443).
+
+
+
 ## v0.5.0 (2025-03-06)
 
 *  Improved handling of `.latexminted_config`.  Invalid config data no longer

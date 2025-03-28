@@ -39,7 +39,7 @@ class LatexMintedConfigPath(ResolvedRestrictedPath):
                 False,
                 f'Cannot load config file "{self.as_posix()}"; only file name ".latexminted_config" is supported'
             )
-        is_latex_writable, _ = super().writable_file()
+        is_latex_writable, _ = ResolvedRestrictedPath(self).writable_file()
         if is_latex_writable:
             return (
                 False,
