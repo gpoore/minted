@@ -1,6 +1,12 @@
 # Changelog — minted LaTeX package
 
 
+## v3.7.0 (dev)
+
+*  Updated minimum required `latexminted` to v0.5.1.
+
+
+
 ## v3.6.0 (2025/03/06)
 
 *  Updated minimum required `latexminted` to v0.5.0.
