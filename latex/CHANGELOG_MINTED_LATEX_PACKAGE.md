@@ -3,6 +3,9 @@
 
 ## v3.7.0 (dev)
 
+*  Updated minimum required `fvextra` to 2025/05/13 and added support for new
+   `fvextra` option `texcomments`.
+
 *  Updated minimum required `latexminted` to v0.5.1.
 
 

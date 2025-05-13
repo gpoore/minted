@@ -26,10 +26,10 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2025/04/08 v3.7.0dev1 Yet another Pygments shim for LaTeX]
+    [2025/05/13 v3.7.0dev2 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
-\RequirePackage{fvextra}[2024/10/16]
+\RequirePackage{fvextra}[2025/05/13]
 \RequirePackage{latex2pydata}[2024/10/16]
 \RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
@@ -1176,15 +1176,18 @@
   \ifdefstring{\minted@tmp}{true}%
    {\expandafter\let\csname\minted@styleprefix @tok@err\endcsname\relax}%
    {}}
+\def\minted@patch@PygmentsPYG{%
+  \edef\minted@tmp{\mintedpyoptvalueof{texcomments}}%
+  \ifdefstring{\minted@tmp}{true}{\fvset{texcomments}}{}%
+  \expandafter\minted@patch@PygmentsPYG@i\expandafter{%
+    \csname\minted@styleprefix\endcsname}}
+\def\minted@patch@PygmentsPYG@i#1{%
+  \VerbatimPygments{#1}{#1}}%
 \def\minted@patch@PygmentsStyledef{%
   \minted@patch@PygmentsZsq
   \minted@patch@PygmentsZhy
-  \minted@patch@ignorelexererrors}
-\def\minted@VerbatimPygments{%
-  \expandafter\minted@VerbatimPygments@i\expandafter{%
-    \csname\minted@styleprefix\endcsname}}
-\def\minted@VerbatimPygments@i#1{%
-  \VerbatimPygments{#1}{#1}}
+  \minted@patch@ignorelexererrors
+  \minted@patch@PygmentsPYG}
 \def\minted@standardcatcodes{%
   \catcode`\\=0
   \catcode`\{=1
@@ -1217,8 +1220,7 @@
     \expandafter\@secondoftwo
   \fi
   {\csname minted@styledef@#1\endcsname
-   \minted@patch@PygmentsStyledef
-   \minted@VerbatimPygments}%
+   \minted@patch@PygmentsStyledef}%
   {\minted@defstyle@load{#1}}}
 \def\minted@catchfiledef#1#2{%
   \CatchFileDef{#1}{#2}{\minted@standardcatcodes\endlinechar=-1}}
@@ -1255,8 +1257,7 @@
    \endgroup
    \ifbool{minted@cache}{\minted@addcachefilename{\minted@styledeffilename}}{}%
    \csname minted@styledef@#1\endcsname
-   \minted@patch@PygmentsStyledef
-   \minted@VerbatimPygments}%
+   \minted@patch@PygmentsStyledef}%
   {\endgroup
    \ifbool{minted@canexec}%
     {\minted@warning{Invalid or corrupted style definition file
@@ -1311,8 +1312,7 @@
    \endgroup
    \ifbool{minted@cache}{\minted@addcachefilename{\minted@styledeffilename}}{}%
    \csname minted@styledef@#1\endcsname
-   \minted@patch@PygmentsStyledef
-   \minted@VerbatimPygments}%
+   \minted@patch@PygmentsStyledef}%
   {\endgroup
    \minted@error{Failed to create style definition file "\minted@styledeffilename"
      (no error message, see "\MintedErrlogFilename" if it exists);
@@ -1349,8 +1349,7 @@
   \expandafter\def\csname\minted@styleprefix Zsq\endcsname{\char`\'}%
   \expandafter\def\csname\minted@styleprefix Zdq\endcsname{\char`\"}%
   \expandafter\def\csname\minted@styleprefix Zti\endcsname{\char`\~}%
-  \minted@patch@PygmentsStyledef
-  \minted@VerbatimPygments}
+  \minted@patch@PygmentsStyledef}
 \newcounter{minted@FancyVerbLineTemp}
 \def\minted@lexerlinenoson{%
   \ifcsname c@minted@lexer\minted@lexer\endcsname
