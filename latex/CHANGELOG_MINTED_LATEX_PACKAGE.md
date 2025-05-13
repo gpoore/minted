@@ -3,10 +3,14 @@
 
 ## v3.7.0 (dev)
 
+*  Added support for the Pygments `tokenmerge` filter and enabled it by
+   default (#446).  This was the default in `minted` v2 but was lost in the
+   transition to v3.
+
 *  Updated minimum required `fvextra` to 2025/05/13 and added support for new
    `fvextra` option `texcomments`.
 
-*  Updated minimum required `latexminted` to v0.5.1.
+*  Updated minimum required `latexminted` to v0.6.0.
 
 
 

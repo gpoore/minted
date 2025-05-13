@@ -49,6 +49,7 @@ bool_keys: set[str] = set([
     'stripnl',
     'texcl',
     'texcomments',
+    'tokenmerge',
 ])
 nonnegative_int_re = re.compile('[1-9][0-9]*|0')
 nonnegative_int_or_none_keys: set[str] = set([
@@ -120,6 +121,7 @@ lexer_keys: set[str] = set([
     'stripnl',
 ])
 filter_keys_no_options: set[str] = set([
+    'tokenmerge',
 ])
 filter_keys_one_option: dict[str, str] = {
     'codetagify': 'codetags',

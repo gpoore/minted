@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2025/05/13 v3.7.0dev2 Yet another Pygments shim for LaTeX]
+    [2025/05/13 v3.7.0dev3 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2025/05/13]
@@ -45,7 +45,7 @@
   \batchmode\read -1 to \minted@fatalerror@exitnow}
 \def\minted@warning#1{\PackageWarning{minted}{#1}}
 \edef\MintedExecutable{\detokenize{latexminted}}
-\edef\minted@executable@minversion{\detokenize{0.5.1}}
+\edef\minted@executable@minversion{\detokenize{0.6.0}}
 \def\minted@executable@setminversioncomponents{%
   \expandafter\minted@executable@setminversioncomponents@i
     \minted@executable@minversion\relax}
@@ -1012,6 +1012,7 @@
   stripnl<true>=false,
   texcl<true>=false,
   texcomments<true>=false,
+  tokenmerge<true>=true,
 }
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
   codetagify=,

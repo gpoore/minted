@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2025/05/13 v3.7.0dev2 Yet another Pygments shim for LaTeX]
+    [2025/05/13 v3.7.0dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1481,14 +1481,20 @@
 %     Usage as in package \texpkg{listings}.  See the note under \texttt{escapeinside} regarding math and ligatures.
 %
 %
-% \item[vspace (dimension) (\string\topsep)]
-% \texpkg{fancyvrb} option for setting the value of the usual vertical list space.
-%
-%
 %   \item[texcomments (boolean) (false)]
 %     Enables \LaTeX{} code inside comments.  The newer name for |texcl|.  See the note under |escapeinside| regarding math and ligatures.
 %
 %     \texttt{texcomments} fails with multiline C/C++ preprocessor directives, and may fail in some other circumstances.  This is because preprocessor directives are \href{https://pygments.org/docs/tokens/}{tokenized as \texttt{Comment.Preproc}}, so \texttt{texcomments} causes preprocessor directives to be treated as literal \LaTeX\ code.  \href{https://github.com/pygments/pygments/issues/793}{An issue has been opened} at the Pygments site; additional details are also available on the \href{https://github.com/gpoore/minted/issues/66}{\mintedpkg\ GitHub site}.
+%
+%
+% \item[tokenmerge (bool) (true)]
+% Merge adjacent tokens of the same type, using the Pygments \href{https://pygments.org/docs/filters/#TokenMergeFilter}{|tokenmerge| filter}.
+%
+%
+% \item[vspace (dimension) (\string\topsep)]
+% \texpkg{fancyvrb} option for setting the value of the usual vertical list space.
+%
+%
 %   \item[xleftmargin (dimension) (0)]
 %     Indentation to add before the listing.
 %   \item[xrightmargin (dimension) (0)]
@@ -1740,7 +1746,7 @@
 %
 % \begin{macro}{\minted@executable@minversion}
 %    \begin{macrocode}
-\edef\minted@executable@minversion{\detokenize{0.5.1}}
+\edef\minted@executable@minversion{\detokenize{0.6.0}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3246,6 +3252,7 @@
   stripnl<true>=false,
   texcl<true>=false,
   texcomments<true>=false,
+  tokenmerge<true>=true,
 }
 \mintedpgfkeyscreate[\minted@opthandler@deforrestrictedescape]{py}{
   codetagify=,
