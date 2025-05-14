@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2025/05/14 v3.7.0dev4 Yet another Pygments shim for LaTeX]
+    [2025/05/14 v3.7.0dev5 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1583,6 +1583,7 @@
 % In some cases, \mintedpkg\ may not give the desired result due to other document settings that it cannot control, or due to limitations in \LaTeX\ or the PDF format.  Common issues are described below, with workarounds or solutions.  You may also wish to search \href{https://tex.stackexchange.com/}{tex.stackexchange.com} or ask a question there, if you are working with \mintedpkg\ in a non-typical context.
 %
 % \begin{itemize}
+% \item \textbf{I am working with a console/REPL lexer, and there are missing characters, some characters appear in the wrong place, or highlighting is incorrect or incomplete.}  Make sure that you have the correct lexer.  For example, for Python there is |py| for code and |pycon| for console/REPL.  Also try using |autogobble| if your code is indented.  Some console/REPL lexers do not function correctly with indented code, at least under some versions of Pygments.  References: \href{https://github.com/gpoore/minted/issues/267}{\#267}, \href{https://github.com/gpoore/minted/issues/388}{\#388}.
 % \item \textbf{I can't copy and paste code out of a PDF created with \mintedpkg.  The line numbers also get copied, or whitespace is lost, or something else happens that makes the code incorrect.}  There is no known method that always guarantees correct copy and paste for code in a PDF.  This does not depend on whether \mintedpkg\ is used.  You may want to search \href{https://tex.stackexchange.com/}{tex.stackexchange.com} to find current approaches (and their limitations).  You may also want to consider using \href{https://ctan.org/pkg/attachfile}{\texpkg{attachfile}} or a similar package to bundle source code files as part of your PDF.
 % \item \textbf{There are intermittent ``I can't write on file'' errors.}  This can be caused by using \mintedpkg\ in a directory that is synchronized with Dropbox or a similar file syncing program.  These programs can try to sync \mintedpkg's temporary files while it still needs to be able to modify them.  The solution is to turn off file syncing or use a directory that is not synced.
 % \item \textbf{I receive a ``Font Warning:  Some font shapes were not available'' message, or bold or italic seem to be missing.}  This is due to a limitation in the font that is currently in use for typesetting code.  In some cases, the default font shapes that \LaTeX\ substitutes are perfectly adequate, and the warning may be ignored.  In other cases, the font substitutions may not clearly indicate bold or italic text, and you will want to switch to a different font.  See The \LaTeX\ Font Catalogue's section on \href{https://www.tug.org/FontCatalogue/typewriterfonts.html}{Typewriter Fonts} for alternatives.  If you like the default \LaTeX\ fonts, the \texpkg{lmodern} package is a good place to start.  The \texpkg{beramono} and \texpkg{courier} packages may also be good options.

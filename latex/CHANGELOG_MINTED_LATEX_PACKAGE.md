@@ -15,6 +15,8 @@
 *  Updated documentation to cover loading `.latexminted_config` config files
    from `$XDG_CONFIG_HOME` (#449).
 
+*  Added FAQ documentation on console/REPL lexers (#267, #388).
+
 
 
 ## v3.6.0 (2025/03/06)
