@@ -12,6 +12,9 @@
 
 *  Updated minimum required `latexminted` to v0.6.0.
 
+*  Updated documentation to cover loading `.latexminted_config` config files
+   from `$XDG_CONFIG_HOME` (#449).
+
 
 
 ## v3.6.0 (2025/03/06)

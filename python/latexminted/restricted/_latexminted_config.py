@@ -14,6 +14,7 @@ import re
 from ast import literal_eval
 from collections import defaultdict
 from json import loads as json_loads
+from os import environ
 from typing import Literal
 try:
     from tomllib import loads as toml_loads
@@ -116,7 +117,14 @@ class LatexMintedConfig(object):
         if load_config_file:
             if config_error:
                 raise TypeError
+            config_dir = 'latexminted'
             config_name = '.latexminted_config'
+            xdg_config_home = environ.get('XDG_CONFIG_HOME')
+            if xdg_config_home:
+                xdg_config_path = LatexMintedConfigPath(xdg_config_home) / config_dir
+            else:
+                xdg_config_path = LatexMintedConfigPath.home() / '.config' / config_dir
+            self._load(xdg_config_path / config_name)
             self._load(LatexMintedConfigPath.home() / config_name)
             if latex_config.TEXMFHOME:
                 self._load(LatexMintedConfigPath(latex_config.TEXMFHOME) / config_name)

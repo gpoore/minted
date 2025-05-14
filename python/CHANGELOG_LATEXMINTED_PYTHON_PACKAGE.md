@@ -6,6 +6,12 @@
 
 *  Added support for the Pygments `tokenmerge` filter (#446).
 
+*  `.latexminted_config` config files are now loaded from
+   `$XDG_CONFIG_HOME/latexminted` (#449), followed by the user home directory,
+   `TEXMFHOME`, and (if enabled) the current working directory.  Config files
+   later in the sequence override settings from config files that were loaded
+   earlier.  If `$XDG_CONFIG_HOME` is not set, it defaults to `~/.config`.
+
 
 
 ## v0.5.1 (2025-03-27)

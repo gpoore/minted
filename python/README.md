@@ -37,6 +37,9 @@ config file `.latexminted_config`.  This config file is loaded by the
 The `latexminted` Python executable looks for `.latexminted_config` files in
 the following locations:
 
+  * `$XDG_CONFIG_HOME/latexminted`.  If `$XDG_CONFIG_HOME` is not set, it
+    defaults to `~/.config`.
+
   * User home directory, as found by Python's
     [pathlib.Path.home()](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home).
 

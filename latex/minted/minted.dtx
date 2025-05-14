@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2025/05/13 v3.7.0dev3 Yet another Pygments shim for LaTeX]
+    [2025/05/14 v3.7.0dev4 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -659,6 +659,7 @@
 %
 % The |latexminted| Python executable looks for |.latexminted_config| files in the following locations:
 % \begin{itemize}
+% \item |$XDG_CONFIG_HOME/latexminted|.  If |$XDG_CONFIG_HOME| is not set, it defaults to |~/.config|.
 % \item User home directory, as found by Python's \href{https://docs.python.org/3/library/pathlib.html#pathlib.Path.home}{|pathlib.Path.home()|}.
 % \item |TEXMFHOME|.  With MiKTeX on systems with multiple MiKTeX installations, this will be the |TEXMFHOME| from the first MiKTeX installation on |PATH|.  With TeX Live on Windows systems with multiple TeX Live installations, this will be the |TEXMFHOME| from the first TeX Live installation on |PATH|.  In all other cases, |TEXMFHOME| will correspond to the currently active \TeX\ installation.  See the \href{https://github.com/gpoore/latexrestricted}{\pypkg{latexrestricted}} documentation for details.  \pypkg{latexrestricted} is used by the |latexminted| Python executable to retrieve the value of |TEXMFHOME|.
 % \item The current \TeX\ working directory.  Note that |enable_cwd_config| must be set |true| in the |.latexminted_config| in the user home directory or in the |TEXMFHOME| directory to enable this; |.latexminted_config| in the current \TeX\ working directory is not enabled by default for security reasons.  Even when a config file in the current \TeX\ working directory is enabled, it cannot be used to modify certain security-related settings.
