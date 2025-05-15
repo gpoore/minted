@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.7.0 (dev)
+## v3.7.0 (2025/05/14)
 
 *  Added support for the Pygments `tokenmerge` filter and enabled it by
    default (#446).  This was the default in `minted` v2 but was lost in the
