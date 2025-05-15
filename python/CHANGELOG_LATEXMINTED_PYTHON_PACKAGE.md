@@ -2,7 +2,7 @@
 
 
 
-## v0.6.0 (dev)
+## v0.6.0 (2025-05-14)
 
 *  Added support for the Pygments `tokenmerge` filter (#446).
 
