@@ -803,7 +803,7 @@
 
 ## v2.1 (2015/09/09)
 
-*  Changing the highlighting style now no longer involves re-highlighing
+*  Changing the highlighting style now no longer involves re-highlighting
    code.  Style may be changed with almost no overhead.
 
 *  Improved control of automatic line breaks.  New option `breakanywhere`
