@@ -11,7 +11,7 @@ requires-python = '>= 3.8'
 authors = [
     {name = 'Geoffrey M. Poore', email = 'gpoore@gmail.com'}
 ]
-license = {file = 'LICENSE.txt'}
+license-files = ['LICENSE*', 'CHANGELOG*', 'RESTRICTED_SHELL_ESCAPE*', '*.1']
 dynamic = ['version']
 keywords = [
     'LaTeX',
@@ -31,7 +31,6 @@ classifiers = [
     'Intended Audience :: Developers',
     'Intended Audience :: Education',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: LaTeX',
 ]
@@ -46,9 +45,6 @@ changelog = 'https://github.com/gpoore/minted/blob/main/python/CHANGELOG_LATEXMI
 [project.scripts]
 latexminted = 'latexminted.cmdline:main'
 
-
-[tool.setuptools]
-license-files = ['LICENSE*', 'CHANGELOG*', 'RESTRICTED_SHELL_ESCAPE*', '*.1']
 
 [tool.setuptools.dynamic]
 version = {attr = 'latexminted.__version__'}

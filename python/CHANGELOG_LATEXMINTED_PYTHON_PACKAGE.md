@@ -6,6 +6,8 @@
 
 *  Fixed compatibility with `argparse` in Python 3.14 (#463, #464).
 
+*  Updated `pyproject.toml` format for license data.
+
 
 
 ## v0.6.0 (2025-05-14)
