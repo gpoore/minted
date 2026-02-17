@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2024-2025, Geoffrey M. Poore
+# Copyright (c) 2024-2026, Geoffrey M. Poore
 # All rights reserved.
 #
 # Licensed under the LaTeX Project Public License version 1.3c:
@@ -22,12 +22,10 @@ from typing import Callable
 
 
 class ArgParser(argparse.ArgumentParser):
-    def __init__(self, *, prog: str):
-        super().__init__(
-            prog=prog,
-            allow_abbrev=False,
-            formatter_class=argparse.RawTextHelpFormatter
-        )
+    def __init__(self, *, prog: str, **kwargs):
+        kwargs.setdefault('allow_abbrev', False)
+        kwargs.setdefault('formatter_class', argparse.RawTextHelpFormatter)
+        super().__init__(prog=prog, **kwargs)
         self._prog = prog
         self._command_subparsers = None
         self._command_help_dict = None

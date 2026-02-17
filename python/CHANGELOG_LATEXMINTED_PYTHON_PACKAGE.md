@@ -2,6 +2,12 @@
 
 
 
+## v0.7.0 (dev)
+
+*  Fixed compatibility with `argparse` in Python 3.14 (#463, #464).
+
+
+
 ## v0.6.0 (2025-05-14)
 
 *  Added support for the Pygments `tokenmerge` filter (#446).
