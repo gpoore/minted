@@ -22,7 +22,7 @@ from typing import Callable
 
 
 class ArgParser(argparse.ArgumentParser):
-    def __init__(self, *, prog: str):
+    def __init__(self, *, prog: str, color: bool = True):
         super().__init__(
             prog=prog,
             allow_abbrev=False,
