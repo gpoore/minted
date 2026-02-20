@@ -6,7 +6,7 @@
 %%
 %% minted.dtx  (with options: `package')
 %% 
-%% Copyright (C) 2013-2025 by Geoffrey M. Poore <gpoore@gmail.com>
+%% Copyright (C) 2013-2026 by Geoffrey M. Poore <gpoore@gmail.com>
 %% Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 %% --------------------------------------------------------------------------
 %% This work may be distributed and/or modified under the
@@ -26,12 +26,11 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2025/05/14 v3.7.0 Yet another Pygments shim for LaTeX]
+    [2026/02/19 v3.8.0dev1 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2025/05/14]
 \RequirePackage{latex2pydata}[2024/10/16]
-\RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
 \RequirePackage{shellesc}
@@ -105,6 +104,8 @@
   \endgroup
 \fi
 \xdef\minted@timestamp{\detokenize\expandafter{\minted@timestamp}}
+\expandafter\let\expandafter\minted@hash\csname str_mdfive_hash:e\endcsname
+\expandafter\let\expandafter\minted@filehash\csname file_mdfive_hash:n\endcsname
 \begingroup
 \catcode`\"=12
 \catcode`\'=12
@@ -121,24 +122,24 @@
   \minted@setjobnamemdfive@dquoted@i#2"\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@dquoted@i#1"#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@squoted#1#2\FV@Sentinel{%
   \minted@setjobnamemdfive@squoted@i#2'\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@squoted@i#1'#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@uquoted#1\FV@Sentinel{%
-  \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}}
+  \edef\MintedJobnameMdfive{\minted@hash{#1}}}
 \endgroup
 \expandafter\minted@setjobnamemdfive\jobname\FV@Sentinel
 \edef\MintedCacheIndexFilename{%
@@ -1066,7 +1067,7 @@
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
     \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
-    \edef\minted@tmp{\pdf@mdfivesum{#1}}%
+    \edef\minted@tmp{\minted@hash{#1}}%
     \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
 \let\minted@cachechecksum\relax
@@ -1074,7 +1075,7 @@
 \else
   \let\mintedoldcachechecksum\relax
 \fi
-\edef\minted@cachechecksum@files{\pdf@mdfivesum{}}
+\edef\minted@cachechecksum@files{\minted@hash{}}
 \expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
 \expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
 \expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
@@ -1411,7 +1412,7 @@
 \def\minted@highlightinputfile{%
   \edef\minted@inputlineno{\the\inputlineno}%
   \minted@defstyle
-  \edef\minted@inputfilemdfivesum{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum{\minted@filehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
     \expandafter\@firstoftwo
   \else
@@ -1605,7 +1606,7 @@
     \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength-1\relax}%
   \fi
   \endgroup
-  \edef\minted@inputfilemdfivesum@check{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum@check{\minted@filehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
     \expandafter\@gobble
   \else

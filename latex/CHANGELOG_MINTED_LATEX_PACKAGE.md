@@ -1,6 +1,20 @@
 # Changelog — minted LaTeX package
 
 
+## v3.8.0 (dev)
+
+*  Switched to `\str_mdfive_hash:e` and `\file_mdfive_hash:n` for MD5 hashing.
+   These replace `\pdf@mdfivesum` and `\pdf@filemdfivesum` from the
+   `pdftexcmds` package.  Under LuaTeX, `\pdf@mdfivesum` ignores all code
+   points consisting of more than one byte, which can cause cache collisions
+   and thus incorrect documents (#467).
+
+   `\pdf@mdfivesumnative` provides the desired functionality, but switching to
+   `\str_mdfive_hash:e` is simpler and allows dropping the `pdftexcmds`
+   package as a dependency.
+
+
+
 ## v3.7.0 (2025/05/14)
 
 *  Added support for the Pygments `tokenmerge` filter and enabled it by

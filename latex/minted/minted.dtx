@@ -363,7 +363,6 @@
 % \item \texpkg{fvextra}
 % \item \texpkg{latex2pydata}
 % \item \texpkg{newfloat}
-% \item \texpkg{pdftexcmds}
 % \item \texpkg{pgfkeys}
 % \item \texpkg{pgfopts}
 % \item \texpkg{shellesc}
@@ -1698,7 +1697,6 @@
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2025/05/14]
 \RequirePackage{latex2pydata}[2024/10/16]
-\RequirePackage{pdftexcmds}
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
 \RequirePackage{shellesc}
@@ -1860,6 +1858,15 @@
 % \subsection{Jobname MD5 and derived file names}
 %
 %
+% \begin{macro}{\minted@hash,\minted@filehash}
+% Wrappers for MD5 macros, so that hash algorithms or macros can easily be swapped in the future.
+%    \begin{macrocode}
+\expandafter\let\expandafter\minted@hash\csname str_mdfive_hash:e\endcsname
+\expandafter\let\expandafter\minted@filehash\csname file_mdfive_hash:n\endcsname
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \begin{macro}{\MintedJobnameMdfive}
 % MD5 hash of |\jobname|.  If |\jobname| contains spaces so that \LaTeX\ inserts wrapping quotes (\href{https://tex.stackexchange.com/a/93829/10742}{single} or double) within |\jobname|, these quotes are stripped, so that only the stem (basename without file extension) of the file path is hashed.  This makes it simple to calculate the hash externally outside of \LaTeX.
 %
@@ -1881,24 +1888,24 @@
   \minted@setjobnamemdfive@dquoted@i#2"\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@dquoted@i#1"#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@squoted#1#2\FV@Sentinel{%
   \minted@setjobnamemdfive@squoted@i#2'\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@squoted@i#1'#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}%
+    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\pdf@mdfivesum{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@uquoted#1\FV@Sentinel{%
-  \edef\MintedJobnameMdfive{\pdf@mdfivesum{#1}}}
+  \edef\MintedJobnameMdfive{\minted@hash{#1}}}
 \endgroup
 \expandafter\minted@setjobnamemdfive\jobname\FV@Sentinel
 %    \end{macrocode}
@@ -3347,7 +3354,7 @@
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
     \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
-    \edef\minted@tmp{\pdf@mdfivesum{#1}}%
+    \edef\minted@tmp{\minted@hash{#1}}%
     \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
 \let\minted@cachechecksum\relax
@@ -3355,7 +3362,7 @@
 \else
   \let\mintedoldcachechecksum\relax
 \fi
-\edef\minted@cachechecksum@files{\pdf@mdfivesum{}}
+\edef\minted@cachechecksum@files{\minted@hash{}}
 \expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
 \expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
 \expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
@@ -3813,7 +3820,7 @@
 \def\minted@highlightinputfile{%
   \edef\minted@inputlineno{\the\inputlineno}%
   \minted@defstyle
-  \edef\minted@inputfilemdfivesum{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum{\minted@filehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
     \expandafter\@firstoftwo
   \else
@@ -4018,7 +4025,7 @@
     \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength-1\relax}%
   \fi
   \endgroup
-  \edef\minted@inputfilemdfivesum@check{\pdf@filemdfivesum{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum@check{\minted@filehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
     \expandafter\@gobble
   \else
