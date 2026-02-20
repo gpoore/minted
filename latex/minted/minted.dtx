@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2013-2025 by Geoffrey M. Poore <gpoore@gmail.com>
+% Copyright (C) 2013-2026 by Geoffrey M. Poore <gpoore@gmail.com>
 % Copyright (C) 2010-2011 by Konrad Rudolph <konrad_rudolph@madrat.net>
 % --------------------------------------------------------------------------
 % This work may be distributed and/or modified under the
@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2025/05/14 v3.7.0 Yet another Pygments shim for LaTeX]
+    [2026/02/19 v3.8.0dev1 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -96,6 +96,10 @@
   \endgroup}
 \AtBeginDocument{\let|\pipe@active@verbatim}
 \endgroup
+
+\renewenvironment{verbatim}%
+ {\VerbatimEnvironment\begin{Verbatim}[gobble=1]}%
+ {\end{Verbatim}}
 
 \def\MacroFont{%
   \fontencoding\encodingdefault%
@@ -604,15 +608,15 @@
 % \end{longexample}
 %
 % The default |listing| placement can be modified easily.  When the package option |newfloat=false| (default), the \texpkg{float} package is used to create the |listing| environment.  Placement can be modified by redefining |\fps@listing|.  For example,
-%\begin{verbatim}
-%\makeatletter
-%\renewcommand{\fps@listing}{htp}
-%\makeatother
-%\end{verbatim}
+% \begin{verbatim}
+% \makeatletter
+% \renewcommand{\fps@listing}{htp}
+% \makeatother
+% \end{verbatim}
 % When |newfloat=true|, the more powerful \texpkg{newfloat} package is used to create the |listing| environment.  In that case, \texpkg{newfloat} commands are available to customize |listing|:
-%\begin{verbatim}
-%\SetupFloatingEnvironment{listing}{placement=htp}
-%\end{verbatim}
+% \begin{verbatim}
+% \SetupFloatingEnvironment{listing}{placement=htp}
+% \end{verbatim}
 %
 %
 % \DescribeMacro{\listoflistings}
@@ -626,27 +630,28 @@
 % By default, the |listing| environment is created using the \texpkg{float} package.  In that case, the |\listingscaption| and |\listoflistingscaption| macros described below may be used to customize the caption and list of listings.  If \mintedpkg\ is loaded with the |newfloat| option, then the |listing| environment will be created with the more powerful \href{https://www.ctan.org/pkg/newfloat}{\texpkg{newfloat}} package instead.  \texpkg{newfloat} is part of \href{https://www.ctan.org/pkg/caption}{\texpkg{caption}}, which provides many options for customizing captions.
 %
 % When \texpkg{newfloat} is used to create the |listing| environment, customization should be achieved using \texpkg{newfloat}'s |\SetupFloatingEnvironment| command.  For example, the string ``Listing'' in the caption could be changed to ``Program code'' using
-%\begin{verbatim}
-%\SetupFloatingEnvironment{listing}{name=Program code}
-%\end{verbatim}
-% And ``List of Listings'' could be changed to ``List of Program Code'' with %\begin{verbatim}
-%\SetupFloatingEnvironment{listing}{listname=List of Program Code}
-%\end{verbatim}
+% \begin{verbatim}
+% \SetupFloatingEnvironment{listing}{name=Program code}
+% \end{verbatim}
+% And ``List of Listings'' could be changed to ``List of Program Code'' with 
+% \begin{verbatim}
+% \SetupFloatingEnvironment{listing}{listname=List of Program Code}
+% \end{verbatim}
 % Refer to the \texpkg{newfloat} and \texpkg{caption} documentation for additional information.
 %
 % \DescribeMacro{\listingscaption}
 % This allows the string ``Listing'' in a listing's caption to be customized.  It only applies when package option |newfloat=false|.  For example:
 %
-%\begin{verbatim}
-%\renewcommand{\listingscaption}{Program code}
-%\end{verbatim}
+% \begin{verbatim}
+% \renewcommand{\listingscaption}{Program code}
+% \end{verbatim}
 %
 % \DescribeMacro{\listoflistingscaption}
 % This allows the caption of the listings list, ``List of Listings,'' to be customized. It only applies when package option |newfloat=false|. For example:
 %
-%\begin{verbatim}
-%\renewcommand{\listoflistingscaption}{List of Program Code}
-%\end{verbatim}
+% \begin{verbatim}
+% \renewcommand{\listoflistingscaption}{List of Program Code}
+% \end{verbatim}
 %
 %
 %
@@ -688,17 +693,17 @@
 %   \end{description}
 %
 % \item[{\Verb/custom_lexers: dict[str, str | list[str]]/}]  This is a mapping of custom lexer file names to SHA256 hashes.  Only custom lexers with these file names and the corresponding hashes are permitted.  Lists of hashes are allowed to permit multiple versions of a lexer with a given file name.  All other custom lexers are prohibited, because loading custom lexers is equivalent to arbitrary code execution.  For example:
-%\begin{verbatim}
-%"custom_lexers": {
-%  "mylexer.py": "<sha256>"
-%}
-%\end{verbatim}
+% \begin{verbatim}
+% "custom_lexers": {
+%   "mylexer.py": "<sha256>"
+% }
+% \end{verbatim}
 %
 % By default, it is assumed that custom lexer files implement a class |CustomLexer|.  This can be modified by including the lexer class name with the file name, separated by a colon, when the lexer is used.  For example:
 %
-%\begin{verbatim}
-%\inputminted{./<path>/mylexer.py:LexerClass}{<file>}
-%\end{verbatim}
+% \begin{verbatim}
+% \inputminted{./<path>/mylexer.py:LexerClass}{<file>}
+% \end{verbatim}
 %
 % Note that |custom_lexers| only applies to custom lexers in standalone Python files.  Lexers that are installed within Python as plugin packages work automatically with Pygments and do not need to be enabled separately.  However, in that case it is necessary to install \pypkg{latexminted} and Pygments within a Python installation.  When \TeX\ package managers install \pypkg{latexminted} and Pygments within a \TeX\ installation, these are not compatible with Pygments plugin packages.
 % \end{description}
@@ -708,9 +713,9 @@
 % \label{sec:configuration:macos}
 %
 % If you are using \mintedpkg\ with some versions/configurations of macOS, and are using caching with a large number of code blocks ($>256$), you may receive a Python error during syntax highlighting that looks like this:
-%\begin{Verbatim}
-%OSError: [Errno 24] Too many open files:
-%\end{Verbatim}
+% \begin{verbatim}
+% OSError: [Errno 24] Too many open files:
+% \end{verbatim}
 % This is due to the way files are handled by the operating system, combined with the way that caching works.  To resolve this, you may use one of the following commands to increase the number of files that may be used:
 % \begin{itemize}
 % \item |launchctl limit maxfiles|
@@ -930,14 +935,14 @@
 % \end{example}
 %
 % As an alternative to |bgcolor|, \texpkg{tcolorbox} provides a built-in framing environment with \mintedpkg\ support.  Simply use \texttt{\string\tcbuselibrary\{minted\}} in the preamble, and then put code within a \texttt{tcblisting} environment:
-%\begin{Verbatim}
-%\begin{tcblisting}{<tcb options>,
-%                   minted language=<language>,
-%                   minted style=<style>,
-%                   minted options={<option list>} }
-%<code>
-%\end{tcblisting}
-%\end{Verbatim}
+% \begin{verbatim}
+% \begin{tcblisting}{<tcb options>,
+%                    minted language=<language>,
+%                    minted style=<style>,
+%                    minted options={<option list>} }
+% <code>
+% \end{tcblisting}
+% \end{verbatim}
 % \texpkg{tcolorbox} provides other commands and environments for fine-tuning listing appearance and for working with external code files.
 %
 %
@@ -1083,9 +1088,9 @@
 % \endgroup
 %
 %     Automatic line breaks are limited with Pygments styles that use a colored background behind large chunks of text.  This coloring is accomplished with \texttt{\string\colorbox}, which cannot break across lines.  It may be possible to create an alternative to \texttt{\string\colorbox} that supports line breaks, perhaps with \texpkg{TikZ}, but the author is unaware of a satisfactory solution.  The only current alternative is to redefine \texttt{\string\colorbox} so that it does nothing.  For example,
-%\begin{Verbatim}
-%\AtBeginEnvironment{minted}{\renewcommand{\colorbox}[3][]{#3}}
-%\end{Verbatim}
+% \begin{verbatim}
+% \AtBeginEnvironment{minted}{\renewcommand{\colorbox}[3][]{#3}}
+% \end{verbatim}
 %     uses the \texpkg{etoolbox} package to redefine \texttt{\string\colorbox} within all \texttt{minted} environments.
 %
 %   \item[breaksymbol (string) (breaksymbolleft)]
@@ -1545,10 +1550,10 @@
 % If this name clashes with another environment or if you want to choose a different name, you can use an optional argument: \cmd\newminted\oarg{environment name}\marg{lexer}\marg{options}.
 %
 % Like normal \mintedpkg\ environments, environments created with |\newminted| may be used within other environment definitions.  Since the \mintedpkg\ environments use \texpkg{fancyvrb} internally, any environment based on them must include the \texpkg{fancyvrb} command |\VerbatimEnvironment|.  This allows \texpkg{fancyvrb} to determine the name of the environment that is being defined, and correctly find its end.  It is best to include this command at the beginning of the definition.  For example,
-%\begin{Verbatim}
-%\newminted{cpp}{gobble=2,linenos}
-%\newenvironment{env}{\VerbatimEnvironment\begin{cppcode}}{\end{cppcode}}
-%\end{Verbatim}
+% \begin{verbatim}
+% \newminted{cpp}{gobble=2,linenos}
+% \newenvironment{env}{\VerbatimEnvironment\begin{cppcode}}{\end{cppcode}}
+% \end{verbatim}
 %
 % \DescribeMacro{\newmint}
 % A shortcut for |\mint| is defined using \cmd\newmint\oarg{macro name}\marg{lexer}\marg{options}.
@@ -1596,45 +1601,45 @@
 % \item \textbf{I'm getting errors with math, something like \texttt{TeX capacity exceeded} and \texttt{\string\leavevmode \string\kern \string\z@}.}  This is due to ligatures being disabled within verbatim content.  See the note under |escapeinside|.
 %
 % \item \textbf{With \texttt{mathescape} and the \texpkg{breqn} package (or another special math package), the document never finishes compiling or there are other unexpected results.}  Some math packages like \texpkg{breqn} give certain characters like the comma special meanings in math mode.  These can conflict with \mintedpkg.  In the \texpkg{breqn} and comma case, this can be fixed by redefining the comma within |minted| environments:
-%\begin{verbatim}
-%\AtBeginEnvironment{minted}{\catcode`\,=12\mathcode`\,="613B}
-%\end{verbatim}
+% \begin{verbatim}
+% \AtBeginEnvironment{minted}{\catcode`\,=12\mathcode`\,="613B}
+% \end{verbatim}
 %Other packages/special characters may need their own modifications.
 %
 % \item \textbf{I'm getting errors with Beamer.}  Due to how Beamer treats verbatim content, you may need to use either the |fragile| or |fragile=singleslide| options for frames that contain \mintedpkg\ commands and environments.  |fragile=singleslide| works best, but it disables overlays.  |fragile| works by saving the contents of each frame to a temp file and then reusing them.  This approach allows overlays, but will break if you have the string |\end{frame}| at the beginning of a line (for example, in a |minted| environment).  To work around that, you can indent the content of the environment (so that the |\end{frame}| is preceded by one or more spaces) and then use the |gobble| or |autogobble| options to remove the indentation.
 %
 % \item \textbf{I'm trying to create several new \mintedpkg\ commands/environments, and want them all to have the same settings.  I'm saving the settings in a macro and then using the macro when defining the commands/environments.  But it's failing.}
 % This is due to the way that key-value processing operates. See \href{https://tex.stackexchange.com/questions/13563/building-keyval-arguments-using-a-macro/13564#13564}{this} and \href{https://tex.stackexchange.com/questions/145363/why-does-includegraphics-varone-vartwo-not-compile/145366#145366}{this} for more information.  It is still possible to do what you want; you just need to expand the options macro before passing it to the commands that create the new commands/environments.  An example is shown below.  The |\expandafter| is the vital part.
-%\begin{verbatim}
-%\def\args{linenos,frame=single,fontsize=\footnotesize,style=bw}
+% \begin{verbatim}
+% \def\args{linenos,frame=single,fontsize=\footnotesize,style=bw}
 %
-%\newcommand{\makenewmintedfiles}[1]{%
-%  \newmintedfile[inputlatex]{latex}{#1}%
-%  \newmintedfile[inputc]{c}{#1}%
-%}
+% \newcommand{\makenewmintedfiles}[1]{%
+%   \newmintedfile[inputlatex]{latex}{#1}%
+%   \newmintedfile[inputc]{c}{#1}%
+% }
 %
-%\expandafter\makenewmintedfiles\expandafter{\args}
-%\end{verbatim}
+% \expandafter\makenewmintedfiles\expandafter{\args}
+% \end{verbatim}
 %
 % \item \textbf{I want to use \texttt{\string\mintinline} in a context that normally doesn't allow verbatim content.}
 % The |\mintinline| command will already work in many places that do not allow normal verbatim commands like |\verb|, so make sure to try it first.  If it doesn't work, one of the simplest alternatives is to save your code in a box, and then use it later.  For example,
-%\begin{verbatim}
-%\newsavebox\mybox
-%\begin{lrbox}{\mybox}
-%\mintinline{cpp}{std::cout}
-%\end{lrbox}
+% \begin{verbatim}
+% \newsavebox\mybox
+% \begin{lrbox}{\mybox}
+% \mintinline{cpp}{std::cout}
+% \end{lrbox}
 %
-%\commandthatdoesnotlikeverbatim{Text \usebox{\mybox}}
-%\end{verbatim}
+% \commandthatdoesnotlikeverbatim{Text \usebox{\mybox}}
+% \end{verbatim}
 %
 % \item \textbf{Extended characters do not work inside \mintedpkg\ commands and environments, even when the \texpkg{inputenc} package is used.}
 % Version 2.0 adds support for extended characters under the pdfTeX engine.  But if you need characters that are not supported by \texpkg{inputenc}, you should use the XeTeX or LuaTeX engines instead.
 %
 % \item \textbf{The \texpkg{polyglossia} package is doing undesirable things to code. (For example, adding extra space around colons in French.)}  You may need to put your code within |\begin{english}...\end{english}|.  This may done for all |minted| environments using \texpkg{etoolbox} in the preamble:
 % \begin{verbatim}
-%\usepackage{etoolbox}
-%\BeforeBeginEnvironment{minted}{\begin{english}}
-%\AfterEndEnvironment{minted}{\end{english}}
+% \usepackage{etoolbox}
+% \BeforeBeginEnvironment{minted}{\begin{english}}
+% \AfterEndEnvironment{minted}{\end{english}}
 % \end{verbatim}
 %
 % \item \begin{sloppypar} \textbf{Tabs are being turned into the character sequence \texttt{\string^\string^I}}.
@@ -1644,10 +1649,10 @@
 % Load the \texpkg{caption} package with the option |compatibility=false|.  Or better yet, use \mintedpkg's |newfloat| package option, which provides better \texpkg{caption} compatibility.
 %
 % \item \textbf{I need a listing environment that supports page breaks.}  The built-in listing environment is a standard float; it doesn't support page breaks.  You will probably want to define a new environment for long floats.  For example,
-%\begin{verbatim}
-%\usepackage{caption}
-%\newenvironment{longlisting}{\captionsetup{type=listing}}{}
-%\end{verbatim}
+% \begin{verbatim}
+% \usepackage{caption}
+% \newenvironment{longlisting}{\captionsetup{type=listing}}{}
+% \end{verbatim}
 % With the \texpkg{caption} package, it is best to use \mintedpkg's |newfloat| package option.  See \url{https://tex.stackexchange.com/a/53540/10742} for more on |listing| environments with page breaks.
 %
 % \item \textbf{I want to use the command-line option \texttt{-output-directory}, or MiKTeX's \texttt{-aux-directory}, but am getting errors.}  With TeX Live 2024+, this should work automatically.  Otherwise, set the environment variable |TEXMF_OUTPUT_DIRECTORY| to the desired location.
