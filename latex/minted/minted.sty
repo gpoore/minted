@@ -26,11 +26,11 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/19 v3.8.0dev1 Yet another Pygments shim for LaTeX]
+    [2026/02/19 v3.8.0dev2 Yet another Pygments shim for LaTeX]
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
 \RequirePackage{fvextra}[2025/05/14]
-\RequirePackage{latex2pydata}[2024/10/16]
+\RequirePackage{latex2pydata}[2025/03/26]
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
 \RequirePackage{shellesc}
@@ -44,7 +44,7 @@
   \batchmode\read -1 to \minted@fatalerror@exitnow}
 \def\minted@warning#1{\PackageWarning{minted}{#1}}
 \edef\MintedExecutable{\detokenize{latexminted}}
-\edef\minted@executable@minversion{\detokenize{0.6.0}}
+\edef\minted@executable@minversion{\detokenize{0.7.0}}
 \def\minted@executable@setminversioncomponents{%
   \expandafter\minted@executable@setminversioncomponents@i
     \minted@executable@minversion\relax}

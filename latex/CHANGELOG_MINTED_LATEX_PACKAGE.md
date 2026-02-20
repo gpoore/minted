@@ -13,6 +13,9 @@
    `\str_mdfive_hash:e` is simpler and allows dropping the `pdftexcmds`
    package as a dependency.
 
+*  Updated minimum required `latex2pydata` to v0.6.0.  Updated minimum
+   required `latexminted` to v0.7.0.
+
 
 
 ## v3.7.0 (2025/05/14)
