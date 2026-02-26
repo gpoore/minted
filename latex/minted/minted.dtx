@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/02/19 v3.8.0dev2 Yet another Pygments shim for LaTeX]
+    [2026/02/25 v3.8.0dev3 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1689,29 +1689,6 @@
 %
 %
 %
-% \subsection{Required packages}
-%
-%
-%    \begin{macrocode}
-\RequirePackage{catchfile}
-\RequirePackage{etoolbox}
-\RequirePackage{fvextra}[2025/05/14]
-\RequirePackage{latex2pydata}[2025/03/26]
-\RequirePackage{pgfkeys}
-\RequirePackage{pgfopts}
-\RequirePackage{shellesc}
-%    \end{macrocode}
-%
-% Make sure that either |color| or |xcolor| is loaded by the beginning of the document.
-%    \begin{macrocode}
-\AtEndPreamble{%
-  \IfPackageLoadedTF{color}%
-   {}%
-   {\IfPackageLoadedTF{xcolor}{}{\RequirePackage{xcolor}}}}
-%    \end{macrocode}
-%
-%
-%
 % \subsection{Exception handling}
 %
 %
@@ -1735,6 +1712,33 @@
 \def\minted@warning#1{\PackageWarning{minted}{#1}}
 %    \end{macrocode}
 % \end{macro}
+%
+%
+%
+% \subsection{Required packages}
+%
+%
+%    \begin{macrocode}
+\RequirePackage{catchfile}
+\RequirePackage{etoolbox}
+\RequirePackage{fvextra}
+\IfPackageAtLeastTF{fvextra}{2026/02/25}%
+ {}{\minted@fatalerror{package fvextra is outdated; upgrade to the latest version}}
+\RequirePackage{latex2pydata}
+\IfPackageAtLeastTF{latex2pydata}{2026/02/25}%
+ {}{\minted@fatalerror{package latex2pydata is outdated; upgrade to the latest version}}
+\RequirePackage{pgfkeys}
+\RequirePackage{pgfopts}
+\RequirePackage{shellesc}
+%    \end{macrocode}
+%
+% Make sure that either |color| or |xcolor| is loaded by the beginning of the document.
+%    \begin{macrocode}
+\AtEndPreamble{%
+  \IfPackageLoadedTF{color}%
+   {}%
+   {\IfPackageLoadedTF{xcolor}{}{\RequirePackage{xcolor}}}}
+%    \end{macrocode}
 %
 %
 %
@@ -1858,11 +1862,11 @@
 % \subsection{Jobname MD5 and derived file names}
 %
 %
-% \begin{macro}{\minted@hash,\minted@filehash}
-% Wrappers for MD5 macros, so that hash algorithms or macros can easily be swapped in the future.
+% \begin{macro}{\minted@mdfivehash,\minted@filemdfivehash}
+% Wrappers for MD5 macros.
 %    \begin{macrocode}
-\expandafter\let\expandafter\minted@hash\csname str_mdfive_hash:e\endcsname
-\expandafter\let\expandafter\minted@filehash\csname file_mdfive_hash:n\endcsname
+\expandafter\let\expandafter\minted@mdfivehash\csname str_mdfive_hash:e\endcsname
+\expandafter\let\expandafter\minted@filemdfivehash\csname file_mdfive_hash:n\endcsname
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1888,24 +1892,24 @@
   \minted@setjobnamemdfive@dquoted@i#2"\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@dquoted@i#1"#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@squoted#1#2\FV@Sentinel{%
   \minted@setjobnamemdfive@squoted@i#2'\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@squoted@i#1'#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@uquoted#1\FV@Sentinel{%
-  \edef\MintedJobnameMdfive{\minted@hash{#1}}}
+  \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}}
 \endgroup
 \expandafter\minted@setjobnamemdfive\jobname\FV@Sentinel
 %    \end{macrocode}
@@ -3354,7 +3358,7 @@
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
     \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
-    \edef\minted@tmp{\minted@hash{#1}}%
+    \edef\minted@tmp{\minted@mdfivehash{#1}}%
     \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
 \let\minted@cachechecksum\relax
@@ -3362,7 +3366,7 @@
 \else
   \let\mintedoldcachechecksum\relax
 \fi
-\edef\minted@cachechecksum@files{\minted@hash{}}
+\edef\minted@cachechecksum@files{\minted@mdfivehash{}}
 \expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
 \expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
 \expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
@@ -3820,7 +3824,7 @@
 \def\minted@highlightinputfile{%
   \edef\minted@inputlineno{\the\inputlineno}%
   \minted@defstyle
-  \edef\minted@inputfilemdfivesum{\minted@filehash{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
     \expandafter\@firstoftwo
   \else
@@ -4025,7 +4029,7 @@
     \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength-1\relax}%
   \fi
   \endgroup
-  \edef\minted@inputfilemdfivesum@check{\minted@filehash{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum@check{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
     \expandafter\@gobble
   \else

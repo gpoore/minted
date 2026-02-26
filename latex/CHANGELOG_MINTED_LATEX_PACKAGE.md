@@ -5,16 +5,24 @@
 
 *  Switched to `\str_mdfive_hash:e` and `\file_mdfive_hash:n` for MD5 hashing.
    These replace `\pdf@mdfivesum` and `\pdf@filemdfivesum` from the
-   `pdftexcmds` package.  Under LuaTeX, `\pdf@mdfivesum` ignores all code
-   points consisting of more than one byte, which can cause cache collisions
-   and thus incorrect documents (#467).
+   `pdftexcmds` package.  Under LuaTeX, `\pdf@mdfivesum` ignores most
+   multi-byte code points (code points >= 256 for UTF-8), which can cause hash
+   collisions and thus incorrect documents (#467).
 
    `\pdf@mdfivesumnative` provides the desired functionality, but switching to
    `\str_mdfive_hash:e` is simpler and allows dropping the `pdftexcmds`
    package as a dependency.
 
-*  Updated minimum required `latex2pydata` to v0.6.0.  Updated minimum
-   required `latexminted` to v0.7.0.
+*  Updated minimum required `fvextra` to v1.14.0 (2026/02/25), which uses
+   `\str_mdfive_hash:e` for MD5 hashing.  There is now an error instead of a
+   warning if `fvextra` is outdated.
+
+*  Updated minimum required `latex2pydata` LaTeX package to v0.7.0
+   (2026/02/25), which uses `\str_mdfive_hash:e` for MD5 hashing.  There is
+   now an error instead of a warning if the `latex2pydata` LaTeX package is
+   outdated.
+
+*  Updated minimum required `latexminted` to v0.7.0.
 
 
 

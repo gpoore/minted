@@ -26,11 +26,20 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/19 v3.8.0dev2 Yet another Pygments shim for LaTeX]
+    [2026/02/25 v3.8.0dev3 Yet another Pygments shim for LaTeX]
+\def\minted@error#1{\PackageError{minted}{#1}{}}
+\def\minted@fatalerror#1{%
+  \minted@error{#1}%
+  \batchmode\read -1 to \minted@fatalerror@exitnow}
+\def\minted@warning#1{\PackageWarning{minted}{#1}}
 \RequirePackage{catchfile}
 \RequirePackage{etoolbox}
-\RequirePackage{fvextra}[2025/05/14]
-\RequirePackage{latex2pydata}[2025/03/26]
+\RequirePackage{fvextra}
+\IfPackageAtLeastTF{fvextra}{2026/02/25}%
+ {}{\minted@fatalerror{package fvextra is outdated; upgrade to the latest version}}
+\RequirePackage{latex2pydata}
+\IfPackageAtLeastTF{latex2pydata}{2026/02/25}%
+ {}{\minted@fatalerror{package latex2pydata is outdated; upgrade to the latest version}}
 \RequirePackage{pgfkeys}
 \RequirePackage{pgfopts}
 \RequirePackage{shellesc}
@@ -38,11 +47,6 @@
   \IfPackageLoadedTF{color}%
    {}%
    {\IfPackageLoadedTF{xcolor}{}{\RequirePackage{xcolor}}}}
-\def\minted@error#1{\PackageError{minted}{#1}{}}
-\def\minted@fatalerror#1{%
-  \minted@error{#1}%
-  \batchmode\read -1 to \minted@fatalerror@exitnow}
-\def\minted@warning#1{\PackageWarning{minted}{#1}}
 \edef\MintedExecutable{\detokenize{latexminted}}
 \edef\minted@executable@minversion{\detokenize{0.7.0}}
 \def\minted@executable@setminversioncomponents{%
@@ -104,8 +108,8 @@
   \endgroup
 \fi
 \xdef\minted@timestamp{\detokenize\expandafter{\minted@timestamp}}
-\expandafter\let\expandafter\minted@hash\csname str_mdfive_hash:e\endcsname
-\expandafter\let\expandafter\minted@filehash\csname file_mdfive_hash:n\endcsname
+\expandafter\let\expandafter\minted@mdfivehash\csname str_mdfive_hash:e\endcsname
+\expandafter\let\expandafter\minted@filemdfivehash\csname file_mdfive_hash:n\endcsname
 \begingroup
 \catcode`\"=12
 \catcode`\'=12
@@ -122,24 +126,24 @@
   \minted@setjobnamemdfive@dquoted@i#2"\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@dquoted@i#1"#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@squoted#1#2\FV@Sentinel{%
   \minted@setjobnamemdfive@squoted@i#2'\FV@Sentinel}
 \gdef\minted@setjobnamemdfive@squoted@i#1'#2\FV@Sentinel{%
   \if\relax\detokenize{#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \else\if\relax\detokenize\expandafter{\@gobble#2}\relax
-    \edef\MintedJobnameMdfive{\minted@hash{#1}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}%
   \else
-    \edef\MintedJobnameMdfive{\minted@hash{\jobname}}%
+    \edef\MintedJobnameMdfive{\minted@mdfivehash{\jobname}}%
   \fi\fi}
 \gdef\minted@setjobnamemdfive@uquoted#1\FV@Sentinel{%
-  \edef\MintedJobnameMdfive{\minted@hash{#1}}}
+  \edef\MintedJobnameMdfive{\minted@mdfivehash{#1}}}
 \endgroup
 \expandafter\minted@setjobnamemdfive\jobname\FV@Sentinel
 \edef\MintedCacheIndexFilename{%
@@ -1067,7 +1071,7 @@
   \ifbool{minted@canexec}%
    {\xdef\minted@numcachefiles{\the\numexpr\minted@numcachefiles+1\relax}%
     \expandafter\xdef\csname minted@cachefile\minted@numcachefiles\endcsname{#1}%
-    \edef\minted@tmp{\minted@hash{#1}}%
+    \edef\minted@tmp{\minted@mdfivehash{#1}}%
     \expandafter\minted@cachechecksum@update\expandafter{\minted@tmp}}%
    {}}
 \let\minted@cachechecksum\relax
@@ -1075,7 +1079,7 @@
 \else
   \let\mintedoldcachechecksum\relax
 \fi
-\edef\minted@cachechecksum@files{\minted@hash{}}
+\edef\minted@cachechecksum@files{\minted@mdfivehash{}}
 \expandafter\let\expandafter\minted@intfromhex\csname int_from_hex:n\endcsname
 \expandafter\let\expandafter\minted@inttoHex\csname int_to_Hex:n\endcsname
 \expandafter\let\expandafter\minted@intmod\csname int_mod:nn\endcsname
@@ -1412,7 +1416,7 @@
 \def\minted@highlightinputfile{%
   \edef\minted@inputlineno{\the\inputlineno}%
   \minted@defstyle
-  \edef\minted@inputfilemdfivesum{\minted@filehash{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
     \expandafter\@firstoftwo
   \else
@@ -1606,7 +1610,7 @@
     \xdef\minted@tmpcodebufferlength{\the\numexpr\minted@tmpcodebufferlength-1\relax}%
   \fi
   \endgroup
-  \edef\minted@inputfilemdfivesum@check{\minted@filehash{\minted@inputfilepath}}%
+  \edef\minted@inputfilemdfivesum@check{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum@check\minted@inputfilemdfivesum
     \expandafter\@gobble
   \else
