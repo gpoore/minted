@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/25 v3.8.0dev3 Yet another Pygments shim for LaTeX]
+    [2026/02/25 v3.8.0dev4 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -909,6 +909,7 @@
   minted@opthandler@immediate@\string\minted@opthandler@deforrestrictedescape
   \endcsname\relax
 \mintedpgfkeyscreate{fv}{
+  baseline,
   baselinestretch,
   beameroverlays,
   backgroundcolor,

@@ -24,6 +24,8 @@
 
 *  Updated minimum required `latexminted` to v0.7.0.
 
+*  Added support for `fancyvrb`'s `baseline` option (#476).
+
 
 
 ## v3.7.0 (2025/05/14)
