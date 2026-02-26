@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/25 v3.8.0dev4 Yet another Pygments shim for LaTeX]
+    [2026/02/26 v3.8.0dev5 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -1815,12 +1815,16 @@
   \def\RobustInputMinted{}}
 \newrobustcmd{\RobustInputMinted}[3][]{%
   \RobustInputMintedProcess{#1}{#2}{#3}}
+\def\minted@define@inputfilepath#1{%
+  \IfPackageLoadedTF{import}%
+   {\edef\minted@inputfilepath{\import@path#1}}%
+   {\edef\minted@inputfilepath{#1}}}
 \def\RobustInputMintedProcess@highlight#1#2#3{%
   \begingroup
   \booltrue{minted@iscmd}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
-  \edef\minted@inputfilepath{#3}%
+  \minted@define@inputfilepath{#3}%
   \minted@usefvopts
   \minted@usetexoptsnonpygments
   \let\minted@highlight@fallback\RobustInputMintedProcess@highlight@fallback
@@ -1840,7 +1844,7 @@
   \booltrue{minted@iscmd}%
   \ifstrempty{#1}{}{\pgfkeys{/minted/cmd/.cd,#1}}%
   \edef\minted@lexer{#2}%
-  \edef\minted@inputfilepath{#3}%
+  \minted@define@inputfilepath{#3}%
   \minted@usefvopts
   \minted@useadditionalfvoptsnopy
   \minted@usetexoptsnonpygments

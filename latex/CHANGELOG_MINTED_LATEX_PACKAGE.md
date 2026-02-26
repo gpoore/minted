@@ -24,6 +24,9 @@
 
 *  Updated minimum required `latexminted` to v0.7.0.
 
+*  `\inputminted` and other input commands are now compatible with the
+   `import` package (#233, #251).
+
 *  Added support for `fancyvrb`'s `baseline` option (#476).
 
 
