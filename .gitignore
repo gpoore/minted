@@ -3,6 +3,9 @@
 *.minted
 *.fls
 **/*.egg-info/
+python/dist/*
+
+.DS_Store
 
 *.bat
 *.ps1
