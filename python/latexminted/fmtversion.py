@@ -37,7 +37,7 @@ Following `sys.version_info`, `get_version_plus_info()` takes arguments
 for a five-component version number:  major, minor, micro, release level, and
 serial.  The release level may be any of dev, alpha, beta, candidate, final, or
 post, or common variations/abbreviations thereof.  All arguments but
-release level must be convertable to integers.
+release level must be convertible to integers.
 
 If only `__version__` or `__version_info__` is desired, then the functions
 `get_version()` or `get_version_info()` may be used instead.  If a micro
@@ -124,7 +124,7 @@ def get_version_info(major, minor, micro, releaselevel, serial,
         micro = int(micro)
         serial = int(serial)
     except ValueError:
-        raise ValueError('major, minor, micro, and serial must be convertable to integers')
+        raise ValueError('major, minor, micro, and serial must be convertible to integers')
     if any(x < 0 for x in (major, minor, micro, serial)):
         raise ValueError('major, minor, micro, and serial must correspond to non-negative integers')
     if not usemicro and micro != 0:
