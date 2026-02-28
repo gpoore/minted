@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/26 v3.8.0dev5 Yet another Pygments shim for LaTeX]
+    [2026/02/27 v3.8.0dev6 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -1553,43 +1553,37 @@
   vrb,
 }
 \endgroup
-\begingroup
-\catcode`\/=12
-\catcode`\.=12
-\gdef\minted@iffasthighlightmode@buffertempfile{%
+\def\minted@iffasthighlightmode@buffertempfile{%
   \ifbool{minted@fasthighlightmode}%
    {\ifcsname minted@inputfilepath\endcsname
-      \expandafter\@firstofone
-    \else
-      \expandafter\@gobble
-    \fi
-     {\expandafter
-        \minted@iffasthighlightmode@buffertempfile@i\minted@inputfilepath/\FV@Sentinel}}%
+      \expandafter\minted@iffasthighlightmode@buffertempfile@i
+    \fi}%
    {}}
-\gdef\minted@iffasthighlightmode@buffertempfile@i#1/#2\FV@Sentinel{%
-  \if\relax\detokenize{#2}\relax
+\def\minted@iffasthighlightmode@buffertempfile@i{%
+  \csname file_parse_full_name:nNNN\endcsname{\minted@inputfilepath}%
+    \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
+  \ifx\minted@inputfilesuffix\@empty
+    \let\minted@inputfileext\@empty
+  \else
+    \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
+  \fi
+  \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
     \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
   \fi
-   {\minted@iffasthighlightmode@buffertempfile@ii#1.\FV@Sentinel}%
-   {\minted@iffasthighlightmode@buffertempfile@i#2\FV@Sentinel}}
-\gdef\minted@iffasthighlightmode@buffertempfile@ii#1.#2\FV@Sentinel{%
-  \if\relax\detokenize{#2}\relax
-    \expandafter\@gobble
-  \else
-    \expandafter\@firstofone
-  \fi
-   {\minted@iffasthighlightmode@buffertempfile@iii#2\FV@Sentinel}}
-\gdef\minted@iffasthighlightmode@buffertempfile@iii#1.\FV@Sentinel{%
-  \ifcsname minted@buffertempfileextension@#1\endcsname
-    \expandafter\@firstofone
-  \else
-    \expandafter\@gobble
-  \fi
-   {\minted@iffasthighlightmode@buffertempfile@iv}}
-\endgroup
-\def\minted@iffasthighlightmode@buffertempfile@iv{%
+   {\minted@iffasthighlightmode@buffertempfile@ii}%
+   {\csname file_parse_full_name:nNNN\endcsname{\minted@inputfilestem}%
+      \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
+    \ifx\minted@inputfilesuffix\@empty
+      \let\minted@inputfileext\@empty
+    \else
+      \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
+    \fi
+    \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+      \expandafter\minted@iffasthighlightmode@buffertempfile@ii
+    \fi}}
+\def\minted@iffasthighlightmode@buffertempfile@ii{%
   \begingroup
   \gdef\minted@tmpcodebufferlength{0}%
   \openin\minted@intempfile=\minted@inputfilepath
@@ -1623,8 +1617,8 @@
   \else
     \expandafter\@gobble
   \fi
-   {\minted@iffasthighlightmode@buffertempfile@v}}
-\def\minted@iffasthighlightmode@buffertempfile@v{%
+   {\minted@iffasthighlightmode@buffertempfile@iii}}
+\def\minted@iffasthighlightmode@buffertempfile@iii{%
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
   \gdef\minted@tempindex{1}%

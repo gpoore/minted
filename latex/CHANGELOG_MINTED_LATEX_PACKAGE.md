@@ -25,7 +25,15 @@
 *  Updated minimum required `latexminted` to v0.7.0.
 
 *  `\inputminted` and other input commands are now compatible with the
-   `import` package (#233, #251).
+   `import` package (#233, #251).  This also improves compatibility with
+   packages that use `import` internally, such as `subfiles`.
+
+*  File extension parsing for identifying temp files for `highlightmode`
+   now uses `\file_parse_full_name:nNNN`, which gives more robust results.
+   When a file has a double file extension, both extensions are checked
+   separately in identifying temp files.  Previously, a double extension was
+   treated as a single unit (#457).
+
 
 *  Added support for `fancyvrb`'s `baseline` option (#476).
 

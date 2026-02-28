@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/02/26 v3.8.0dev5 Yet another Pygments shim for LaTeX]
+    [2026/02/27 v3.8.0dev6 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -767,7 +767,7 @@
 %
 % The alternatives are |fast| (always highlight at end of document, requiring a second compile) and |immediate| (always highlight immediately, so no second compile is needed).
 %
-% Temporary files with the following file extensions are automatically detected and processed correctly, regardless of |highlightmode|:  |.listing|, |.out|, |.outfile|, |.output|, |.temp|, |.tempfile|, |.tmp|, |.verb|, and |.vrb|.  For temp files with other file extensions, |highlightmode=immediate| is needed if the files are overwritten or deleted during compilation.  |fastfirst| can work in such cases, but it will give an error message about modified or missing files during the first compile, and then will work correctly during subsequent compiles when it switches to |immediate| mode.
+% Temporary files with the following file extensions are automatically detected and processed correctly, regardless of |highlightmode|:  |.listing|, |.out|, |.outfile|, |.output|, |.temp|, |.tempfile|, |.tmp|, |.verb|, and |.vrb|.  These extensions are correctly identified for files with double file extensions (and in that case the order of extensions doesn't matter).  For temp files with other file extensions, |highlightmode=immediate| is needed if the files are overwritten or deleted during compilation.  |fastfirst| can work in such cases, but it will give an error message about modified or missing files during the first compile, and then will work correctly during subsequent compiles when it switches to |immediate| mode.
 %
 % When code is highlighted at the end of the document with |fast| or |fastfirst|, any error and warning messages will refer to a location at the end of the document rather than the original code location, since highlighting occurred at the end of the document.  In this case, messages are supplemented with original \LaTeX\ source file names and line numbers to aid in debugging.
 %
@@ -3975,43 +3975,37 @@
   vrb,
 }
 \endgroup
-\begingroup
-\catcode`\/=12
-\catcode`\.=12
-\gdef\minted@iffasthighlightmode@buffertempfile{%
+\def\minted@iffasthighlightmode@buffertempfile{%
   \ifbool{minted@fasthighlightmode}%
    {\ifcsname minted@inputfilepath\endcsname
-      \expandafter\@firstofone
-    \else
-      \expandafter\@gobble
-    \fi
-     {\expandafter
-        \minted@iffasthighlightmode@buffertempfile@i\minted@inputfilepath/\FV@Sentinel}}%
+      \expandafter\minted@iffasthighlightmode@buffertempfile@i
+    \fi}%
    {}}
-\gdef\minted@iffasthighlightmode@buffertempfile@i#1/#2\FV@Sentinel{%
-  \if\relax\detokenize{#2}\relax
+\def\minted@iffasthighlightmode@buffertempfile@i{%
+  \csname file_parse_full_name:nNNN\endcsname{\minted@inputfilepath}%
+    \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
+  \ifx\minted@inputfilesuffix\@empty
+    \let\minted@inputfileext\@empty
+  \else
+    \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
+  \fi
+  \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
     \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
   \fi
-   {\minted@iffasthighlightmode@buffertempfile@ii#1.\FV@Sentinel}%
-   {\minted@iffasthighlightmode@buffertempfile@i#2\FV@Sentinel}}
-\gdef\minted@iffasthighlightmode@buffertempfile@ii#1.#2\FV@Sentinel{%
-  \if\relax\detokenize{#2}\relax
-    \expandafter\@gobble
-  \else
-    \expandafter\@firstofone
-  \fi
-   {\minted@iffasthighlightmode@buffertempfile@iii#2\FV@Sentinel}}
-\gdef\minted@iffasthighlightmode@buffertempfile@iii#1.\FV@Sentinel{%
-  \ifcsname minted@buffertempfileextension@#1\endcsname
-    \expandafter\@firstofone
-  \else
-    \expandafter\@gobble
-  \fi
-   {\minted@iffasthighlightmode@buffertempfile@iv}}
-\endgroup
-\def\minted@iffasthighlightmode@buffertempfile@iv{%
+   {\minted@iffasthighlightmode@buffertempfile@ii}%
+   {\csname file_parse_full_name:nNNN\endcsname{\minted@inputfilestem}%
+      \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
+    \ifx\minted@inputfilesuffix\@empty
+      \let\minted@inputfileext\@empty
+    \else
+      \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
+    \fi
+    \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+      \expandafter\minted@iffasthighlightmode@buffertempfile@ii
+    \fi}}
+\def\minted@iffasthighlightmode@buffertempfile@ii{%
   \begingroup
   \gdef\minted@tmpcodebufferlength{0}%
   \openin\minted@intempfile=\minted@inputfilepath
@@ -4045,8 +4039,8 @@
   \else
     \expandafter\@gobble
   \fi
-   {\minted@iffasthighlightmode@buffertempfile@v}}
-\def\minted@iffasthighlightmode@buffertempfile@v{%
+   {\minted@iffasthighlightmode@buffertempfile@iii}}
+\def\minted@iffasthighlightmode@buffertempfile@iii{%
   \pydatabufferkey{code}%
   \pydatabuffermlvaluestart
   \gdef\minted@tempindex{1}%
