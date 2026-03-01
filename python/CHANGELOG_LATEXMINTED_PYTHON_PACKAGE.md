@@ -6,6 +6,10 @@
 
 *  Fixed compatibility with `argparse` in Python 3.14 (#463, #464).
 
+*  Improved error message for temporary files with unregistered file
+   extensions that are modified during compilation.  The message now mentions
+   `highlightmode=immediate` and `\MintedRegisterTempFileExtension` (#456).
+
 *  Updated `pyproject.toml` format for license data.
 
 

@@ -259,7 +259,10 @@ def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, enco
         if hasher.hexdigest() != mdfivesum:
             messages.append_error(
                 rf'Cannot find the correct input file \detokenize{{"{input_file}"}}; '
-                'there may be multiple files with the same name, or the file may have been modified during compilation'
+                r'there may be multiple files with the same name, '
+                r'or the file may have been modified during compilation, '
+                r'or if this is a temporary file it may need \detokenize{highlightmode=immediate} '
+                r'(or instead need its file extension registered with \string\MintedRegisterTempFileExtension)'
             )
             return None
         code_bytes = kpsewhich_input_file_bytes

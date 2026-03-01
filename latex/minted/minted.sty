@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/02/27 v3.8.0dev6 Yet another Pygments shim for LaTeX]
+    [2026/02/28 v3.8.0dev7 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -1534,25 +1534,23 @@
       \minted@highlight@fallback}}}
 \def\minted@highlight@fallback{%
   \minted@insertplaceholder}
-\begingroup
-\def\minted@set@tempfileextension#1{%
-  \if\relax\detokenize{#1}\relax
-  \else
-    \expandafter\global\expandafter
-      \let\csname minted@buffertempfileextension@#1\endcsname\relax
-  \fi}
-\minted@forcsvlist{\minted@set@tempfileextension}{
-  listing,
-  out,
-  outfile,
-  output,
-  temp,
-  tempfile,
-  tmp,
-  verb,
-  vrb,
+\def\MintedRegisterTempFileExtension#1{%
+  \ifstrempty{#1}%
+   {}%
+   {\expandafter
+      \let\csname minted@buffertempfileextension@\detokenize{#1}\endcsname\relax}}
+\minted@forcsvlist{\MintedRegisterTempFileExtension}{
+  .listing,
+  .out,
+  .outfile,
+  .output,
+  .tcbtemp,
+  .temp,
+  .tempfile,
+  .tmp,
+  .verb,
+  .vrb,
 }
-\endgroup
 \def\minted@iffasthighlightmode@buffertempfile{%
   \ifbool{minted@fasthighlightmode}%
    {\ifcsname minted@inputfilepath\endcsname
@@ -1562,12 +1560,7 @@
 \def\minted@iffasthighlightmode@buffertempfile@i{%
   \csname file_parse_full_name:nNNN\endcsname{\minted@inputfilepath}%
     \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
-  \ifx\minted@inputfilesuffix\@empty
-    \let\minted@inputfileext\@empty
-  \else
-    \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
-  \fi
-  \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+  \ifcsname minted@buffertempfileextension@\minted@inputfilesuffix\endcsname
     \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
@@ -1575,12 +1568,7 @@
    {\minted@iffasthighlightmode@buffertempfile@ii}%
    {\csname file_parse_full_name:nNNN\endcsname{\minted@inputfilestem}%
       \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
-    \ifx\minted@inputfilesuffix\@empty
-      \let\minted@inputfileext\@empty
-    \else
-      \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
-    \fi
-    \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+    \ifcsname minted@buffertempfileextension@\minted@inputfilesuffix\endcsname
       \expandafter\minted@iffasthighlightmode@buffertempfile@ii
     \fi}}
 \def\minted@iffasthighlightmode@buffertempfile@ii{%

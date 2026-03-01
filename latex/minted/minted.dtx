@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/02/27 v3.8.0dev6 Yet another Pygments shim for LaTeX]
+    [2026/02/28 v3.8.0dev7 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -767,7 +767,9 @@
 %
 % The alternatives are |fast| (always highlight at end of document, requiring a second compile) and |immediate| (always highlight immediately, so no second compile is needed).
 %
-% Temporary files with the following file extensions are automatically detected and processed correctly, regardless of |highlightmode|:  |.listing|, |.out|, |.outfile|, |.output|, |.temp|, |.tempfile|, |.tmp|, |.verb|, and |.vrb|.  These extensions are correctly identified for files with double file extensions (and in that case the order of extensions doesn't matter).  For temp files with other file extensions, |highlightmode=immediate| is needed if the files are overwritten or deleted during compilation.  |fastfirst| can work in such cases, but it will give an error message about modified or missing files during the first compile, and then will work correctly during subsequent compiles when it switches to |immediate| mode.
+% Temporary files with the following file extensions are automatically detected and processed correctly, regardless of |highlightmode|:  |.listing|, |.out|, |.outfile|, |.output|, |.tcbtemp|, |.temp|, |.tempfile|, |.tmp|, |.verb|, and |.vrb|.  These extensions are correctly identified for files with double file extensions (and in that case the order of extensions doesn't matter).
+%
+% For temp files with other file extensions, there are two options.  Additional file extensions can be registered with |\MintedRegisterTempFileExtension{|\meta{ext}|}|, where \meta{ext} is the literal file extension (no macros) including the leading period (for example, ``|.tmp|'').  Otherwise, |highlightmode=immediate| is needed if the files are overwritten or deleted during compilation.  |fastfirst| can work in such cases, but it will give an error message about modified or missing files during the first compile, and then will work correctly during subsequent compiles when it switches to |immediate| mode.
 %
 % When code is highlighted at the end of the document with |fast| or |fastfirst|, any error and warning messages will refer to a location at the end of the document rather than the original code location, since highlighting occurred at the end of the document.  In this case, messages are supplemented with original \LaTeX\ source file names and line numbers to aid in debugging.
 %
@@ -1663,6 +1665,18 @@
 % \item \textbf{I'm receiving a warning from \texttt{lineno.sty} that ``Command \texttt{\string\@parboxrestore} has changed.''}  This can happen when \mintedpkg\ is loaded after \texpkg{csquotes}.  Try loading \mintedpkg\ first.  If you receive this message when you are not using \texpkg{csquotes}, you may want to experiment with the order of loading packages and might also open an issue.
 % \item \textbf{I'm using \app{texi2pdf}, and getting ``Cannot stat'' errors from \app{tar}}:  This is due to the way that \app{texi2pdf} handles temporary files.  \mintedpkg\ automatically cleans up its temporary files, but \app{texi2pdf} assumes that any temporary file that is ever created will still exist at the end of the run, so it tries to access the files that \mintedpkg\ has deleted. It's possible to disable minted's temp file cleanup by adding |\renewcommand{\DeleteFile}[2][]{}| after the |\usepackage{minted}|.
 % \end{itemize}
+%
+%
+%
+%
+% \section{Notes for package authors}
+%
+%
+% \subsection{File extensions for temporary files}
+%
+% If your package highlights code using temporary files with a custom file extension, you may need to register the file extension for compatibility with the |highlightmode| package option.  Use |\MintedRegisterTempFileExtension{|\meta{ext}|}|, where \meta{ext} is the literal file extension (no macros) including the leading period (for example, ``|.tmp|'').  There is built-in support for the following file extensions:  |.listing|, |.out|, |.outfile|, |.output|, |.tcbtemp|, |.temp|, |.tempfile|, |.tmp|, |.verb|, and |.vrb|.
+%
+% When a file extension is registered with |\MintedRegisterTempFileExtension|, it will be correctly identified for files with double file extensions (and in that case the order of extensions doesn't matter).
 %
 %
 %
@@ -3949,32 +3963,30 @@
 % \end{macro}
 %
 %
-% \begin{macro}{\minted@iffasthighlightmode@buffertempfile}
+% \begin{macro}{\minted@iffasthighlightmode@buffertempfile, \MintedRegisterTempFileExtension}
 %
 % With caching, when |fasthighlightmode=true| and |\minted@inputfilepath| has a file extension that has been designated for temp files, read the file into a temp buffer, and then if that succeeds copy the code into the highlighting buffer.  This can avoid errors with temp files that are modified or deleted before highlighting occurs when |fasthighlightmode=true|, since that delays highlighting until the end of the document.
 %
 % This is not done for all highlighted external files because it adds overhead and complexity.  When files are read, it is not possible to determine the newline sequence (|\n| versus |\r\n|), and trailing whitespace is discarded by \TeX\ during the reading process, so it is not possible to reconstruct the original file bytes within \TeX, only an (essentially equivalent) approximation.  As a result, files that are read are hashed a second time after reading to reduce the chance that they were modified after initial hashing but before reading.
 %
 %    \begin{macrocode}
-\begingroup
-\def\minted@set@tempfileextension#1{%
-  \if\relax\detokenize{#1}\relax
-  \else
-    \expandafter\global\expandafter
-      \let\csname minted@buffertempfileextension@#1\endcsname\relax
-  \fi}
-\minted@forcsvlist{\minted@set@tempfileextension}{
-  listing,
-  out,
-  outfile,
-  output,
-  temp,
-  tempfile,
-  tmp,
-  verb,
-  vrb,
+\def\MintedRegisterTempFileExtension#1{%
+  \ifstrempty{#1}%
+   {}%
+   {\expandafter
+      \let\csname minted@buffertempfileextension@\detokenize{#1}\endcsname\relax}}
+\minted@forcsvlist{\MintedRegisterTempFileExtension}{
+  .listing,
+  .out,
+  .outfile,
+  .output,
+  .tcbtemp,
+  .temp,
+  .tempfile,
+  .tmp,
+  .verb,
+  .vrb,
 }
-\endgroup
 \def\minted@iffasthighlightmode@buffertempfile{%
   \ifbool{minted@fasthighlightmode}%
    {\ifcsname minted@inputfilepath\endcsname
@@ -3984,12 +3996,7 @@
 \def\minted@iffasthighlightmode@buffertempfile@i{%
   \csname file_parse_full_name:nNNN\endcsname{\minted@inputfilepath}%
     \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
-  \ifx\minted@inputfilesuffix\@empty
-    \let\minted@inputfileext\@empty
-  \else
-    \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
-  \fi
-  \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+  \ifcsname minted@buffertempfileextension@\minted@inputfilesuffix\endcsname
     \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
@@ -3997,12 +4004,7 @@
    {\minted@iffasthighlightmode@buffertempfile@ii}%
    {\csname file_parse_full_name:nNNN\endcsname{\minted@inputfilestem}%
       \minted@inputfileparent\minted@inputfilestem\minted@inputfilesuffix
-    \ifx\minted@inputfilesuffix\@empty
-      \let\minted@inputfileext\@empty
-    \else
-      \edef\minted@inputfileext{\expandafter\@gobble\minted@inputfilesuffix}%
-    \fi
-    \ifcsname minted@buffertempfileextension@\minted@inputfileext\endcsname
+    \ifcsname minted@buffertempfileextension@\minted@inputfilesuffix\endcsname
       \expandafter\minted@iffasthighlightmode@buffertempfile@ii
     \fi}}
 \def\minted@iffasthighlightmode@buffertempfile@ii{%

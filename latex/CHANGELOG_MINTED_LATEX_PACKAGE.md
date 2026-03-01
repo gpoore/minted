@@ -34,6 +34,10 @@
    separately in identifying temp files.  Previously, a double extension was
    treated as a single unit (#457).
 
+*  Added command `\MintedRegisterTempFileExtension`.  This allows file
+   extensions for temporary files to be registered so that the files are
+   handled correctly regardless of `highlightmode`.  Added built-in support
+   for `.tcbtemp` file extension for `tcolorbox` (#456).
 
 *  Added support for `fancyvrb`'s `baseline` option (#476).
 
