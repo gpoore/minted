@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/03/02 v3.8.0dev8 Yet another Pygments shim for LaTeX]
+    [2026/03/02 v3.8.0dev9 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -47,6 +47,32 @@
   \IfPackageLoadedTF{color}%
    {}%
    {\IfPackageLoadedTF{xcolor}{}{\RequirePackage{xcolor}}}}
+\def\minted@def@sty@version{%
+  \expandafter\let\expandafter\minted@tmp\csname ver@minted.sty\endcsname
+  \edef\minted@tmp{\detokenize\expandafter{\minted@tmp}}%
+  \expandafter\minted@def@sty@Version@i\minted@tmp\relax}
+\begingroup
+\catcode`\.=12
+\catcode`\v=12
+\gdef\minted@def@sty@Version@i#1v#2.#3.#4\relax{%
+  \def\minted@sty@Version{#2.#3.}%
+  \minted@def@sty@Version@ii#4\relax}
+\endgroup
+\def\minted@def@sty@Version@ii#1#2\relax{%
+  \ifnum\number`#1<48\relax
+    \expandafter\@secondoftwo
+  \else
+    \ifnum\number`#1>57\relax
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \else
+      \expandafter\expandafter\expandafter\@firstofone
+    \fi
+  \fi
+   {\expandafter\def\expandafter\minted@sty@Version\expandafter{\minted@sty@Version#1}%
+    \minted@def@sty@Version@ii#2\relax}%
+   {\let\minted@sty@version\minted@sty@Version
+    \let\minted@sty@Version\minted@undefined}}
+\minted@def@sty@version
 \edef\MintedExecutable{\detokenize{latexminted}}
 \edef\minted@executable@minversion{\detokenize{0.7.0}}
 \def\minted@executable@setminversioncomponents{%
@@ -464,6 +490,7 @@
   \pydatasetfilename{\MintedDataFilename}%
   \pydatawritedictopen
   \pydatawritekeyvalue{command}{config}%
+  \pydatawritekeyedefvalue{mintedversion}{\minted@sty@version}%
   \pydatawritekeyedefvalue{jobname}{\jobname}%
   \pydatawritekeyedefvalue{timestamp}{\minted@timestamp}%
   \pydatawritekeyedefvalue{cachedir}{\minted@cachedir}%
@@ -566,8 +593,8 @@
       \expandafter\@secondoftwo
     \fi
     {\global\boolfalse{minted@canexec}%
-      \minted@error{minted Python executable returned incomplete configuration data;
-        this may indicate a bug in minted or file corruption}}%
+     \minted@error{minted Python executable returned incomplete configuration data;
+       this may indicate a bug in minted or file corruption}}%
     {\global\let\minted@cachepath\minted@config@cachepath
      \minted@highlightmode@init
      \ifbool{minted@fasthighlightmode}{\newread\minted@intempfile}{}}}%

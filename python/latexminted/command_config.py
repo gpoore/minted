@@ -17,6 +17,9 @@ from .restricted import MintedTempRestrictedPath
 from .version import __version_info__
 
 
+MINTED_STY_MIN_VERSION = (3, 8, 0)
+
+
 
 
 def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: dict[str, str] | None = None):
@@ -31,6 +34,12 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
     if data is not None:
         tex_timestamp: str = data['timestamp']
         config_lines.append(rf'\xdef\minted@config@timestamp{{\detokenize{{{tex_timestamp}}}}}%')
+        minted_sty_version = tuple(int(x) for x in data['mintedversion'].split('.'))
+        if minted_sty_version < MINTED_STY_MIN_VERSION:
+            config_lines.append(r'\global\boolfalse{minted@canexec}%')
+            min_version = '.'.join(str(x) for x in MINTED_STY_MIN_VERSION)
+            config_lines.append(rf'\minted@error{{minted Python executable requires minted.sty >= {min_version}}}%')
+
 
     for openout_root in MintedTempRestrictedPath.tex_openout_roots():
         try:

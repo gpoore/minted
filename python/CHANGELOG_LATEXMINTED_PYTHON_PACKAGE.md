@@ -13,6 +13,12 @@
 *  Added options `rangestartstringline`, `rangestartafterstringline`,
    `rangestopstringline`, and `rangestopbeforestringline`.
 
+*  The `minted` LaTeX package version is now passed to `latexminted` so that
+   `latexminted` can check for compatibility with `minted.sty`.  This is
+   needed in cases when the `minted` LaTeX package is not used with a bundled
+   `latexminted`.  Previously, `minted.sty` checked for compatibility with
+   `latexminted`, but there was no reverse check.
+
 *  Updated `pyproject.toml` format for license data.
 
 
