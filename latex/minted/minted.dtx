@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/02/28 v3.8.0dev7 Yet another Pygments shim for LaTeX]
+    [2026/03/02 v3.8.0dev8 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -1398,8 +1398,24 @@
 % If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
 %
 %
+% \item[rangestartafterstringline (single macro or backslash-escaped string) (\meta{none})]
+% Select code starting with the line after this string is found.  The selection starts at the beginning of the line.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
+%
 % \item[rangestartstring (single macro or backslash-escaped string) (\meta{none})]
 % Select code starting with this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
+%
+% \item[rangestartstringline (single macro or backslash-escaped string) (\meta{none})]
+% Select code starting with the line where this string is found.  The selection starts at the beginning of the line.
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
@@ -1414,8 +1430,24 @@
 % If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
 %
 %
+% \item[rangestopbeforestringline (single macro or backslash-escaped string) (\meta{none})]
+% Select code ending with the line before this string is found.  The selection ends at the end of the line.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
+%
 % \item [rangestopstring (single macro or backslash-escaped string) (\meta{none})]
 % Select code ending with this string.
+%
+% The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
+%
+% If line numbers are displayed, they are based on the range of code that is selected; code that is discarded in selecting the range is not considered in calculating line numbers.
+%
+%
+% \item [rangestopstringline (single macro or backslash-escaped string) (\meta{none})]
+% Select code ending with the line where this string is found.  The selection ends at the end of the line.
 %
 % The value must be a single macro that gives the desired text when fully expanded, or a string that is interpreted literally except that backslash escapes of ASCII punctuation characters are allowed to give the literal characters (``|\\|'' for backslash, ``|\#|'' for ``|#|'', and so on).
 %
@@ -3295,9 +3327,13 @@
   escapeinside=,
   literatecomment=,
   rangestartstring=,
+  rangestartstringline=,
   rangestartafterstring=,
+  rangestartafterstringline=,
   rangestopstring=,
+  rangestopstringline=,
   rangestopbeforestring=,
+  rangestopbeforestringline=,
   rangeregex=,
 }
 \let\minted@tmplexer\minted@lexer

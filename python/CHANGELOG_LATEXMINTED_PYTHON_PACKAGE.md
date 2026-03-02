@@ -10,6 +10,9 @@
    extensions that are modified during compilation.  The message now mentions
    `highlightmode=immediate` and `\MintedRegisterTempFileExtension` (#456).
 
+*  Added options `rangestartstringline`, `rangestartafterstringline`,
+   `rangestopstringline`, and `rangestopbeforestringline`.
+
 *  Updated `pyproject.toml` format for license data.
 
 

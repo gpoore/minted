@@ -39,6 +39,12 @@
    handled correctly regardless of `highlightmode`.  Added built-in support
    for `.tcbtemp` file extension for `tcolorbox` (#456).
 
+*  Added options `rangestartstringline`, `rangestartafterstringline`,
+   `rangestopstringline`, and `rangestopbeforestringline`.  These function
+   like the `range*string` options, except that they operate on
+   entire lines rather than immediately at the locations of delimiting
+   strings.
+
 *  Added support for `fancyvrb`'s `baseline` option (#476).
 
 

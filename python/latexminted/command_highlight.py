@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2024, Geoffrey M. Poore
+# Copyright (c) 2024-2026, Geoffrey M. Poore
 # All rights reserved.
 #
 # Licensed under the LaTeX Project Public License version 1.3c:
@@ -81,9 +81,13 @@ other_keys_unchecked_str_value: set[str] = set([
     'escapeinside',
     'lexer',
     'rangestartstring',
+    'rangestartstringline',
     'rangestartafterstring',
+    'rangestartafterstringline',
     'rangestopstring',
+    'rangestopstringline',
     'rangestopbeforestring',
+    'rangestopbeforestringline',
     'rangeregex',
 ])
 all_keys = bool_keys | nonnegative_int_or_none_keys | positive_int_keys | set(other_keys_value_sets) | other_keys_unchecked_str_value
@@ -94,9 +98,13 @@ code_keys = set([
     'gobble',
     'literatecomment',
     'rangestartstring',
+    'rangestartstringline',
     'rangestartafterstring',
+    'rangestartafterstringline',
     'rangestopstring',
+    'rangestopstringline',
     'rangestopbeforestring',
+    'rangestopbeforestringline',
     'rangeregex',
     'rangeregexmatchnumber',
     'rangeregexdotall',
@@ -278,16 +286,21 @@ def load_input_file(*, messages: Messages, input_file: str, mdfivesum: str, enco
 
 def preprocess_code(code: str, *, messages: Messages,
                     autogobble: bool, gobble: int, literatecomment: str,
-                    rangestartstring: str, rangestartafterstring: str, rangestopstring: str, rangestopbeforestring: str,
+                    rangestartstring: str, rangestartstringline: str,
+                    rangestartafterstring: str, rangestartafterstringline: str,
+                    rangestopstring: str, rangestopstringline: str,
+                    rangestopbeforestring: str, rangestopbeforestringline: str,
                     rangeregex: str, rangeregexmatchnumber: int, rangeregexdotall: bool, rangeregexmultiline: bool) -> str | None:
-    if rangeregex and any([rangestartstring, rangestartafterstring, rangestopstring, rangestopbeforestring]):
+    start_string_options = (rangestartstring, rangestartstringline, rangestartafterstring, rangestartafterstringline)
+    stop_string_options = (rangestopstring, rangestopstringline, rangestopbeforestring, rangestopbeforestringline)
+    if rangeregex and (any(start_string_options) or any(stop_string_options)):
         messages.append_error('Cannot use "rangeregex" at the same time as range string options')
         return
-    if rangestartstring and rangestartafterstring:
-        messages.append_error('Cannot use "rangestartstring" and "rangestartafterstring" at the same time')
+    if sum(1 for x in start_string_options if x) > 1:
+        messages.append_error('Cannot use multiple "rangestart" options at the same time')
         return
-    if rangestopstring and rangestopbeforestring:
-        messages.append_error('Cannot use "rangestopstring" and "rangestopbeforestring" at the same time')
+    if sum(1 for x in stop_string_options if x) > 1:
+        messages.append_error('Cannot use multiple "rangestop" options at the same time')
         return
 
     if rangeregex:
@@ -328,12 +341,31 @@ def preprocess_code(code: str, *, messages: Messages,
             messages.append_error('Failed to find string for "rangestartstring"')
             return
         code = code[index:]
+    if rangestartstringline:
+        string_index = code.find(rangestartstringline)
+        if string_index == -1:
+            messages.append_error('Failed to find string for "rangestartstringline"')
+            return
+        newline_index = code.rfind('\n', 0, string_index)
+        index = newline_index + 1
+        code = code[index:]
     if rangestartafterstring:
         index = code.find(rangestartafterstring)
         if index == -1:
             messages.append_error('Failed to find string for "rangestartafterstring"')
             return
         code = code[index+len(rangestartafterstring):]
+    if rangestartafterstringline:
+        string_index = code.find(rangestartafterstringline)
+        if string_index == -1:
+            messages.append_error('Failed to find string for "rangestartafterstringline"')
+            return
+        newline_index = code.find('\n', string_index + len(rangestartafterstring))
+        if newline_index == -1:
+            index = len(code)
+        else:
+            index = newline_index + 1
+        code = code[index:]
 
     if rangestopstring:
         index = code.find(rangestopstring)
@@ -341,11 +373,30 @@ def preprocess_code(code: str, *, messages: Messages,
             messages.append_error('Failed to find string for "rangestopstring"')
             return
         code = code[:index+len(rangestopstring)]
+    if rangestopstringline:
+        string_index = code.find(rangestopstringline)
+        if string_index == -1:
+            messages.append_error('Failed to find string for "rangestopstringline"')
+            return
+        newline_index = code.find('\n', string_index + len(rangestopstringline))
+        if newline_index == -1:
+            index = len(code)
+        else:
+            index = newline_index + 1
+        code = code[:index]
     if rangestopbeforestring:
         index = code.find(rangestopbeforestring)
         if index == -1:
             messages.append_error('Failed to find string for "rangestopbeforestring"')
             return
+        code = code[:index]
+    if rangestopbeforestringline:
+        string_index = code.find(rangestopbeforestringline)
+        if string_index == -1:
+            messages.append_error('Failed to find string for "rangestopbeforestringline"')
+            return
+        newline_index = code.rfind('\n', 0, string_index)
+        index = newline_index + 1
         code = code[:index]
 
     if literatecomment:
