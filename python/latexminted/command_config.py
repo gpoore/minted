@@ -34,8 +34,11 @@ def config(*, md5: str, timestamp: str, debug: bool, messages: Messages, data: d
     if data is not None:
         tex_timestamp: str = data['timestamp']
         config_lines.append(rf'\xdef\minted@config@timestamp{{\detokenize{{{tex_timestamp}}}}}%')
-        minted_sty_version = tuple(int(x) for x in data['mintedversion'].split('.'))
-        if minted_sty_version < MINTED_STY_MIN_VERSION:
+        try:
+            minted_sty_version = tuple(int(x) for x in data['mintedversion'].split('.'))
+        except KeyError:
+            minted_sty_version = None
+        if minted_sty_version is None or minted_sty_version < MINTED_STY_MIN_VERSION:
             config_lines.append(r'\global\boolfalse{minted@canexec}%')
             min_version = '.'.join(str(x) for x in MINTED_STY_MIN_VERSION)
             config_lines.append(rf'\minted@error{{minted Python executable requires minted.sty >= {min_version}}}%')
