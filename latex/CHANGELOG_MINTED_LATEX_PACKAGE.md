@@ -51,6 +51,14 @@
    `latexminted`.  Previously, `minted.sty` checked for compatibility with
    `latexminted`, but there was no reverse check.
 
+*  Added package option `cacheignoresfilecontents`.  This allows `frozencache`
+   to function with only the cache.  External files accessed by commands like
+   `\inputminted` are no longer required, since this disables cache
+   verification for external files (#475).
+
+*  Updated documentation for `frozencache` for `minted` v3 (#475).  Improved
+   error messages for `frozencache`.
+
 *  Added support for `fancyvrb`'s `baseline` option (#476).
 
 

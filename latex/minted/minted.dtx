@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/03/02 v3.8.0dev9 Yet another Pygments shim for LaTeX]
+    [2026/03/03 v3.8.0dev10 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -447,6 +447,8 @@
 %
 % \item The default cache directory name is now |_minted|.  All files within a directory now share the same cache, instead of having separate per-document caches.  Document-specific caching as in |minted| version 2 can be restored using the package option |cachedir|.
 %
+% \item By default, |frozencache| now requires both the cache and any external files that are accessed by commands like |\inputminted|.  To avoid the requirement for external files (as in  \mintedpkg\ version 2), see the new package option |cacheignoresfilecontents|.
+%
 % \item |\newminted| now creates an environment that takes an optional argument consisting of options, instead of taking no argument.
 %
 % \item File encoding changes:  The new |latexminted| executable assumes that \LaTeX\ output files are UTF-8, and saves highlighted code as UTF-8.  That is, LaTeX should be      configured so that everything is UTF-8.  The |encoding| option now defaults to UTF-8.  It is only used in decoding files for |\inputminted| and commands based on it.  The |outencoding| option is no longer supported.
@@ -750,12 +752,30 @@
 % Note that the cache directory is relative to |-output-directory| or equivalently the  |TEXMF_OUTPUT_DIRECTORY| environment variable, if that is set.
 %
 %
+% \DescribeMacro{cacheignoresfilecontents=\meta{boolean} (default:~false)}
+%
+% By default, when highlighted versions of external files are accessed in the cache, they are checked against the original files.  If the original files have been modified, then the cache is updated.  This requires that all external files be available.
+%
+% When |cacheignoresfilecontents=true|, this check is disabled.  As a result, it is possible to use |frozencache| without having access to the original external files.  The files accessed by commands like |\inputminted| are no longer required; only the cache is needed.  However, it is also no longer possible to verify that the cache is still valid.
+%
+% |cacheignoresfilecontents| should be avoided when possible because it disables cache verification for external files.  When |cacheignoresfilecontents| is used, it should be enabled as late as possible in the document preparation process.
+% \begin{enumerate}
+% \item Finalize the document (at least as far as \mintedpkg\ is concerned).
+% \item Set |cacheignoresfilecontents=true| (while |frozencache=false|).
+% \item Compile.  This is necessary to update the cache so that it is usable without access to the original external files.
+% \item Set |frozencache=true|.
+% \end{enumerate}
+% As long as |cacheignoresfilecontents=true|, the document will compile without \mintedpkg\ errors or warnings even if the external files are modified or no longer exist.
+%
+%
 % \DescribeMacro{debug=\meta{boolean} (default:~false)}
 % Provide additional information for aid in debugging.  This keeps temp files that are used in generating highlighted code and also writes additional information to the log.
 %
 %
 % \DescribeMacro{frozencache=\meta{boolean} (default:~false)}
-% Use a frozen (static) cache.  When |frozencache=true|, Python and Pygments are not required, and any external files accessed through |\inputminted| are no longer necessary.  If a cache file is missing, an error will be reported and there will be no attempt to generate the missing cache file.
+% Use a frozen (static) cache.  When |frozencache=true|, Python and Pygments are no longer required to compile a document.  If a cache file is missing, an error will be reported and there will be no attempt to generate the missing cache file.
+%
+% By default, any external files accessed through commands like |\inputminted| are still required, so that the cache can be checked against file contents.  To disable this, see the package option |cacheignoresfilecontents|.
 %
 % When using |frozencache| with |-output-directory|, the |cachedir| package option       should be used to specify a full relative path to the cache (for example, |cachedir=./<output_directory>/_minted|).
 %
@@ -2119,6 +2139,16 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{minted@cacheignoresfilecontents}
+% When caching highlighted versions of external files, ignore file contents.  This allows |frozencache| to function without external files being accessible, but at the cost of not being able to verify file contents.
+%    \begin{macrocode}
+\newbool{minted@cacheignoresfilecontents}
+\minted@pgfopts{
+  cacheignoresfilecontents/.is if=minted@cacheignoresfilecontents,
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{minted@frozencache}
 % When a cache file is missing, raise an error instead of attempting to update the cache.  This is intended for editing a document with a pre-existing cache in an environment in which |\ShellEscape| support is disabled or the \mintedpkg\ executable is not available.
 %    \begin{macrocode}
@@ -2307,7 +2337,14 @@
 %
 %    \begin{macrocode}
 \ProcessPgfOptions{/minted/pkg}
-\ifbool{minted@cache}{}{\minted@pgfopts{highlightmode=immediate,cachedir=,}}
+\ifbool{minted@cache}
+ {}
+ {\minted@pgfopts{
+    cachedir=,
+    cacheignoresfilecontents=false,
+    highlightmode=immediate,
+    frozencache=false,
+ }}
 \ifbool{minted@newfloat}{\RequirePackage{newfloat}}{\RequirePackage{float}}
 \ifcsname tikzifexternalizing\endcsname
   \ifx\tikzifexternalizing\relax
@@ -3887,6 +3924,8 @@
 % Python-related options are buffered/written under a |pyopt| namespace.  This prevents the possibility of naming collisions between options and other data that must be passed to Python.
 %
 % Some data such as |jobname|, |timestamp|, and |cachepath| should be written to file, but not used in hashing because otherwise it would unnecessarily make the cache files dependent on irrelevant data.
+%
+% |cacheignoresfilecontents| requires modifications.  There is no longer an error if an external file cannot be located for file contents verification.  The settings buffer no longer includes the MD5 hash of file contents, so the buffer hash (which is used to name cache files) no longer depends on file contents.  When a cache file does not exist but can be created, the MD5 hash of file contents is still passed to the Python side and is still verified like normal.
 %    \begin{macrocode}
 \def\minted@debug@input{%
   \ifbool{minted@debug}%
@@ -3918,7 +3957,11 @@
   \minted@defstyle
   \edef\minted@inputfilemdfivesum{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
-    \expandafter\@firstoftwo
+    \ifminted@cacheignoresfilecontents
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \else
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \fi
   \else
     \expandafter\@secondoftwo
   \fi
@@ -3927,7 +3970,9 @@
   {\pydatasetbuffername{minted@tmpdatabuffer}%
    \pydatabufferkeyvalue{command}{highlight}%
    \pydatabufferkeyedefvalue{inputfilepath}{\minted@inputfilepath}%
-   \pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}%
+   \ifbool{minted@cacheignoresfilecontents}%
+    {}%
+    {\pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}}%
    \minted@highlight@i}}
 \def\minted@def@FV@GetKeyValues@standardcatcodes{%
   \let\minted@FV@GetKeyValues@orig\FV@GetKeyValues
@@ -3967,8 +4012,11 @@
             \minted@highlight@create}}%
          {\minted@iffasthighlightmode@buffertempfile
           \minted@highlight@create}}%
-       {\minted@error{Cannot highlight code (minted executable is unavailable or
-          disabled); attempting to typeset without highlighting}%
+       {\ifbool{minted@frozencache}%
+         {\minted@error{Cannot highlight code (frozencache=true);
+            attempting to typeset without highlighting}}%
+         {\minted@error{Cannot highlight code (minted executable is unavailable or
+            disabled); attempting to typeset without highlighting}}%
         \minted@highlight@fallback}}}%
    {\edef\minted@highlightfilename{%
       \detokenize{_}\MintedJobnameMdfive\detokenize{.highlight.minted}}%
@@ -3997,6 +4045,9 @@
   \pydatawritekeyedefvalue{inputlineno}{\minted@inputlineno}%
   \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
   \pydatawritekeyedefvalue{highlightfilename}{\minted@highlightfilename}%
+  \ifbool{minted@cacheignoresfilecontents}%
+   {\pydatawritekeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}}%
+   {}%
   \pydatawritedictclose
   \ifbool{minted@fasthighlightmode}%
    {\minted@insertplaceholder}%

@@ -26,7 +26,7 @@
 %% 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{minted}
-    [2026/03/02 v3.8.0dev9 Yet another Pygments shim for LaTeX]
+    [2026/03/03 v3.8.0dev10 Yet another Pygments shim for LaTeX]
 \def\minted@error#1{\PackageError{minted}{#1}{}}
 \def\minted@fatalerror#1{%
   \minted@error{#1}%
@@ -207,6 +207,10 @@
 \minted@pgfopts{
   cachedir/.estore in=\minted@cachedir,
 }
+\newbool{minted@cacheignoresfilecontents}
+\minted@pgfopts{
+  cacheignoresfilecontents/.is if=minted@cacheignoresfilecontents,
+}
 \newbool{minted@frozencache}
 \minted@pgfopts{
   frozencache/.is if=minted@frozencache,
@@ -311,7 +315,14 @@
     Package option "final" no longer has any effect with minted v3+},
 }
 \ProcessPgfOptions{/minted/pkg}
-\ifbool{minted@cache}{}{\minted@pgfopts{highlightmode=immediate,cachedir=,}}
+\ifbool{minted@cache}
+ {}
+ {\minted@pgfopts{
+    cachedir=,
+    cacheignoresfilecontents=false,
+    highlightmode=immediate,
+    frozencache=false,
+ }}
 \ifbool{minted@newfloat}{\RequirePackage{newfloat}}{\RequirePackage{float}}
 \ifcsname tikzifexternalizing\endcsname
   \ifx\tikzifexternalizing\relax
@@ -1450,7 +1461,11 @@
   \minted@defstyle
   \edef\minted@inputfilemdfivesum{\minted@filemdfivehash{\minted@inputfilepath}}%
   \ifx\minted@inputfilemdfivesum\@empty
-    \expandafter\@firstoftwo
+    \ifminted@cacheignoresfilecontents
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \else
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \fi
   \else
     \expandafter\@secondoftwo
   \fi
@@ -1459,7 +1474,9 @@
   {\pydatasetbuffername{minted@tmpdatabuffer}%
    \pydatabufferkeyvalue{command}{highlight}%
    \pydatabufferkeyedefvalue{inputfilepath}{\minted@inputfilepath}%
-   \pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}%
+   \ifbool{minted@cacheignoresfilecontents}%
+    {}%
+    {\pydatabufferkeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}}%
    \minted@highlight@i}}
 \def\minted@def@FV@GetKeyValues@standardcatcodes{%
   \let\minted@FV@GetKeyValues@orig\FV@GetKeyValues
@@ -1499,8 +1516,11 @@
             \minted@highlight@create}}%
          {\minted@iffasthighlightmode@buffertempfile
           \minted@highlight@create}}%
-       {\minted@error{Cannot highlight code (minted executable is unavailable or
-          disabled); attempting to typeset without highlighting}%
+       {\ifbool{minted@frozencache}%
+         {\minted@error{Cannot highlight code (frozencache=true);
+            attempting to typeset without highlighting}}%
+         {\minted@error{Cannot highlight code (minted executable is unavailable or
+            disabled); attempting to typeset without highlighting}}%
         \minted@highlight@fallback}}}%
    {\edef\minted@highlightfilename{%
       \detokenize{_}\MintedJobnameMdfive\detokenize{.highlight.minted}}%
@@ -1529,6 +1549,9 @@
   \pydatawritekeyedefvalue{inputlineno}{\minted@inputlineno}%
   \pydatawritekeyedefvalue{cachepath}{\minted@cachepath}%
   \pydatawritekeyedefvalue{highlightfilename}{\minted@highlightfilename}%
+  \ifbool{minted@cacheignoresfilecontents}%
+   {\pydatawritekeyedefvalue{inputfilemdfivesum}{\minted@inputfilemdfivesum}}%
+   {}%
   \pydatawritedictclose
   \ifbool{minted@fasthighlightmode}%
    {\minted@insertplaceholder}%
