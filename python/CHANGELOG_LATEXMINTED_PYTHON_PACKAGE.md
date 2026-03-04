@@ -2,7 +2,7 @@
 
 
 
-## v0.7.0 (dev)
+## v0.7.0 (2026-03-03)
 
 *  Fixed compatibility with `argparse` in Python 3.14 (#463, #464).
 
