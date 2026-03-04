@@ -1,7 +1,7 @@
 # Changelog — minted LaTeX package
 
 
-## v3.8.0 (dev)
+## v3.8.0 (2026/03/03)
 
 *  Switched to `\str_mdfive_hash:e` and `\file_mdfive_hash:n` for MD5 hashing.
    These replace `\pdf@mdfivesum` and `\pdf@filemdfivesum` from the

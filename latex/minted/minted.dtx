@@ -27,7 +27,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{minted}
 %<*package>
-    [2026/03/03 v3.8.0dev10 Yet another Pygments shim for LaTeX]
+    [2026/03/03 v3.8.0 Yet another Pygments shim for LaTeX]
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -431,7 +431,7 @@
 % \subsubsection*{New features and changes}
 %
 % \begin{itemize}
-% \item Version 3 uses a new \mintedpkg-specific Python executable called |latexminted| to perform syntax highlighting.  This executable is specifically designed to meet the security requirements for restricted shell escape programs.  Once it has passed a security review and is accepted by \TeX\ distributions, it will be possible to highlight code without |-shell-escape| and its attendant security vulnerabilities.
+% \item Version 3 uses a new \mintedpkg-specific Python executable called |latexminted| to perform syntax highlighting.  This executable is specifically designed to meet the security requirements for restricted shell escape programs.  Once it has passed a security review and is accepted by \TeX\ distributions, it will be possible to highlight code without |-shell-escape| and its attendant security vulnerabilities.  TeX Live 2024+ no longer needs |-shell-escape|.
 %
 %   Syntax highlighting is still performed with Pygments, but the |pygmentize| executable included with Pygments is no longer used.
 %
@@ -468,7 +468,7 @@
 %
 % The \mintedpkg\ package operates by passing code to the |latexminted| Python executable, which performs syntax highlighting and then returns the highlighted code in \LaTeX\ format.
 %
-% |latexminted| is designed to be compatible with the security requirements for restricted shell escape.  For up-to-date installations of TeX Live 2024+, the |-shell-escape| option is no longer required.  The |latexminted| Python executable has been added to TeX Live's list of trusted executables.
+% |latexminted| is designed to be compatible with the security requirements for restricted shell escape.  For up-to-date installations of TeX Live 2024+, the |-shell-escape| option is no longer required.  The |latexminted| Python executable has been added to TeX Live's list of trusted executables.  Compiling a document with \mintedpkg\ should typically require no changes from normal \LaTeX\ compilation.
 %
 % For versions of TeX Live before 2024 and for MiKTeX, |latexminted| requires special permission to run.  This can be accomplished by running \LaTeX\ with the |-shell-escape| option (TeX Live) or the |-enable-write18| option (MiKTeX).  Note that using |-shell-escape| or |-enable-write18| allows \LaTeX\ to run potentially arbitrary commands on your system.  These should only be used when necessary, with documents from trusted sources.  An alternative is to manually designate |latexminted| as a trusted executable.
 % \begin{itemize}
