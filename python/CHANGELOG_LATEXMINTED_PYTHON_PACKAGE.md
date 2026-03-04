@@ -2,7 +2,7 @@
 
 
 
-## v0.7.1 (dev)
+## v0.7.1 (2026-03-03)
 
 *  Fixed bug in checking for compatible `minted.sty` when `minted.sty` version
    < 3.8.0.
