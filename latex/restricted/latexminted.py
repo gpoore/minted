@@ -417,7 +417,7 @@ if sys.version_info[:2] < (3, 8):
 
 
 # Select either the local Python installation or the complete bundled wheel
-# set.  The helper uses only the standard library and distribution metadata.
+# set.  The bootstrap uses only the standard library and distribution metadata.
 
 script_resolved = Path(__file__).resolve()
 required_wheel_packages = (
