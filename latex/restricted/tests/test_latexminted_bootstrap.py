@@ -63,6 +63,19 @@ class LocalInstallationTests(unittest.TestCase):
             [self.wheel_path], distribution_finder=self.finder(distributions)
         ))
 
+    def test_missing_latexminted_falls_back(self):
+        self.assertFalse(local_installation_is_compatible(
+            [self.wheel_path], distribution_finder=self.finder({})
+        ))
+
+    def test_malformed_wheel_metadata_falls_back(self):
+        malformed_wheel = pathlib.Path(self.tempdir.name) / 'latexminted-malformed.whl'
+        with zipfile.ZipFile(malformed_wheel, 'w') as wheel:
+            wheel.writestr('latexminted.dist-info/METADATA', 'not valid metadata')
+        self.assertFalse(local_installation_is_compatible(
+            [malformed_wheel], distribution_finder=self.finder({})
+        ))
+
     def test_older_latexminted_falls_back(self):
         distributions = {'latexminted': self.distribution('0.7.0', [])}
         self.assertFalse(local_installation_is_compatible(
