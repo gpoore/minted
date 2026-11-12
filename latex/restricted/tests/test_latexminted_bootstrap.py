@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 # ruff: noqa: E402
 
+import ast
+import email.parser
+import importlib.metadata
 import pathlib
+import re
 import sys
 import tempfile
 import unittest
@@ -9,13 +13,39 @@ import zipfile
 from email.message import EmailMessage
 from unittest.mock import Mock
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from latexminted_bootstrap import (
-    _satisfies_specifier,
-    _version_key,
-    local_installation_is_compatible,
-)
+# Load only the standard-library bootstrap definitions from the launcher.
+# Importing latexminted.py itself would execute the launcher and application.
+_launcher_path = pathlib.Path(__file__).resolve().parents[1] / 'latexminted.py'
+_launcher_tree = ast.parse(_launcher_path.read_text(encoding='utf-8'))
+_bootstrap_names = {
+    '_version_key',
+    '_satisfies_specifier',
+    '_wheel_latexminted_version',
+    '_requirement_parts',
+    'local_installation_is_compatible',
+}
+_bootstrap_nodes = [
+    node for node in _launcher_tree.body
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    and node.name in _bootstrap_names
+]
+_bootstrap_namespace = {
+    'email': email,
+    'importlib': importlib,
+    're': re,
+    'sys': sys,
+    'zipfile': zipfile,
+}
+exec(compile(
+    ast.Module(body=_bootstrap_nodes, type_ignores=[]),
+    str(_launcher_path),
+    'exec',
+), _bootstrap_namespace)
+
+_satisfies_specifier = _bootstrap_namespace['_satisfies_specifier']
+_version_key = _bootstrap_namespace['_version_key']
+local_installation_is_compatible = _bootstrap_namespace['local_installation_is_compatible']
 
 
 class VersionComparisonTests(unittest.TestCase):
