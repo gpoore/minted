@@ -55,8 +55,11 @@ class LocalInstallationTests(unittest.TestCase):
 
     def test_compatible_local_installation(self):
         distributions = {
-            'latexminted': self.distribution('0.7.2', ['latex2pydata >= 0.5.0', 'Pygments >= 2.17.0']),
+            'latexminted': self.distribution('0.7.2', [
+                'latex2pydata >= 0.5.0', 'latexrestricted >= 0.6.2', 'Pygments >= 2.17.0',
+            ]),
             'latex2pydata': self.distribution('0.5.0'),
+            'latexrestricted': self.distribution('0.6.2'),
             'Pygments': self.distribution('2.17.0'),
         }
         self.assertTrue(local_installation_is_compatible(
