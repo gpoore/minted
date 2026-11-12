@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import ast
+import contextlib
 import email.parser
+import io
 import importlib.metadata
 import pathlib
 import re
@@ -116,6 +118,36 @@ class LocalPygmentsTests(unittest.TestCase):
         self.assertFalse(local_pygments_is_compatible(
             [self.wheel_path], distribution_finder=broken_finder
         ))
+
+    def test_malformed_bundled_metadata_falls_back(self):
+        malformed_wheel = pathlib.Path(self.tempdir.name) / 'Pygments-malformed.whl'
+        with zipfile.ZipFile(malformed_wheel, 'w') as wheel:
+            wheel.writestr('pygments.dist-info/METADATA', 'not valid metadata')
+        distributions = {'Pygments': self.distribution('2.18.0')}
+        self.assertFalse(local_pygments_is_compatible(
+            [malformed_wheel], distribution_finder=self.finder(distributions)
+        ))
+
+    def test_debug_reports_selected_source(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            selected = local_pygments_is_compatible(
+                [self.wheel_path],
+                debug=True,
+                distribution_finder=self.finder({'Pygments': self.distribution('2.18.0')}),
+            )
+        self.assertTrue(selected)
+        self.assertIn('using local Pygments', stderr.getvalue())
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            selected = local_pygments_is_compatible(
+                [self.wheel_path],
+                debug=True,
+                distribution_finder=self.finder({'Pygments': self.distribution('2.16.9')}),
+            )
+        self.assertFalse(selected)
+        self.assertIn('using bundled Pygments', stderr.getvalue())
 
 
 if __name__ == '__main__':
