@@ -136,18 +136,16 @@ class Path(type(pathlib.Path())):
 
 
 
-# Determine whether a complete, compatible local Python installation can be used.
+# Determine whether a compatible local Pygments installation can be used.
 # This bootstrap runs before application imports and uses only the standard library.
 
-_NAME_RE = re.compile(r'^\s*([A-Za-z0-9][A-Za-z0-9._-]*)')
 _VERSION_RE = re.compile(
-    r'^v?(?P<release>\d+(?:\.\d+)*)'
-    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\d+))?'
-    r'(?:\.post(?P<post_n>\d+))?'
-    r'(?:\.dev(?P<dev_n>\d+))?$',
+    r'^v?(?P<release>\\d+(?:\\.\\d+)*)'
+    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\\d+))?'
+    r'(?:\\.post(?P<post_n>\\d+))?'
+    r'(?:\\.dev(?P<dev_n>\\d+))?$',
     re.IGNORECASE,
 )
-_SPECIFIER_RE = re.compile(r'^\s*(>=|>|<=|<|==|!=)\s*(\S+)\s*$')
 
 
 def _version_key(version):
@@ -178,40 +176,11 @@ def _version_key(version):
     return release, phase, serial, dev_order, int(dev_n or 0)
 
 
-def _satisfies_specifier(version, specifier):
-    if not specifier:
-        return True
-    for item in specifier.split(','):
-        match = _SPECIFIER_RE.fullmatch(item)
-        if match is None:
-            # Unknown PEP 440 syntax is not a reason to risk mixing package
-            # sources; let the launcher use its known bundled environment.
-            return False
-        operator, required_version = match.groups()
-        try:
-            actual = _version_key(version)
-            required = _version_key(required_version)
-        except (TypeError, ValueError):
-            return False
-        if operator == '>=' and not actual >= required:
-            return False
-        if operator == '>' and not actual > required:
-            return False
-        if operator == '<=' and not actual <= required:
-            return False
-        if operator == '<' and not actual < required:
-            return False
-        if operator == '==' and not actual == required:
-            return False
-        if operator == '!=' and not actual != required:
-            return False
-    return True
-
-
-def _wheel_latexminted_version(wheel_paths):
+def _wheel_distribution_version(wheel_paths, distribution_name):
     versions = []
     for wheel_path in wheel_paths:
-        if not wheel_path.name.startswith('latexminted-'):
+        wheel_name = wheel_path.name.split('-', 1)[0]
+        if wheel_name.lower().replace('_', '-') != distribution_name:
             continue
         with zipfile.ZipFile(wheel_path) as wheel:
             metadata_paths = [
@@ -219,64 +188,34 @@ def _wheel_latexminted_version(wheel_paths):
                 if name.endswith('.dist-info/METADATA')
             ]
             if len(metadata_paths) != 1:
-                raise ValueError('Invalid latexminted wheel metadata')
+                raise ValueError('Invalid ' + distribution_name + ' wheel metadata')
             metadata = email.parser.Parser().parsestr(
                 wheel.read(metadata_paths[0]).decode('utf-8')
             )
-            if metadata.get('Name', '').lower().replace('_', '-') != 'latexminted':
-                raise ValueError('Unexpected distribution in latexminted wheel')
+            metadata_name = metadata.get('Name', '').lower().replace('_', '-')
+            if metadata_name != distribution_name:
+                raise ValueError('Unexpected distribution in ' + distribution_name + ' wheel')
             versions.append(metadata['Version'])
     if len(versions) != 1:
-        raise ValueError('Could not identify exactly one latexminted wheel')
+        raise ValueError('Could not identify exactly one ' + distribution_name + ' wheel')
     return versions[0]
 
 
-def _requirement_parts(requirement):
-    # Environment markers and unsupported requirement syntax are handled
-    # conservatively: the local environment is rejected and bundled instead.
-    if ';' in requirement:
-        raise ValueError('Environment markers are not supported by bootstrap')
-    match = _NAME_RE.match(requirement)
-    if match is None:
-        raise ValueError('Invalid dependency requirement')
-    name = match.group(1)
-    remainder = requirement[match.end():].strip()
-    if remainder.startswith('['):
-        extra_end = remainder.find(']')
-        if extra_end < 0:
-            raise ValueError('Invalid dependency extras')
-        remainder = remainder[extra_end + 1:].strip()
-    return name, remainder
-
-
-def local_installation_is_compatible(wheel_paths, *, debug=False, distribution_finder=None):
-    """Return whether the active interpreter has a complete local installation.
-
-    The bundled latexminted wheel defines the minimum acceptable library
-    version.  The installed distribution's direct Requires-Dist entries
-    define the dependency checks for that installed release.
-    """
+def local_pygments_is_compatible(wheel_paths, *, debug=False, distribution_finder=None):
+    """Return whether local Pygments is at least as new as bundled Pygments."""
     if distribution_finder is None:
         distribution_finder = importlib.metadata.distribution
     try:
-        minimum_version = _wheel_latexminted_version(wheel_paths)
-        local_distribution = distribution_finder('latexminted')
+        minimum_version = _wheel_distribution_version(wheel_paths, 'pygments')
+        local_distribution = distribution_finder('Pygments')
         if _version_key(local_distribution.version) < _version_key(minimum_version):
-            raise ValueError('Local latexminted is older than the bundled version')
-        requirements = local_distribution.requires
-        if requirements is None:
-            requirements = []
-        for requirement in requirements:
-            name, specifier = _requirement_parts(requirement)
-            dependency = distribution_finder(name)
-            if not _satisfies_specifier(dependency.version, specifier):
-                raise ValueError('Incompatible local dependency: ' + name)
+            raise ValueError('Local Pygments is older than the bundled version')
     except Exception:
         if debug:
-            print('latexminted: using bundled Python wheels', file=sys.stderr)
+            print('latexminted: using bundled Pygments', file=sys.stderr)
         return False
     if debug:
-        print('latexminted: using local Python installation', file=sys.stderr)
+        print('latexminted: using local Pygments', file=sys.stderr)
     return True
 
 
@@ -416,8 +355,9 @@ if sys.version_info[:2] < (3, 8):
 
 
 
-# Select either the local Python installation or the complete bundled wheel
-# set.  The bootstrap uses only the standard library and distribution metadata.
+# Use bundled wheels for latexminted and its TeX integration dependencies.
+# Pygments alone may be supplied by the local Python installation when its
+# version is equal to or newer than the bundled version.
 
 script_resolved = Path(__file__).resolve()
 required_wheel_packages = (
@@ -426,18 +366,24 @@ required_wheel_packages = (
     'latex2pydata',
     'pygments',
 )
-wheel_paths = [p for p in script_resolved.parent.glob('*.whl') if p.name.startswith(required_wheel_packages)]
-use_local_python = local_installation_is_compatible(
+wheel_paths = [
+    p for p in script_resolved.parent.glob('*.whl')
+    if p.name.split('-', 1)[0].lower().replace('_', '-') in required_wheel_packages
+]
+wheel_packages = {
+    p.name.split('-', 1)[0].lower().replace('_', '-')
+    for p in wheel_paths
+}
+if not wheel_paths or any(pkg not in wheel_packages for pkg in required_wheel_packages):
+    sys.exit('latexminted failed to find all required bundled wheels *.whl')
+
+use_local_pygments = local_pygments_is_compatible(
     wheel_paths,
     debug='--debug' in sys.argv,
 )
-if not use_local_python:
-    if not wheel_paths:
-        sys.exit('latexminted failed to find bundled wheels *.whl')
-    for pkg in required_wheel_packages:
-        if not any(whl.name.startswith(pkg) for whl in wheel_paths):
-            sys.exit('latexminted failed to find all required bundled wheels *.whl')
-    for wheel_path in wheel_paths:
+for wheel_path in wheel_paths:
+    wheel_package = wheel_path.name.split('-', 1)[0].lower().replace('_', '-')
+    if not use_local_pygments or wheel_package != 'pygments':
         sys.path.insert(0, wheel_path.as_posix())
 
 
