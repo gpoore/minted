@@ -87,11 +87,15 @@ under Windows:
 __launcher_version__ = '20250306'
 
 
+import email.parser
+import importlib.metadata
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
+import zipfile
 
 
 
@@ -129,6 +133,90 @@ class Path(type(pathlib.Path())):
     def is_resolved(self) -> bool:
         return self.cache_key in self._resolved_set
 
+
+
+
+# Determine whether a compatible local Pygments installation can be used.
+# This bootstrap runs before application imports and uses only the standard library.
+
+_VERSION_RE = re.compile(
+    r'^v?(?P<release>\d+(?:\.\d+)*)'
+    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\d+))?'
+    r'(?:\.post(?P<post_n>\d+))?'
+    r'(?:\.dev(?P<dev_n>\d+))?$',
+    re.IGNORECASE,
+)
+
+
+def _version_key(version):
+    match = _VERSION_RE.fullmatch(version)
+    if match is None:
+        raise ValueError('Unsupported version format')
+    release = tuple(int(part) for part in match.group('release').split('.'))
+    release = release + (0,) * (8 - len(release))
+    if len(release) > 8:
+        raise ValueError('Unsupported version format')
+    pre = match.group('pre')
+    post_n = match.group('post_n')
+    dev_n = match.group('dev_n')
+    if pre:
+        phase = {'a': -3, 'b': -2, 'rc': -1}[pre.lower()]
+        serial = int(match.group('pre_n'))
+    elif post_n is not None:
+        phase = 1
+        serial = int(post_n)
+    elif dev_n is not None:
+        phase = -4
+        serial = int(dev_n)
+    else:
+        phase = 0
+        serial = 0
+    # A development release sorts before the corresponding pre/post release.
+    dev_order = 0 if dev_n is not None and (pre or post_n is not None) else 1
+    return release, phase, serial, dev_order, int(dev_n or 0)
+
+
+def _wheel_distribution_version(wheel_paths, distribution_name):
+    versions = []
+    for wheel_path in wheel_paths:
+        wheel_name = wheel_path.name.split('-', 1)[0]
+        if wheel_name.lower().replace('_', '-') != distribution_name:
+            continue
+        with zipfile.ZipFile(wheel_path) as wheel:
+            metadata_paths = [
+                name for name in wheel.namelist()
+                if name.endswith('.dist-info/METADATA')
+            ]
+            if len(metadata_paths) != 1:
+                raise ValueError('Invalid ' + distribution_name + ' wheel metadata')
+            metadata = email.parser.Parser().parsestr(
+                wheel.read(metadata_paths[0]).decode('utf-8')
+            )
+            metadata_name = metadata.get('Name', '').lower().replace('_', '-')
+            if metadata_name != distribution_name:
+                raise ValueError('Unexpected distribution in ' + distribution_name + ' wheel')
+            versions.append(metadata['Version'])
+    if len(versions) != 1:
+        raise ValueError('Could not identify exactly one ' + distribution_name + ' wheel')
+    return versions[0]
+
+
+def local_pygments_is_compatible(wheel_paths, *, debug=False, distribution_finder=None):
+    """Return whether local Pygments is at least as new as bundled Pygments."""
+    if distribution_finder is None:
+        distribution_finder = importlib.metadata.distribution
+    try:
+        minimum_version = _wheel_distribution_version(wheel_paths, 'pygments')
+        local_distribution = distribution_finder('Pygments')
+        if _version_key(local_distribution.version) < _version_key(minimum_version):
+            raise ValueError('Local Pygments is older than the bundled version')
+    except Exception:
+        if debug:
+            print('latexminted: using bundled Pygments', file=sys.stderr)
+        return False
+    if debug:
+        print('latexminted: using local Pygments', file=sys.stderr)
+    return True
 
 
 
@@ -267,7 +355,10 @@ if sys.version_info[:2] < (3, 8):
 
 
 
-# Check for required wheel dependencies and add them to Python's `sys.path`.
+# Use bundled wheels for latexminted and its TeX integration dependencies.
+# Pygments alone may be supplied by the local Python installation when its
+# version is equal to or newer than the bundled version.
+
 script_resolved = Path(__file__).resolve()
 required_wheel_packages = (
     'latexminted',
@@ -275,14 +366,25 @@ required_wheel_packages = (
     'latex2pydata',
     'pygments',
 )
-wheel_paths = [p for p in script_resolved.parent.glob('*.whl') if p.name.startswith(required_wheel_packages)]
-if not wheel_paths:
-    sys.exit('latexminted failed to find bundled wheels *.whl')
-for pkg in required_wheel_packages:
-    if not any(whl.name.startswith(pkg) for whl in wheel_paths):
-        sys.exit('latexminted failed to find all required bundled wheels *.whl')
+wheel_paths = [
+    p for p in script_resolved.parent.glob('*.whl')
+    if p.name.split('-', 1)[0].lower().replace('_', '-') in required_wheel_packages
+]
+wheel_packages = {
+    p.name.split('-', 1)[0].lower().replace('_', '-')
+    for p in wheel_paths
+}
+if not wheel_paths or any(pkg not in wheel_packages for pkg in required_wheel_packages):
+    sys.exit('latexminted failed to find all required bundled wheels *.whl')
+
+use_local_pygments = local_pygments_is_compatible(
+    wheel_paths,
+    debug='--debug' in sys.argv,
+)
 for wheel_path in wheel_paths:
-    sys.path.insert(0, wheel_path.as_posix())
+    wheel_package = wheel_path.name.split('-', 1)[0].lower().replace('_', '-')
+    if not use_local_pygments or wheel_package != 'pygments':
+        sys.path.insert(0, wheel_path.as_posix())
 
 
 
