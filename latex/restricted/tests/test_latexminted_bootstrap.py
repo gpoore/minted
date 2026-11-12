@@ -66,6 +66,19 @@ class LocalInstallationTests(unittest.TestCase):
             [self.wheel_path], distribution_finder=self.finder(distributions)
         ))
 
+    def test_equal_latexminted_version_is_accepted(self):
+        distributions = {
+            'latexminted': self.distribution('0.7.1', [
+                'latex2pydata >= 0.5.0', 'latexrestricted >= 0.6.2', 'Pygments >= 2.17.0',
+            ]),
+            'latex2pydata': self.distribution('0.5.0'),
+            'latexrestricted': self.distribution('0.6.2'),
+            'Pygments': self.distribution('2.17.0'),
+        }
+        self.assertTrue(local_installation_is_compatible(
+            [self.wheel_path], distribution_finder=self.finder(distributions)
+        ))
+
     def test_missing_latexminted_falls_back(self):
         self.assertFalse(local_installation_is_compatible(
             [self.wheel_path], distribution_finder=self.finder({})
