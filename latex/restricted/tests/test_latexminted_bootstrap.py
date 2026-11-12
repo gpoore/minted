@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# ruff: noqa: E402
-
 import ast
 import email.parser
 import importlib.metadata
@@ -27,8 +25,17 @@ _bootstrap_names = {
 }
 _bootstrap_nodes = [
     node for node in _launcher_tree.body
-    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    and node.name in _bootstrap_names
+    if (
+        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name in _bootstrap_names
+    ) or (
+        isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name)
+            and target.id in {'_NAME_RE', '_VERSION_RE', '_SPECIFIER_RE'}
+            for target in node.targets
+        )
+    )
 ]
 _bootstrap_namespace = {
     'email': email,
