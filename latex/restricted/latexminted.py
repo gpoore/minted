@@ -267,7 +267,10 @@ if sys.version_info[:2] < (3, 8):
 
 
 
-# Check for required wheel dependencies and add them to Python's `sys.path`.
+# Select either the local Python installation or the complete bundled wheel
+# set.  The helper uses only the standard library and distribution metadata.
+from latexminted_bootstrap import local_installation_is_compatible
+
 script_resolved = Path(__file__).resolve()
 required_wheel_packages = (
     'latexminted',
@@ -276,13 +279,18 @@ required_wheel_packages = (
     'pygments',
 )
 wheel_paths = [p for p in script_resolved.parent.glob('*.whl') if p.name.startswith(required_wheel_packages)]
-if not wheel_paths:
-    sys.exit('latexminted failed to find bundled wheels *.whl')
-for pkg in required_wheel_packages:
-    if not any(whl.name.startswith(pkg) for whl in wheel_paths):
-        sys.exit('latexminted failed to find all required bundled wheels *.whl')
-for wheel_path in wheel_paths:
-    sys.path.insert(0, wheel_path.as_posix())
+use_local_python = local_installation_is_compatible(
+    wheel_paths,
+    debug='--debug' in sys.argv,
+)
+if not use_local_python:
+    if not wheel_paths:
+        sys.exit('latexminted failed to find bundled wheels *.whl')
+    for pkg in required_wheel_packages:
+        if not any(whl.name.startswith(pkg) for whl in wheel_paths):
+            sys.exit('latexminted failed to find all required bundled wheels *.whl')
+    for wheel_path in wheel_paths:
+        sys.path.insert(0, wheel_path.as_posix())
 
 
 
