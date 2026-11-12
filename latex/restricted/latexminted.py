@@ -140,10 +140,10 @@ class Path(type(pathlib.Path())):
 # This bootstrap runs before application imports and uses only the standard library.
 
 _VERSION_RE = re.compile(
-    r'^v?(?P<release>\\d+(?:\\.\\d+)*)'
-    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\\d+))?'
-    r'(?:\\.post(?P<post_n>\\d+))?'
-    r'(?:\\.dev(?P<dev_n>\\d+))?$',
+    r'^v?(?P<release>\d+(?:\.\d+)*)'
+    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\d+))?'
+    r'(?:\.post(?P<post_n>\d+))?'
+    r'(?:\.dev(?P<dev_n>\d+))?$',
     re.IGNORECASE,
 )
 
