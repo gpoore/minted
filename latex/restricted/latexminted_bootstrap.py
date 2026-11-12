@@ -15,15 +15,15 @@ import sys
 import zipfile
 
 
-_NAME_RE = re.compile(r'^\\s*([A-Za-z0-9][A-Za-z0-9._-]*)')
+_NAME_RE = re.compile(r'^\s*([A-Za-z0-9][A-Za-z0-9._-]*)')
 _VERSION_RE = re.compile(
-    r'^v?(?P<release>\\d+(?:\\.\\d+)*)'
-    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\\d+))?'
-    r'(?:\\.post(?P<post_n>\\d+))?'
-    r'(?:\\.dev(?P<dev_n>\\d+))?$',
+    r'^v?(?P<release>\d+(?:\.\d+)*)'
+    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\d+))?'
+    r'(?:\.post(?P<post_n>\d+))?'
+    r'(?:\.dev(?P<dev_n>\d+))?$',
     re.IGNORECASE,
 )
-_SPECIFIER_RE = re.compile(r'^\\s*(>=|>|<=|<|==|!=)\\s*(\\S+)\\s*$')
+_SPECIFIER_RE = re.compile(r'^\s*(>=|>|<=|<|==|!=)\s*(\S+)\s*$')
 
 
 def _version_key(version):
