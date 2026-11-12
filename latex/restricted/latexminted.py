@@ -87,11 +87,15 @@ under Windows:
 __launcher_version__ = '20250306'
 
 
+import email.parser
+import importlib.metadata
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
+import zipfile
 
 
 
@@ -129,6 +133,655 @@ class Path(type(pathlib.Path())):
     def is_resolved(self) -> bool:
         return self.cache_key in self._resolved_set
 
+
+
+
+# Determine whether a complete, compatible local Python installation can be used.
+# Keep this bootstrap standard-library-only: it runs before application imports.
+
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026
+# Licensed under the LaTeX Project Public License version 1.3c:
+# https://www.latex-project.org/lppl.txt
+#
+# This module is loaded by the TeX-distribution launcher before any
+# latexminted application modules.  Keep it standard-library-only.
+
+
+import email.parser
+import importlib.metadata
+import re
+import sys
+import zipfile
+
+
+_NAME_RE = re.compile(r'^\s*([A-Za-z0-9][A-Za-z0-9._-]*)')
+_VERSION_RE = re.compile(
+    r'^v?(?P<release>\d+(?:\.\d+)*)'
+    r'(?:(?P<pre>a|b|rc)(?P<pre_n>\d+))?'
+    r'(?:\.post(?P<post_n>\d+))?'
+    r'(?:\.dev(?P<dev_n>\d+))?prohibited_path_roots = set()
+prohibited_path_roots.add(Path.cwd())
+env_TEXMFOUTPUT = os.getenv('TEXMFOUTPUT')
+env_TEXMF_OUTPUT_DIRECTORY = os.getenv('TEXMF_OUTPUT_DIRECTORY')
+for env_var in (env_TEXMFOUTPUT, env_TEXMF_OUTPUT_DIRECTORY):
+    if env_var:
+        env_var_path = Path(env_var)
+        prohibited_path_roots.add(env_var_path)
+        prohibited_path_roots.add(env_var_path.resolve())
+
+did_init_prohibited_path_roots = False
+def is_permitted_executable_path(executable_path, executable_path_resolved):
+    global did_init_prohibited_path_roots
+    if not did_init_prohibited_path_roots:
+        did_init_prohibited_path_roots = True
+        init_prohibited_path_roots()
+    if not executable_path_resolved.is_resolved():
+        raise Exception('Second argument must be resolved path')
+    if any(e.is_relative_to(p) or p.is_relative_to(e)
+           for e in set([executable_path.parent, executable_path_resolved.parent])
+           for p in prohibited_path_roots):
+        return False
+    return True
+
+# TeX Live allows setting `TEXMFOUTPUT` in LaTeX configuration.
+# Retrieving that value with kpsewhich follows the approach in latexrestricted:
+# https://github.com/gpoore/latexrestricted/blob/main/latexrestricted/_latex_config.py
+env_SELFAUTOLOC = os.getenv('SELFAUTOLOC')
+env_TEXSYSTEM = os.getenv('TEXSYSTEM')
+def init_prohibited_path_roots():
+    if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYSTEM.lower() != 'miktex'):
+        if sys.platform == 'win32':
+            # Under Windows, shell escape executables will often be launched
+            # with the TeX Live `runscript.exe` executable wrapper.  This
+            # overwrites `SELFAUTOLOC` from TeX with the location of the
+            # wrapper, so `SELFAUTOLOC` may not be correct.
+            which_tlmgr = shutil.which('tlmgr')  # No `.exe`; likely `.bat`
+            if not which_tlmgr:
+                sys.exit('Failed to find TeX Live "tlmgr" executable on PATH')
+            which_tlmgr_resolved = Path(which_tlmgr).resolve()
+            texlive_bin_path = which_tlmgr_resolved.parent
+            # Make sure executable is *.exe, not *.bat or *.cmd:
+            # https://docs.python.org/3/library/subprocess.html#security-considerations
+            which_kpsewhich = shutil.which('kpsewhich.exe', path=str(texlive_bin_path))
+            if not which_kpsewhich:
+                sys.exit(
+                    'Failed to find a TeX Live "tlmgr" executable with accompanying "kpsewhich" executable on PATH'
+                )
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+            if not texlive_bin_path == which_kpsewhich_resolved.parent:
+                sys.exit(' '.join([
+                    '"tlmgr" executable from PATH resolved to "{}" '.format(which_tlmgr_resolved.as_posix()),
+                    'while "kpsewhich" resolved to "{}";'.format(which_kpsewhich_resolved.as_posix()),
+                    '"tlmgr" and "kpsewhich" should be in the same location',
+                ]))
+            if not which_kpsewhich_resolved.name.lower().endswith('.exe'):
+                sys.exit(' '.join([
+                    'Executable "kpsewhich" resolved to "{}",'.format(which_kpsewhich_resolved.as_posix()),
+                    'but *.exe is required',
+                ]))
+        else:
+            which_kpsewhich = shutil.which('kpsewhich', path=env_SELFAUTOLOC)
+            if not which_kpsewhich:
+                sys.exit(' '.join([
+                    'Environment variable SELFAUTOLOC has value "{}",'.format(env_SELFAUTOLOC),
+                    'but a "kpsewhich" executable was not found at that location',
+                ]))
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # As in the latexrestricted case, this doesn't initially check for
+            # the TeX Live scenario where `TEXMFOUTPUT` is set in a
+            # `texmf.cnf` config file to a location that includes the
+            # `kpsewhich` executable.  There isn't a good way to get the value
+            # of `TEXMFOUTPUT` without running `kpsewhich` in that case.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
+        kpsewhich_cmd = [which_kpsewhich_resolved.as_posix(), '--var-value', 'TEXMFOUTPUT']
+        try:
+            kpsewhich_proc = subprocess.run(kpsewhich_cmd, shell=False, capture_output=True)
+        except PermissionError:
+            sys.exit('Insufficient permission to run "{}"'.format(which_kpsewhich_resolved.as_posix()))
+        kpsewhich_TEXMFOUTPUT = kpsewhich_proc.stdout.strip().decode(sys.stdout.encoding) or None
+        if kpsewhich_TEXMFOUTPUT:
+            kpsewhich_TEXMFOUTPUT_path = Path(kpsewhich_TEXMFOUTPUT)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path.resolve())
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # It is now possible to check for the TeX Live scenario where
+            # `TEXMFOUTPUT` is set in a `texmf.cnf` config file to a location
+            # that includes the `kpsewhich` executable.  Giving an error
+            # message after already running `kpsewhich` isn't ideal, but there
+            # isn't a good alternative.  As in the latexrestricted case, the
+            # impact on overall security is negligible because an unsafe value
+            # of `TEXMFOUTPUT` means that all TeX-related executables are
+            # potentially compromised.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
+
+
+
+
+# If Python version is < 3.8, try to locate a more recent version and then
+# relaunch this script with that Python version in a subprocess.
+if sys.version_info[:2] < (3, 8):
+    for minor_version in range(13, 7, -1):
+        if sys.platform == 'win32':
+            # Batch files must be prohibited:
+            # https://docs.python.org/3/library/subprocess.html#security-considerations
+            which_python = shutil.which('python3.{}.exe'.format(minor_version))
+        else:
+            which_python = shutil.which('python3.{}'.format(minor_version))
+        if which_python:
+            which_python_path = Path(which_python)
+            which_python_resolved = which_python_path.resolve()
+            if sys.platform == 'win32' and not which_python_resolved.name.lower().endswith('.exe'):
+                continue
+            if is_permitted_executable_path(which_python_path, which_python_resolved):
+                python_cmd = [which_python_resolved.as_posix(), __file__] + sys.argv[1:]
+                python_proc = subprocess.run(python_cmd, shell=False, capture_output=True)
+                sys.stderr.buffer.write(python_proc.stderr)
+                sys.stdout.buffer.write(python_proc.stdout)
+                sys.exit(python_proc.returncode)
+    sys.exit('latexminted requires Python >= 3.8, but a compatible Python executable was not found on PATH')
+
+
+
+
+# Select either the local Python installation or the complete bundled wheel
+# set.  The helper uses only the standard library and distribution metadata.
+
+script_resolved = Path(__file__).resolve()
+required_wheel_packages = (
+    'latexminted',
+    'latexrestricted',
+    'latex2pydata',
+    'pygments',
+)
+wheel_paths = [p for p in script_resolved.parent.glob('*.whl') if p.name.startswith(required_wheel_packages)]
+use_local_python = local_installation_is_compatible(
+    wheel_paths,
+    debug='--debug' in sys.argv,
+)
+if not use_local_python:
+    if not wheel_paths:
+        sys.exit('latexminted failed to find bundled wheels *.whl')
+    for pkg in required_wheel_packages:
+        if not any(whl.name.startswith(pkg) for whl in wheel_paths):
+            sys.exit('latexminted failed to find all required bundled wheels *.whl')
+    for wheel_path in wheel_paths:
+        sys.path.insert(0, wheel_path.as_posix())
+
+
+
+
+# Under Windows, check PATH for a `latexminted` executable outside a TeX
+# installation.  If a `latexminted` executable is found in a suitable location
+# with sufficient precedence, run it in a subprocess and exit.
+#
+# The environment variable `LATEXMINTED_SUBPROCESS` is used to prevent an
+# endless recursion of subprocesses in the event that a `latexminted`
+# executable *inside* a TeX installation somehow manages to pass the tests for
+# an executable *outside* a TeX installation.
+if sys.platform == 'win32' and not os.getenv('LATEXMINTED_SUBPROCESS'):
+    os.environ['LATEXMINTED_SUBPROCESS'] = '1'
+    fallback_path_search = True
+    if env_SELFAUTOLOC:
+        env_SELFAUTOLOC_resolved = Path(env_SELFAUTOLOC).resolve()
+    else:
+        env_SELFAUTOLOC_resolved = None
+    which_latexminted = shutil.which('latexminted.exe')
+    if which_latexminted:
+        which_latexminted_path = Path(which_latexminted)
+        which_latexminted_resolved = which_latexminted_path.resolve()
+        if not which_latexminted_resolved.name.lower().endswith('.exe'):
+            sys.exit(' '.join([
+                'Executable "latexminted" resolved to "{}",'.format(which_latexminted_resolved.as_posix()),
+                'but *.exe is required',
+            ]))
+        if which_latexminted_resolved == script_resolved:
+            pass
+        elif (which_latexminted_resolved.parent / 'tex.exe').exists():
+            pass
+        elif any(x in which_latexminted_resolved.as_posix().lower() for x in ('texlive', 'miktex', 'tinytex')):
+            pass
+        elif env_SELFAUTOLOC_resolved and which_latexminted_resolved.is_relative_to(env_SELFAUTOLOC_resolved):
+            pass
+        elif is_permitted_executable_path(which_latexminted_path, which_latexminted_resolved):
+            latexminted_cmd = [which_latexminted_resolved.as_posix()] + sys.argv[1:]
+            latexminted_proc = subprocess.run(latexminted_cmd, shell=False, capture_output=True)
+            sys.stderr.buffer.write(latexminted_proc.stderr)
+            sys.stdout.buffer.write(latexminted_proc.stdout)
+            sys.exit(latexminted_proc.returncode)
+        else:
+            # If there was a `latexminted` executable on PATH outside a TeX
+            # installation, but it wasn't permitted due to its location, don't
+            # perform fallback search.
+            fallback_path_search = False
+    if fallback_path_search:
+        # Windows appends user PATH to system PATH, so the system PATH may
+        # prevent finding a user installation of `latexminted`.  Search
+        # through PATH elements under user home directory to check for
+        # `latexminted.exe` outside a TeX installation.
+        home_path = Path.home()
+        env_PATH = os.environ.get('PATH', '')
+        for path_elem in env_PATH.split(os.pathsep):
+            if not path_elem or not Path(path_elem).is_relative_to(home_path):
+                continue
+            which_latexminted = shutil.which('latexminted.exe', path=path_elem)
+            if not which_latexminted:
+                continue
+            which_latexminted_path = Path(which_latexminted)
+            which_latexminted_resolved = which_latexminted_path.resolve()
+            if which_latexminted_resolved == script_resolved:
+                break
+            elif (which_latexminted_resolved.parent / 'tex.exe').exists():
+                break
+            elif any(x in which_latexminted_resolved.as_posix().lower() for x in ('texlive', 'miktex', 'tinytex')):
+                break
+            elif env_SELFAUTOLOC_resolved and which_latexminted_resolved.is_relative_to(env_SELFAUTOLOC_resolved):
+                break
+            elif is_permitted_executable_path(which_latexminted_path, which_latexminted_resolved):
+                latexminted_cmd = [which_latexminted_resolved.as_posix()] + sys.argv[1:]
+                try:
+                    latexminted_proc = subprocess.run(latexminted_cmd, shell=False, capture_output=True)
+                except PermissionError:
+                    break
+                sys.stderr.buffer.write(latexminted_proc.stderr)
+                sys.stdout.buffer.write(latexminted_proc.stdout)
+                sys.exit(latexminted_proc.returncode)
+            else:
+                break
+
+
+
+
+from latexminted.cmdline import main
+main()
+,
+    re.IGNORECASE,
+)
+_SPECIFIER_RE = re.compile(r'^\s*(>=|>|<=|<|==|!=)\s*(\S+)\s*prohibited_path_roots = set()
+prohibited_path_roots.add(Path.cwd())
+env_TEXMFOUTPUT = os.getenv('TEXMFOUTPUT')
+env_TEXMF_OUTPUT_DIRECTORY = os.getenv('TEXMF_OUTPUT_DIRECTORY')
+for env_var in (env_TEXMFOUTPUT, env_TEXMF_OUTPUT_DIRECTORY):
+    if env_var:
+        env_var_path = Path(env_var)
+        prohibited_path_roots.add(env_var_path)
+        prohibited_path_roots.add(env_var_path.resolve())
+
+did_init_prohibited_path_roots = False
+def is_permitted_executable_path(executable_path, executable_path_resolved):
+    global did_init_prohibited_path_roots
+    if not did_init_prohibited_path_roots:
+        did_init_prohibited_path_roots = True
+        init_prohibited_path_roots()
+    if not executable_path_resolved.is_resolved():
+        raise Exception('Second argument must be resolved path')
+    if any(e.is_relative_to(p) or p.is_relative_to(e)
+           for e in set([executable_path.parent, executable_path_resolved.parent])
+           for p in prohibited_path_roots):
+        return False
+    return True
+
+# TeX Live allows setting `TEXMFOUTPUT` in LaTeX configuration.
+# Retrieving that value with kpsewhich follows the approach in latexrestricted:
+# https://github.com/gpoore/latexrestricted/blob/main/latexrestricted/_latex_config.py
+env_SELFAUTOLOC = os.getenv('SELFAUTOLOC')
+env_TEXSYSTEM = os.getenv('TEXSYSTEM')
+def init_prohibited_path_roots():
+    if not env_TEXMFOUTPUT and env_SELFAUTOLOC and (not env_TEXSYSTEM or env_TEXSYSTEM.lower() != 'miktex'):
+        if sys.platform == 'win32':
+            # Under Windows, shell escape executables will often be launched
+            # with the TeX Live `runscript.exe` executable wrapper.  This
+            # overwrites `SELFAUTOLOC` from TeX with the location of the
+            # wrapper, so `SELFAUTOLOC` may not be correct.
+            which_tlmgr = shutil.which('tlmgr')  # No `.exe`; likely `.bat`
+            if not which_tlmgr:
+                sys.exit('Failed to find TeX Live "tlmgr" executable on PATH')
+            which_tlmgr_resolved = Path(which_tlmgr).resolve()
+            texlive_bin_path = which_tlmgr_resolved.parent
+            # Make sure executable is *.exe, not *.bat or *.cmd:
+            # https://docs.python.org/3/library/subprocess.html#security-considerations
+            which_kpsewhich = shutil.which('kpsewhich.exe', path=str(texlive_bin_path))
+            if not which_kpsewhich:
+                sys.exit(
+                    'Failed to find a TeX Live "tlmgr" executable with accompanying "kpsewhich" executable on PATH'
+                )
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+            if not texlive_bin_path == which_kpsewhich_resolved.parent:
+                sys.exit(' '.join([
+                    '"tlmgr" executable from PATH resolved to "{}" '.format(which_tlmgr_resolved.as_posix()),
+                    'while "kpsewhich" resolved to "{}";'.format(which_kpsewhich_resolved.as_posix()),
+                    '"tlmgr" and "kpsewhich" should be in the same location',
+                ]))
+            if not which_kpsewhich_resolved.name.lower().endswith('.exe'):
+                sys.exit(' '.join([
+                    'Executable "kpsewhich" resolved to "{}",'.format(which_kpsewhich_resolved.as_posix()),
+                    'but *.exe is required',
+                ]))
+        else:
+            which_kpsewhich = shutil.which('kpsewhich', path=env_SELFAUTOLOC)
+            if not which_kpsewhich:
+                sys.exit(' '.join([
+                    'Environment variable SELFAUTOLOC has value "{}",'.format(env_SELFAUTOLOC),
+                    'but a "kpsewhich" executable was not found at that location',
+                ]))
+            which_kpsewhich_path = Path(which_kpsewhich)
+            which_kpsewhich_resolved = which_kpsewhich_path.resolve()
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # As in the latexrestricted case, this doesn't initially check for
+            # the TeX Live scenario where `TEXMFOUTPUT` is set in a
+            # `texmf.cnf` config file to a location that includes the
+            # `kpsewhich` executable.  There isn't a good way to get the value
+            # of `TEXMFOUTPUT` without running `kpsewhich` in that case.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
+        kpsewhich_cmd = [which_kpsewhich_resolved.as_posix(), '--var-value', 'TEXMFOUTPUT']
+        try:
+            kpsewhich_proc = subprocess.run(kpsewhich_cmd, shell=False, capture_output=True)
+        except PermissionError:
+            sys.exit('Insufficient permission to run "{}"'.format(which_kpsewhich_resolved.as_posix()))
+        kpsewhich_TEXMFOUTPUT = kpsewhich_proc.stdout.strip().decode(sys.stdout.encoding) or None
+        if kpsewhich_TEXMFOUTPUT:
+            kpsewhich_TEXMFOUTPUT_path = Path(kpsewhich_TEXMFOUTPUT)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path)
+            prohibited_path_roots.add(kpsewhich_TEXMFOUTPUT_path.resolve())
+        if not is_permitted_executable_path(which_kpsewhich_path, which_kpsewhich_resolved):
+            # It is now possible to check for the TeX Live scenario where
+            # `TEXMFOUTPUT` is set in a `texmf.cnf` config file to a location
+            # that includes the `kpsewhich` executable.  Giving an error
+            # message after already running `kpsewhich` isn't ideal, but there
+            # isn't a good alternative.  As in the latexrestricted case, the
+            # impact on overall security is negligible because an unsafe value
+            # of `TEXMFOUTPUT` means that all TeX-related executables are
+            # potentially compromised.
+            sys.exit(
+                'Executable "kpsewhich" is located under the current directory, TEXMFOUTPUT, or '
+                'TEXMF_OUTPUT_DIRECTORY, or one of these locations is under the same directory as the executable'
+            )
+
+
+
+
+# If Python version is < 3.8, try to locate a more recent version and then
+# relaunch this script with that Python version in a subprocess.
+if sys.version_info[:2] < (3, 8):
+    for minor_version in range(13, 7, -1):
+        if sys.platform == 'win32':
+            # Batch files must be prohibited:
+            # https://docs.python.org/3/library/subprocess.html#security-considerations
+            which_python = shutil.which('python3.{}.exe'.format(minor_version))
+        else:
+            which_python = shutil.which('python3.{}'.format(minor_version))
+        if which_python:
+            which_python_path = Path(which_python)
+            which_python_resolved = which_python_path.resolve()
+            if sys.platform == 'win32' and not which_python_resolved.name.lower().endswith('.exe'):
+                continue
+            if is_permitted_executable_path(which_python_path, which_python_resolved):
+                python_cmd = [which_python_resolved.as_posix(), __file__] + sys.argv[1:]
+                python_proc = subprocess.run(python_cmd, shell=False, capture_output=True)
+                sys.stderr.buffer.write(python_proc.stderr)
+                sys.stdout.buffer.write(python_proc.stdout)
+                sys.exit(python_proc.returncode)
+    sys.exit('latexminted requires Python >= 3.8, but a compatible Python executable was not found on PATH')
+
+
+
+
+# Select either the local Python installation or the complete bundled wheel
+# set.  The helper uses only the standard library and distribution metadata.
+from latexminted_bootstrap import local_installation_is_compatible
+
+script_resolved = Path(__file__).resolve()
+required_wheel_packages = (
+    'latexminted',
+    'latexrestricted',
+    'latex2pydata',
+    'pygments',
+)
+wheel_paths = [p for p in script_resolved.parent.glob('*.whl') if p.name.startswith(required_wheel_packages)]
+use_local_python = local_installation_is_compatible(
+    wheel_paths,
+    debug='--debug' in sys.argv,
+)
+if not use_local_python:
+    if not wheel_paths:
+        sys.exit('latexminted failed to find bundled wheels *.whl')
+    for pkg in required_wheel_packages:
+        if not any(whl.name.startswith(pkg) for whl in wheel_paths):
+            sys.exit('latexminted failed to find all required bundled wheels *.whl')
+    for wheel_path in wheel_paths:
+        sys.path.insert(0, wheel_path.as_posix())
+
+
+
+
+# Under Windows, check PATH for a `latexminted` executable outside a TeX
+# installation.  If a `latexminted` executable is found in a suitable location
+# with sufficient precedence, run it in a subprocess and exit.
+#
+# The environment variable `LATEXMINTED_SUBPROCESS` is used to prevent an
+# endless recursion of subprocesses in the event that a `latexminted`
+# executable *inside* a TeX installation somehow manages to pass the tests for
+# an executable *outside* a TeX installation.
+if sys.platform == 'win32' and not os.getenv('LATEXMINTED_SUBPROCESS'):
+    os.environ['LATEXMINTED_SUBPROCESS'] = '1'
+    fallback_path_search = True
+    if env_SELFAUTOLOC:
+        env_SELFAUTOLOC_resolved = Path(env_SELFAUTOLOC).resolve()
+    else:
+        env_SELFAUTOLOC_resolved = None
+    which_latexminted = shutil.which('latexminted.exe')
+    if which_latexminted:
+        which_latexminted_path = Path(which_latexminted)
+        which_latexminted_resolved = which_latexminted_path.resolve()
+        if not which_latexminted_resolved.name.lower().endswith('.exe'):
+            sys.exit(' '.join([
+                'Executable "latexminted" resolved to "{}",'.format(which_latexminted_resolved.as_posix()),
+                'but *.exe is required',
+            ]))
+        if which_latexminted_resolved == script_resolved:
+            pass
+        elif (which_latexminted_resolved.parent / 'tex.exe').exists():
+            pass
+        elif any(x in which_latexminted_resolved.as_posix().lower() for x in ('texlive', 'miktex', 'tinytex')):
+            pass
+        elif env_SELFAUTOLOC_resolved and which_latexminted_resolved.is_relative_to(env_SELFAUTOLOC_resolved):
+            pass
+        elif is_permitted_executable_path(which_latexminted_path, which_latexminted_resolved):
+            latexminted_cmd = [which_latexminted_resolved.as_posix()] + sys.argv[1:]
+            latexminted_proc = subprocess.run(latexminted_cmd, shell=False, capture_output=True)
+            sys.stderr.buffer.write(latexminted_proc.stderr)
+            sys.stdout.buffer.write(latexminted_proc.stdout)
+            sys.exit(latexminted_proc.returncode)
+        else:
+            # If there was a `latexminted` executable on PATH outside a TeX
+            # installation, but it wasn't permitted due to its location, don't
+            # perform fallback search.
+            fallback_path_search = False
+    if fallback_path_search:
+        # Windows appends user PATH to system PATH, so the system PATH may
+        # prevent finding a user installation of `latexminted`.  Search
+        # through PATH elements under user home directory to check for
+        # `latexminted.exe` outside a TeX installation.
+        home_path = Path.home()
+        env_PATH = os.environ.get('PATH', '')
+        for path_elem in env_PATH.split(os.pathsep):
+            if not path_elem or not Path(path_elem).is_relative_to(home_path):
+                continue
+            which_latexminted = shutil.which('latexminted.exe', path=path_elem)
+            if not which_latexminted:
+                continue
+            which_latexminted_path = Path(which_latexminted)
+            which_latexminted_resolved = which_latexminted_path.resolve()
+            if which_latexminted_resolved == script_resolved:
+                break
+            elif (which_latexminted_resolved.parent / 'tex.exe').exists():
+                break
+            elif any(x in which_latexminted_resolved.as_posix().lower() for x in ('texlive', 'miktex', 'tinytex')):
+                break
+            elif env_SELFAUTOLOC_resolved and which_latexminted_resolved.is_relative_to(env_SELFAUTOLOC_resolved):
+                break
+            elif is_permitted_executable_path(which_latexminted_path, which_latexminted_resolved):
+                latexminted_cmd = [which_latexminted_resolved.as_posix()] + sys.argv[1:]
+                try:
+                    latexminted_proc = subprocess.run(latexminted_cmd, shell=False, capture_output=True)
+                except PermissionError:
+                    break
+                sys.stderr.buffer.write(latexminted_proc.stderr)
+                sys.stdout.buffer.write(latexminted_proc.stdout)
+                sys.exit(latexminted_proc.returncode)
+            else:
+                break
+
+
+
+
+from latexminted.cmdline import main
+main()
+)
+
+
+def _version_key(version):
+    match = _VERSION_RE.fullmatch(version)
+    if match is None:
+        raise ValueError('Unsupported version format')
+    release = tuple(int(part) for part in match.group('release').split('.'))
+    release = release + (0,) * (8 - len(release))
+    if len(release) > 8:
+        raise ValueError('Unsupported version format')
+    pre = match.group('pre')
+    post_n = match.group('post_n')
+    dev_n = match.group('dev_n')
+    if pre:
+        phase = {'a': -3, 'b': -2, 'rc': -1}[pre.lower()]
+        serial = int(match.group('pre_n'))
+    elif post_n is not None:
+        phase = 1
+        serial = int(post_n)
+    elif dev_n is not None:
+        phase = -4
+        serial = int(dev_n)
+    else:
+        phase = 0
+        serial = 0
+    # A development release sorts before the corresponding pre/post release.
+    dev_order = 0 if dev_n is not None and (pre or post_n is not None) else 1
+    return release, phase, serial, dev_order, int(dev_n or 0)
+
+
+def _satisfies_specifier(version, specifier):
+    if not specifier:
+        return True
+    for item in specifier.split(','):
+        match = _SPECIFIER_RE.fullmatch(item)
+        if match is None:
+            # Unknown PEP 440 syntax is not a reason to risk mixing package
+            # sources; let the launcher use its known bundled environment.
+            return False
+        operator, required_version = match.groups()
+        try:
+            actual = _version_key(version)
+            required = _version_key(required_version)
+        except (TypeError, ValueError):
+            return False
+        if operator == '>=' and not actual >= required:
+            return False
+        if operator == '>' and not actual > required:
+            return False
+        if operator == '<=' and not actual <= required:
+            return False
+        if operator == '<' and not actual < required:
+            return False
+        if operator == '==' and not actual == required:
+            return False
+        if operator == '!=' and not actual != required:
+            return False
+    return True
+
+
+def _wheel_latexminted_version(wheel_paths):
+    versions = []
+    for wheel_path in wheel_paths:
+        if not wheel_path.name.startswith('latexminted-'):
+            continue
+        with zipfile.ZipFile(wheel_path) as wheel:
+            metadata_paths = [
+                name for name in wheel.namelist()
+                if name.endswith('.dist-info/METADATA')
+            ]
+            if len(metadata_paths) != 1:
+                raise ValueError('Invalid latexminted wheel metadata')
+            metadata = email.parser.Parser().parsestr(
+                wheel.read(metadata_paths[0]).decode('utf-8')
+            )
+            if metadata.get('Name', '').lower().replace('_', '-') != 'latexminted':
+                raise ValueError('Unexpected distribution in latexminted wheel')
+            versions.append(metadata['Version'])
+    if len(versions) != 1:
+        raise ValueError('Could not identify exactly one latexminted wheel')
+    return versions[0]
+
+
+def _requirement_parts(requirement):
+    # Environment markers and unsupported requirement syntax are handled
+    # conservatively: the local environment is rejected and bundled instead.
+    if ';' in requirement:
+        raise ValueError('Environment markers are not supported by bootstrap')
+    match = _NAME_RE.match(requirement)
+    if match is None:
+        raise ValueError('Invalid dependency requirement')
+    name = match.group(1)
+    remainder = requirement[match.end():].strip()
+    if remainder.startswith('['):
+        extra_end = remainder.find(']')
+        if extra_end < 0:
+            raise ValueError('Invalid dependency extras')
+        remainder = remainder[extra_end + 1:].strip()
+    return name, remainder
+
+
+def local_installation_is_compatible(wheel_paths, *, debug=False, distribution_finder=None):
+    """Return whether the active interpreter has a complete local installation.
+
+    The bundled latexminted wheel defines the minimum acceptable library
+    version.  The installed distribution's direct Requires-Dist entries
+    define the dependency checks for that installed release.
+    """
+    if distribution_finder is None:
+        distribution_finder = importlib.metadata.distribution
+    try:
+        minimum_version = _wheel_latexminted_version(wheel_paths)
+        local_distribution = distribution_finder('latexminted')
+        if _version_key(local_distribution.version) < _version_key(minimum_version):
+            raise ValueError('Local latexminted is older than the bundled version')
+        requirements = local_distribution.requires
+        if requirements is None:
+            requirements = []
+        for requirement in requirements:
+            name, specifier = _requirement_parts(requirement)
+            dependency = distribution_finder(name)
+            if not _satisfies_specifier(dependency.version, specifier):
+                raise ValueError('Incompatible local dependency: ' + name)
+    except Exception:
+        if debug:
+            print('latexminted: using bundled Python wheels', file=sys.stderr)
+        return False
+    if debug:
+        print('latexminted: using local Python installation', file=sys.stderr)
+    return True
 
 
 
